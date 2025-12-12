@@ -6,6 +6,12 @@ MAIN_PATH=./cmd/server
 BUILD_DIR=./bin
 COVERAGE_FILE=coverage.out
 
+# Load environment variables from .env if it exists
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+endif
+
 # Colors for output
 GREEN=\033[0;32m
 YELLOW=\033[0;33m
@@ -23,7 +29,7 @@ build: ## Build the application
 	@go build -o $(BUILD_DIR)/$(BINARY_NAME) $(MAIN_PATH)
 	@echo "${GREEN}Build complete: $(BUILD_DIR)/$(BINARY_NAME)${NC}"
 
-run: ## Run the application
+run: swagger-generate ## Run the application
 	@echo "${GREEN}Running ${BINARY_NAME}...${NC}"
 	@go run $(MAIN_PATH)/main.go
 
@@ -84,15 +90,15 @@ migrate: ## Run database migrations
 
 migrate-up: ## Run migrations up
 	@echo "${GREEN}Running migrations up...${NC}"
-	@migrate -path ./migrations -database "${DATABASE_URL}" up
+	@$(HOME)/go/bin/migrate -path ./migrations -database "$(DATABASE_URL)" up
 
 migrate-down: ## Run migrations down
 	@echo "${YELLOW}Rolling back migrations...${NC}"
-	@migrate -path ./migrations -database "${DATABASE_URL}" down 1
+	@$(HOME)/go/bin/migrate -path ./migrations -database "$(DATABASE_URL)" down 1
 
 migrate-create: ## Create new migration (usage: make migrate-create NAME=create_users_table)
 	@echo "${GREEN}Creating migration: $(NAME)${NC}"
-	@migrate create -ext sql -dir ./migrations -seq $(NAME)
+	@$(HOME)/go/bin/migrate create -ext sql -dir ./migrations -seq $(NAME)
 
 docker-build: ## Build Docker image
 	@echo "${GREEN}Building Docker image...${NC}"
@@ -109,12 +115,28 @@ generate-keys: ## Generate RSA keys for JWT
 	@openssl rsa -in keys/jwt-private.pem -pubout -out keys/jwt-public.pem
 	@echo "${GREEN}Keys generated in ./keys/${NC}"
 
+swagger-install: ## Install Swagger CLI tool
+	@echo "${GREEN}Installing swag CLI...${NC}"
+	@go install github.com/swaggo/swag/cmd/swag@latest
+	@echo "${GREEN}swag CLI installed${NC}"
+
+swagger-generate: ## Generate Swagger documentation
+	@echo "${GREEN}Generating Swagger documentation...${NC}"
+	@$(HOME)/go/bin/swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
+	@echo "${GREEN}Swagger documentation generated in ./docs/${NC}"
+
+swagger-clean: ## Clean generated Swagger files
+	@echo "${YELLOW}Cleaning Swagger documentation...${NC}"
+	@rm -rf docs/docs.go docs/swagger.json docs/swagger.yaml
+	@echo "${GREEN}Swagger files cleaned${NC}"
+
 install-tools: ## Install development tools
 	@echo "${GREEN}Installing development tools...${NC}"
 	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	@go install github.com/securego/gosec/v2/cmd/gosec@latest
 	@go install golang.org/x/tools/cmd/goimports@latest
 	@go install github.com/cosmtrek/air@latest
+	@go install github.com/swaggo/swag/cmd/swag@latest
 	@echo "${GREEN}Tools installed${NC}"
 
 all: clean deps fmt lint test build ## Run all checks and build

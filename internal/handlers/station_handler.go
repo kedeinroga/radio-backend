@@ -25,6 +25,16 @@ func NewStationHandler(stationService *services.StationService, analyticsService
 }
 
 // GetPopular returns popular stations
+// @Summary Obtener estaciones populares
+// @Description Lista de estaciones de radio populares con filtros opcionales
+// @Tags Stations
+// @Accept json
+// @Produce json
+// @Param limit query int false "Número máximo de estaciones" default(20)
+// @Param country query string false "Filtrar por código de país"
+// @Success 200 {object} map[string]interface{} "Lista de estaciones populares"
+// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Router /stations/popular [get]
 func (h *StationHandler) GetPopular(c *gin.Context) {
 	// Parse query parameters
 	limit := parseIntQuery(c, "limit", 20)
@@ -65,6 +75,17 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 }
 
 // Search searches for stations
+// @Summary Buscar estaciones
+// @Description Busca estaciones de radio por nombre o tags
+// @Tags Stations
+// @Accept json
+// @Produce json
+// @Param q query string true "Término de búsqueda"
+// @Param limit query int false "Número máximo de resultados" default(20)
+// @Success 200 {object} map[string]interface{} "Resultados de búsqueda"
+// @Failure 400 {object} map[string]interface{} "Parámetro de búsqueda requerido"
+// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Router /stations/search [get]
 func (h *StationHandler) Search(c *gin.Context) {
 	// Parse query parameters
 	query := c.Query("q")

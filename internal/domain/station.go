@@ -1,18 +1,27 @@
 package domain
 
-// Station represents a radio station entity
+import "time"
+
 type Station struct {
-	ID            string
-	Name          string
-	StreamURL     string
-	ImageURL      string
-	Tags          []string
-	Country       string
-	Votes         int
-	IsPremiumOnly bool
+	ID                string
+	Name              string
+	StreamURL         string
+	StreamURLResolved string
+	ImageURL          string
+	Tags              []string
+	Country           string
+	Votes             int
+	IsPremiumOnly     bool
+
+	// Cache metadata
+	Source       string
+	LastSyncedAt *time.Time
+	SyncCount    int
+	IsActive     bool
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
-// IsAccessibleBy checks if a station is accessible by a given user type
 func (s *Station) IsAccessibleBy(userType UserType) bool {
 	if s.IsPremiumOnly {
 		return userType == UserTypePremium
@@ -20,7 +29,14 @@ func (s *Station) IsAccessibleBy(userType UserType) bool {
 	return true
 }
 
-// StationRepository defines the interface for station data access
+// NeedsSync checks if station data should be refreshed from external source
+func (s *Station) NeedsSync(maxAge time.Duration) bool {
+	if s.LastSyncedAt == nil {
+		return true
+	}
+	return time.Since(*s.LastSyncedAt) > maxAge
+}
+
 type StationRepository interface {
 	FindPopular(limit int, country string) ([]Station, error)
 	Search(query string, limit int) ([]Station, error)

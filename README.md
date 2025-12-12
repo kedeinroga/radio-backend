@@ -102,6 +102,24 @@ The server will start on `http://localhost:8080`
 - `GET /api/v1/analytics/searches/trending` - Trending searches
 - `GET /api/v1/analytics/users/active` - Active users count
 
+## API Documentation
+
+Interactive API documentation is available via Swagger UI:
+
+**Development**: `http://localhost:8080/swagger/index.html`
+
+The documentation is automatically generated from code annotations and includes:
+- Complete endpoint descriptions
+- Request/response schemas
+- Authentication requirements
+- Query parameters
+- Example requests
+
+To regenerate documentation after code changes:
+```bash
+make swagger-generate
+```
+
 ## Development
 
 ### Run with live reload
@@ -132,6 +150,19 @@ make fmt
 
 ```bash
 make security
+```
+
+### Database Migrations
+
+```bash
+# Apply all pending migrations
+make migrate-up
+
+# Rollback last migration
+make migrate-down
+
+# Create new migration
+make migrate-create NAME=add_new_table
 ```
 
 ## Docker

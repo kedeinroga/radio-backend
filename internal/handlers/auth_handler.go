@@ -38,6 +38,16 @@ type RefreshRequest struct {
 }
 
 // Register handles user registration
+// @Summary Registrar nuevo usuario
+// @Description Crea una nueva cuenta de usuario guest
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Datos de registro"
+// @Success 201 {object} map[string]interface{} "Usuario creado exitosamente"
+// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
+// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -65,6 +75,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 // Login handles user login
+// @Summary Iniciar sesión
+// @Description Autentica un usuario y retorna tokens JWT
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Credenciales de inicio de sesión"
+// @Success 200 {object} map[string]interface{} "Tokens de autenticación"
+// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
+// @Failure 401 {object} map[string]interface{} "Credenciales inválidas"
+// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -90,6 +111,17 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 // RefreshToken handles token refresh
+// @Summary Refrescar token de acceso
+// @Description Genera un nuevo access token usando un refresh token válido
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body RefreshRequest true "Refresh token"
+// @Success 200 {object} map[string]interface{} "Nuevo access token"
+// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
+// @Failure 401 {object} map[string]interface{} "Refresh token inválido o expirado"
+// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -114,6 +146,15 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 }
 
 // Me returns the current user info
+// @Summary Obtener información del usuario actual
+// @Description Retorna la información del usuario autenticado
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Información del usuario"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Router /auth/me [get]
 func (h *AuthHandler) Me(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	if userID == nil {

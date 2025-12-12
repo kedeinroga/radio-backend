@@ -1,3 +1,22 @@
+// @title Radio Backend API
+// @version 1.0
+// @description API para streaming de radio con autenticación JWT y analytics
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@radiobackend.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 package main
 
 import (
@@ -86,12 +105,21 @@ func main() {
 	// Initialize repositories
 	userRepo := postgres.NewUserRepository(db)
 	analyticsRepo := postgres.NewAnalyticsRepository(db)
-	stationRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
+	stationCacheRepo := postgres.NewStationCacheRepository(db)
+	searchCacheRepo := postgres.NewSearchCacheRepository(db)
+	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
 	// Initialize services
 	authService := services.NewAuthService(userRepo, passwordHasher, tokenManager, tokenManager)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
-	stationService := services.NewStationService(stationRepo, analyticsService)
+	stationService := services.NewStationService(
+		stationCacheRepo,
+		radioBrowserRepo,
+		searchCacheRepo,
+		analyticsService,
+		cfg.Cache.StationMaxAge,
+		cfg.Cache.SearchCacheTTL,
+	)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(authService)

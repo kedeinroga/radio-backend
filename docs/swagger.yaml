@@ -1,0 +1,370 @@
+basePath: /api/v1
+definitions:
+  internal_handlers.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_handlers.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  internal_handlers.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@radiobackend.com
+    name: API Support
+  description: API para streaming de radio con autenticación JWT y analytics
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Radio Backend API
+  version: "1.0"
+paths:
+  /analytics/searches/trending:
+    get:
+      consumes:
+      - application/json
+      description: Analytics de búsquedas más frecuentes (Solo usuarios Premium)
+      parameters:
+      - default: day
+        description: 'Rango de tiempo: day, week, month'
+        in: query
+        name: range
+        type: string
+      - default: 10
+        description: Número máximo de resultados
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estadísticas de búsquedas
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Acceso denegado - Solo Premium
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Búsquedas en tendencia
+      tags:
+      - Analytics
+  /analytics/stations/popular:
+    get:
+      consumes:
+      - application/json
+      description: Analytics de estaciones más reproducidas (Solo usuarios Premium)
+      parameters:
+      - default: day
+        description: 'Rango de tiempo: day, week, month'
+        in: query
+        name: range
+        type: string
+      - default: 10
+        description: Número máximo de resultados
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estadísticas de estaciones
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Acceso denegado - Solo Premium
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Estadísticas de estaciones populares
+      tags:
+      - Analytics
+  /analytics/users/active:
+    get:
+      consumes:
+      - application/json
+      description: Cuenta de usuarios activos en el sistema (Solo usuarios Premium)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cuenta de usuarios activos
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Acceso denegado - Solo Premium
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Usuarios activos
+      tags:
+      - Analytics
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica un usuario y retorna tokens JWT
+      parameters:
+      - description: Credenciales de inicio de sesión
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tokens de autenticación
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Credenciales inválidas
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Iniciar sesión
+      tags:
+      - Authentication
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Retorna la información del usuario autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Información del usuario
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener información del usuario actual
+      tags:
+      - Authentication
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Genera un nuevo access token usando un refresh token válido
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Nuevo access token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Refresh token inválido o expirado
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refrescar token de acceso
+      tags:
+      - Authentication
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva cuenta de usuario guest
+      parameters:
+      - description: Datos de registro
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Usuario creado exitosamente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Registrar nuevo usuario
+      tags:
+      - Authentication
+  /stations/popular:
+    get:
+      consumes:
+      - application/json
+      description: Lista de estaciones de radio populares con filtros opcionales
+      parameters:
+      - default: 20
+        description: Número máximo de estaciones
+        in: query
+        name: limit
+        type: integer
+      - description: Filtrar por código de país
+        in: query
+        name: country
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de estaciones populares
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Obtener estaciones populares
+      tags:
+      - Stations
+  /stations/search:
+    get:
+      consumes:
+      - application/json
+      description: Busca estaciones de radio por nombre o tags
+      parameters:
+      - description: Término de búsqueda
+        in: query
+        name: q
+        required: true
+        type: string
+      - default: 20
+        description: Número máximo de resultados
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resultados de búsqueda
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Parámetro de búsqueda requerido
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Buscar estaciones
+      tags:
+      - Stations
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
