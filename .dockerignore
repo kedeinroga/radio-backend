@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+*.md
+!README.md
+.github
+.vscode
+.idea
+*.log
+tmp/
+bin/
+coverage.out
+coverage.html
+.golangci.yml
+.editorconfig
+Makefile
