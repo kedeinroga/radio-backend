@@ -38,6 +38,7 @@ func (s *Station) NeedsSync(maxAge time.Duration) bool {
 }
 
 type StationRepository interface {
+	FindByID(id string) (*Station, error)
 	FindPopular(limit int, country string) ([]Station, error)
 	Search(query string, limit int) ([]Station, error)
 }

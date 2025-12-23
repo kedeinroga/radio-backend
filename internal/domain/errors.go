@@ -25,6 +25,10 @@ var (
 	ErrInvalidUserType    = &DomainError{Code: "INVALID_USER_TYPE", Message: "invalid user type"}
 	ErrStationNotFound    = &DomainError{Code: "STATION_NOT_FOUND", Message: "station not found"}
 	ErrInvalidQuery       = &DomainError{Code: "INVALID_QUERY", Message: "invalid search query"}
+
+	// Favorite errors
+	ErrFavoriteAlreadyExists = &DomainError{Code: "FAVORITE_ALREADY_EXISTS", Message: "station is already in favorites"}
+	ErrFavoriteNotFound      = &DomainError{Code: "FAVORITE_NOT_FOUND", Message: "favorite not found"}
 )
 
 // NewValidationError creates a new validation error

@@ -38,6 +38,39 @@ func NewStationService(
 	}
 }
 
+// GetByID retrieves a station by ID using cache-aside pattern
+func (s *StationService) GetByID(id string, userType domain.UserType) (*domain.Station, error) {
+	logger.Info("fetching station by ID", "id", id, "user_type", userType)
+
+	// 1. Try cache first
+	cachedStation, err := s.cacheRepo.Get(id)
+	if err == nil && cachedStation != nil {
+		logger.Info("cache hit for station", "id", id)
+		if !cachedStation.IsAccessibleBy(userType) {
+			return nil, domain.ErrUnauthorized
+		}
+		return cachedStation, nil
+	}
+
+	logger.Info("cache miss for station, fetching from external API", "id", id)
+
+	// 2. Fallback to external API
+	station, err := s.externalRepo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Save to cache asynchronously
+	go s.cacheStations([]domain.Station{*station})
+
+	// 4. Check user access
+	if !station.IsAccessibleBy(userType) {
+		return nil, domain.ErrUnauthorized
+	}
+
+	return station, nil
+}
+
 // ListPopular returns popular stations using cache-aside pattern
 func (s *StationService) ListPopular(limit int, country string, userType domain.UserType) ([]domain.Station, error) {
 	// 1. Try cache first
@@ -110,6 +143,7 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 	logger.Info("local database miss, fetching from external API", "query", query)
 	stations, err := s.externalRepo.Search(query, limit)
 	if err != nil {
+		logger.Error("external API search failed", "query", query, "limit", limit, "error", err)
 		// If external fails, return whatever we have in cache
 		if len(cachedStations) > 0 {
 			logger.Warn("external API failed, using partial cache", "cached_count", len(cachedStations), "error", err)

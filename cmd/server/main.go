@@ -107,6 +107,7 @@ func main() {
 	analyticsRepo := postgres.NewAnalyticsRepository(db)
 	stationCacheRepo := postgres.NewStationCacheRepository(db)
 	searchCacheRepo := postgres.NewSearchCacheRepository(db)
+	favoriteRepo := postgres.NewFavoriteRepository(db)
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
 	// Initialize services
@@ -120,6 +121,7 @@ func main() {
 		cfg.Cache.StationMaxAge,
 		cfg.Cache.SearchCacheTTL,
 	)
+	favoriteService := services.NewFavoriteService(favoriteRepo, stationCacheRepo, stationService)
 
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(authService)
@@ -134,6 +136,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 	stationHandler := handlers.NewStationHandler(stationService, analyticsService)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
+	favoriteHandler := handlers.NewFavoriteHandler(favoriteService)
 
 	// Setup router
 	router := server.NewRouter(
@@ -143,6 +146,7 @@ func main() {
 		authHandler,
 		stationHandler,
 		analyticsHandler,
+		favoriteHandler,
 	)
 	engine := router.Setup()
 

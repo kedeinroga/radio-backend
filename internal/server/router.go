@@ -24,6 +24,7 @@ type Router struct {
 	authHandler      *handlers.AuthHandler
 	stationHandler   *handlers.StationHandler
 	analyticsHandler *handlers.AnalyticsHandler
+	favoriteHandler  *handlers.FavoriteHandler
 }
 
 // NewRouter creates a new router
@@ -34,6 +35,7 @@ func NewRouter(
 	authHandler *handlers.AuthHandler,
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
+	favoriteHandler *handlers.FavoriteHandler,
 ) *Router {
 	return &Router{
 		engine:              gin.New(),
@@ -43,6 +45,7 @@ func NewRouter(
 		authHandler:         authHandler,
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
+		favoriteHandler:     favoriteHandler,
 	}
 }
 
@@ -78,6 +81,7 @@ func (r *Router) Setup() *gin.Engine {
 		{
 			stations.GET("/popular", r.stationHandler.GetPopular)
 			stations.GET("/search", r.stationHandler.Search)
+			stations.GET("/:id", r.stationHandler.GetByID)
 		}
 
 		// Analytics routes (premium only)
@@ -87,6 +91,15 @@ func (r *Router) Setup() *gin.Engine {
 			analytics.GET("/stations/popular", r.analyticsHandler.GetPopularStations)
 			analytics.GET("/searches/trending", r.analyticsHandler.GetTrendingSearches)
 			analytics.GET("/users/active", r.analyticsHandler.GetActiveUsers)
+		}
+
+		// Favorites routes (authenticated)
+		favorites := v1.Group("/favorites")
+		favorites.Use(r.authMiddleware.Required())
+		{
+			favorites.GET("", r.favoriteHandler.GetFavorites)
+			favorites.POST("", r.favoriteHandler.AddFavorite)
+			favorites.DELETE("/:stationId", r.favoriteHandler.RemoveFavorite)
 		}
 	}
 

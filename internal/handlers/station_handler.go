@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"radio-backend/internal/domain"
+	"radio-backend/internal/infrastructure/logger"
 	"radio-backend/internal/middleware"
 	"radio-backend/internal/services"
 
@@ -22,6 +24,57 @@ func NewStationHandler(stationService *services.StationService, analyticsService
 		stationService:   stationService,
 		analyticsService: analyticsService,
 	}
+}
+
+// GetByID returns a station by ID
+// @Summary Obtener detalle de estación
+// @Description Obtiene información detallada de una estación por su ID
+// @Tags Stations
+// @Accept json
+// @Produce json
+// @Param id path string true "ID de la estación"
+// @Success 200 {object} map[string]interface{} "Detalle de la estación"
+// @Failure 404 {object} map[string]interface{} "Estación no encontrada"
+// @Failure 403 {object} map[string]interface{} "Acceso denegado - Estación solo para Premium"
+// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Router /stations/{id} [get]
+func (h *StationHandler) GetByID(c *gin.Context) {
+	stationID := c.Param("id")
+	if stationID == "" {
+		RespondWithError(c, http.StatusBadRequest, "invalid_id", "Station ID is required")
+		return
+	}
+
+	// Get user type from context
+	userType := middleware.GetUserType(c)
+
+	// Get station by ID
+	station, err := h.stationService.GetByID(stationID, userType)
+	if err != nil {
+		if err == domain.ErrStationNotFound {
+			RespondWithError(c, http.StatusNotFound, "station_not_found", "Station not found")
+			return
+		}
+		if err == domain.ErrUnauthorized {
+			RespondWithError(c, http.StatusForbidden, "premium_only", "This station is only available for premium users")
+			return
+		}
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to fetch station")
+		return
+	}
+
+	RespondWithSuccess(c, http.StatusOK, gin.H{
+		"data": gin.H{
+			"id":              station.ID,
+			"name":            station.Name,
+			"stream_url":      station.StreamURL,
+			"image_url":       station.ImageURL,
+			"tags":            station.Tags,
+			"country":         station.Country,
+			"votes":           station.Votes,
+			"is_premium_only": station.IsPremiumOnly,
+		},
+	})
 }
 
 // GetPopular returns popular stations
@@ -103,6 +156,7 @@ func (h *StationHandler) Search(c *gin.Context) {
 	// Search stations
 	stations, err := h.stationService.Search(query, limit, userType)
 	if err != nil {
+		logger.Error("search failed", "query", query, "limit", limit, "user_type", userType, "error", err)
 		RespondWithError(c, http.StatusInternalServerError, "search_failed", "Failed to search stations")
 		return
 	}
