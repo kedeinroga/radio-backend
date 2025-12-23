@@ -586,7 +586,7 @@ const docTemplate = `{
         },
         "/stations/popular": {
             "get": {
-                "description": "Lista de estaciones de radio populares con filtros opcionales",
+                "description": "Lista de estaciones de radio populares con filtros opcionales. Puede devolver 503 si el servicio externo está temporalmente no disponible.",
                 "consumes": [
                     "application/json"
                 ],
@@ -626,13 +626,20 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
+                    },
+                    "503": {
+                        "description": "Servicio externo temporalmente no disponible",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
                     }
                 }
             }
         },
         "/stations/search": {
             "get": {
-                "description": "Busca estaciones de radio por nombre o tags",
+                "description": "Busca estaciones de radio por nombre o tags. Puede devolver 503 si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).",
                 "consumes": [
                     "application/json"
                 ],
@@ -680,13 +687,20 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": true
                         }
+                    },
+                    "503": {
+                        "description": "Servicio externo temporalmente no disponible",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
                     }
                 }
             }
         },
         "/stations/{id}": {
             "get": {
-                "description": "Obtiene información detallada de una estación por su ID",
+                "description": "Obtiene información detallada de una estación por su ID. Puede devolver 503 si el servicio externo está temporalmente no disponible.",
                 "consumes": [
                     "application/json"
                 ],
@@ -730,6 +744,13 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Servicio externo temporalmente no disponible",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

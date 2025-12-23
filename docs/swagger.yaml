@@ -425,7 +425,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Obtiene información detallada de una estación por su ID
+      description: Obtiene información detallada de una estación por su ID. Puede
+        devolver 503 si el servicio externo está temporalmente no disponible.
       parameters:
       - description: ID de la estación
         in: path
@@ -455,6 +456,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "503":
+          description: Servicio externo temporalmente no disponible
+          schema:
+            additionalProperties: true
+            type: object
       summary: Obtener detalle de estación
       tags:
       - Stations
@@ -462,7 +468,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Lista de estaciones de radio populares con filtros opcionales
+      description: Lista de estaciones de radio populares con filtros opcionales.
+        Puede devolver 503 si el servicio externo está temporalmente no disponible.
       parameters:
       - default: 20
         description: Número máximo de estaciones
@@ -486,6 +493,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "503":
+          description: Servicio externo temporalmente no disponible
+          schema:
+            additionalProperties: true
+            type: object
       summary: Obtener estaciones populares
       tags:
       - Stations
@@ -493,7 +505,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Busca estaciones de radio por nombre o tags
+      description: Busca estaciones de radio por nombre o tags. Puede devolver 503
+        si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).
       parameters:
       - description: Término de búsqueda
         in: query
@@ -520,6 +533,11 @@ paths:
             type: object
         "500":
           description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+        "503":
+          description: Servicio externo temporalmente no disponible
           schema:
             additionalProperties: true
             type: object
