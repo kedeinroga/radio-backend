@@ -153,7 +153,7 @@ func (r *Repository) FindPopular(limit int, country string) ([]domain.Station, e
 // Search searches for stations
 func (r *Repository) Search(query string, limit int) ([]domain.Station, error) {
 	logger.Info("calling radiobrowser API", "query", query, "limit", limit, "url", r.baseURL, "circuit_state", r.cb.State().String())
-	
+
 	result, err := r.cb.Execute(func() (interface{}, error) {
 		var stations []RadioBrowserStation
 
@@ -174,7 +174,7 @@ func (r *Repository) Search(query string, limit int) ([]domain.Station, error) {
 		}
 
 		logger.Info("radiobrowser API response", "query", query, "stations_found", len(stations), "status", resp.StatusCode())
-		
+
 		return r.toDomainStations(stations), nil
 	})
 

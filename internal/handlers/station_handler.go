@@ -61,14 +61,14 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 			RespondWithError(c, http.StatusForbidden, "premium_only", "This station is only available for premium users")
 			return
 		}
-		
+
 		// Check if it's a circuit breaker error
 		if strings.Contains(err.Error(), "temporarily unavailable") {
 			RespondWithError(c, http.StatusServiceUnavailable, "api_unavailable",
 				"The radio station service is temporarily unavailable. Please try again in a few moments.")
 			return
 		}
-		
+
 		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to fetch station")
 		return
 	}
@@ -116,7 +116,7 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 				"The radio station service is temporarily unavailable. Please try again in a few moments.")
 			return
 		}
-		
+
 		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to fetch popular stations")
 		return
 	}
@@ -176,14 +176,14 @@ func (h *StationHandler) Search(c *gin.Context) {
 	stations, err := h.stationService.Search(query, limit, userType)
 	if err != nil {
 		logger.Error("search failed", "query", query, "limit", limit, "user_type", userType, "error", err)
-		
+
 		// Check if it's a circuit breaker error (API temporarily unavailable)
 		if strings.Contains(err.Error(), "temporarily unavailable") {
-			RespondWithError(c, http.StatusServiceUnavailable, "api_unavailable", 
+			RespondWithError(c, http.StatusServiceUnavailable, "api_unavailable",
 				"The radio station service is temporarily unavailable. Please try again in a few moments.")
 			return
 		}
-		
+
 		RespondWithError(c, http.StatusInternalServerError, "search_failed", "Failed to search stations")
 		return
 	}
