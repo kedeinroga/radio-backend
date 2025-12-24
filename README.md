@@ -7,6 +7,7 @@ A production-ready radio streaming proxy backend built with Go, following Clean 
 - ✅ **Clean Architecture** - Hexagonal architecture with clear separation of concerns
 - ✅ **Authentication** - JWT-based authentication with guest/premium user support
 - ✅ **Analytics** - Comprehensive behavior tracking with PostgreSQL + Redis
+- ✅ **SEO Optimization** - Dynamic sitemap, URL slugs, and rich metadata for search engines
 - ✅ **Logging** - Structured JSON logging with request tracing
 - ✅ **Code Quality** - Enforced via golangci-lint with strict rules
 - ✅ **CI/CD** - GitHub Actions for automated testing and deployment
@@ -102,6 +103,13 @@ The server will start on `http://localhost:8080`
 - `GET /api/v1/analytics/searches/trending` - Trending searches
 - `GET /api/v1/analytics/users/active` - Active users count
 
+### SEO (Public)
+
+- `GET /api/v1/seo/sitemap-data` - Data for generating dynamic sitemap
+- `GET /api/v1/seo/popular-tags` - Top 100 genres/tags
+- `GET /api/v1/seo/popular-countries` - Top 50 countries
+- `POST /api/v1/seo/refresh-stats` - Manually refresh SEO statistics (admin)
+
 ## API Documentation
 
 Interactive API documentation is available via Swagger UI:
@@ -190,6 +198,7 @@ Key configuration:
 - `REDIS_URL` - Redis connection string
 - `JWT_PRIVATE_KEY_PATH` - Path to JWT private key
 - `JWT_PUBLIC_KEY_PATH` - Path to JWT public key
+- `SERVER_BASE_URL` - Base URL for SEO canonical links (e.g., https://tudominio.com)
 
 ## Project Structure
 
@@ -210,6 +219,10 @@ radio-backend/
 ├── locales/            # i18n translation files
 ├── .github/workflows/  # CI/CD pipelines
 └── docs/               # Documentation
+    ├── CONTRIBUTING.md     # Coding standards
+    ├── SETUP.md            # Setup guide
+    ├── ERROR_CODES.md      # Error code reference
+    └── SEO_USAGE.md        # SEO implementation guide
 ```
 
 ## Contributing

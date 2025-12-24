@@ -25,6 +25,7 @@ type Router struct {
 	stationHandler   *handlers.StationHandler
 	analyticsHandler *handlers.AnalyticsHandler
 	favoriteHandler  *handlers.FavoriteHandler
+	seoHandler       *handlers.SEOHandler // NUEVO: Handler SEO
 }
 
 // NewRouter creates a new router
@@ -36,6 +37,7 @@ func NewRouter(
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
 	favoriteHandler *handlers.FavoriteHandler,
+	seoHandler *handlers.SEOHandler, // NUEVO: Handler SEO
 ) *Router {
 	return &Router{
 		engine:              gin.New(),
@@ -46,6 +48,7 @@ func NewRouter(
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
 		favoriteHandler:     favoriteHandler,
+		seoHandler:          seoHandler, // NUEVO
 	}
 }
 
@@ -100,6 +103,16 @@ func (r *Router) Setup() *gin.Engine {
 			favorites.GET("", r.favoriteHandler.GetFavorites)
 			favorites.POST("", r.favoriteHandler.AddFavorite)
 			favorites.DELETE("/:stationId", r.favoriteHandler.RemoveFavorite)
+		}
+
+		// SEO routes (public, no auth required)
+		seo := v1.Group("/seo")
+		{
+			seo.GET("/sitemap-data", r.seoHandler.GetSitemapData)
+			seo.GET("/popular-tags", r.seoHandler.GetPopularTags)
+			seo.GET("/popular-countries", r.seoHandler.GetPopularCountries)
+			// Admin endpoint - debería tener autenticación admin en producción
+			seo.POST("/refresh-stats", r.seoHandler.RefreshSEOStats)
 		}
 	}
 

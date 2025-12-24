@@ -29,12 +29,12 @@ func NewStationHandler(stationService *services.StationService, analyticsService
 
 // GetByID returns a station by ID
 // @Summary Obtener detalle de estación
-// @Description Obtiene información detallada de una estación por su ID. Puede devolver 503 si el servicio externo está temporalmente no disponible.
+// @Description Obtiene información detallada de una estación por su ID con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible.
 // @Tags Stations
 // @Accept json
 // @Produce json
 // @Param id path string true "ID de la estación"
-// @Success 200 {object} map[string]interface{} "Detalle de la estación"
+// @Success 200 {object} object{data=domain.Station} "Detalle de la estación con SEO metadata"
 // @Failure 404 {object} map[string]interface{} "Estación no encontrada"
 // @Failure 403 {object} map[string]interface{} "Acceso denegado - Estación solo para Premium"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
@@ -73,10 +73,18 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 		return
 	}
 
+	// Verificar si la estación tiene stream válido (404 SEO)
+	if station.StreamURL == "" {
+		logger.Warn("station has no stream - returning 404 for SEO", "station_id", stationID)
+		RespondWithError(c, http.StatusNotFound, "station_unavailable", "Station is currently unavailable")
+		return
+	}
+
 	RespondWithSuccess(c, http.StatusOK, gin.H{
 		"data": gin.H{
 			"id":              station.ID,
 			"name":            station.Name,
+			"slug":            station.Slug, // NUEVO: Slug para SEO
 			"stream_url":      station.StreamURL,
 			"image_url":       station.ImageURL,
 			"tags":            station.Tags,
@@ -84,18 +92,19 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 			"votes":           station.Votes,
 			"is_premium_only": station.IsPremiumOnly,
 		},
+		"seo_metadata": station.SEOMetadata, // NUEVO: Metadata SEO
 	})
 }
 
 // GetPopular returns popular stations
 // @Summary Obtener estaciones populares
-// @Description Lista de estaciones de radio populares con filtros opcionales. Puede devolver 503 si el servicio externo está temporalmente no disponible.
+// @Description Lista de estaciones de radio populares con filtros opcionales y metadata SEO. Puede devolver 503 si el servicio externo está temporalmente no disponible.
 // @Tags Stations
 // @Accept json
 // @Produce json
 // @Param limit query int false "Número máximo de estaciones" default(20)
 // @Param country query string false "Filtrar por código de país"
-// @Success 200 {object} map[string]interface{} "Lista de estaciones populares"
+// @Success 200 {object} object{data=[]domain.Station} "Lista de estaciones populares con SEO metadata"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
 // @Router /stations/popular [get]
@@ -121,18 +130,20 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 		return
 	}
 
-	// Convert to DTOs
+	// Convert to DTOs with SEO metadata
 	stationDTOs := make([]gin.H, 0, len(stations))
 	for _, station := range stations {
 		stationDTOs = append(stationDTOs, gin.H{
 			"id":              station.ID,
 			"name":            station.Name,
+			"slug":            station.Slug, // NUEVO: Slug para SEO
 			"stream_url":      station.StreamURL,
 			"image_url":       station.ImageURL,
 			"tags":            station.Tags,
 			"country":         station.Country,
 			"votes":           station.Votes,
 			"is_premium_only": station.IsPremiumOnly,
+			"seo_metadata":    station.SEOMetadata, // NUEVO: Metadata SEO
 		})
 	}
 
@@ -147,13 +158,13 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 
 // Search searches for stations
 // @Summary Buscar estaciones
-// @Description Busca estaciones de radio por nombre o tags. Puede devolver 503 si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).
+// @Description Busca estaciones de radio por nombre o tags con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).
 // @Tags Stations
 // @Accept json
 // @Produce json
 // @Param q query string true "Término de búsqueda"
 // @Param limit query int false "Número máximo de resultados" default(20)
-// @Success 200 {object} map[string]interface{} "Resultados de búsqueda"
+// @Success 200 {object} object{data=[]domain.Station,meta=object{count=int,query=string}} "Resultados de búsqueda con SEO metadata"
 // @Failure 400 {object} map[string]interface{} "Parámetro de búsqueda requerido"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
@@ -193,18 +204,20 @@ func (h *StationHandler) Search(c *gin.Context) {
 		_ = h.analyticsService.TrackSearch(query, len(stations), userID, userType)
 	}()
 
-	// Convert to DTOs
+	// Convert to DTOs with SEO metadata
 	stationDTOs := make([]gin.H, 0, len(stations))
 	for _, station := range stations {
 		stationDTOs = append(stationDTOs, gin.H{
 			"id":              station.ID,
 			"name":            station.Name,
+			"slug":            station.Slug, // NUEVO: Slug para SEO
 			"stream_url":      station.StreamURL,
 			"image_url":       station.ImageURL,
 			"tags":            station.Tags,
 			"country":         station.Country,
 			"votes":           station.Votes,
 			"is_premium_only": station.IsPremiumOnly,
+			"seo_metadata":    station.SEOMetadata, // NUEVO: Metadata SEO
 		})
 	}
 

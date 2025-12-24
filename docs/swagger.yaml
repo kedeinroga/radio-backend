@@ -34,6 +34,148 @@ definitions:
     - email
     - password
     type: object
+  radio-backend_internal_domain.PopularCountry:
+    properties:
+      code:
+        description: ISO 3166-1 alpha-2
+        example: US
+        type: string
+      name:
+        example: United States
+        type: string
+      slug:
+        example: united-states
+        type: string
+      station_count:
+        example: 250
+        type: integer
+    type: object
+  radio-backend_internal_domain.PopularTag:
+    properties:
+      active_count:
+        description: Con stream activo
+        example: 145
+        type: integer
+      name:
+        example: rock
+        type: string
+      slug:
+        example: rock
+        type: string
+      station_count:
+        example: 150
+        type: integer
+    type: object
+  radio-backend_internal_domain.SEOMetadata:
+    properties:
+      alternate_names:
+        example:
+        - Rock FM
+        - Rock Radio 100.1
+        items:
+          type: string
+        type: array
+      canonical_url:
+        example: https://radioapp.com/stations/rock-fm-100-1
+        type: string
+      description:
+        example: Listen to the best classic rock hits from the 80s and 90s on Rock
+          FM 100.1
+        type: string
+      image_url:
+        example: https://cdn.rockfm.com/logo.png
+        type: string
+      keywords:
+        example:
+        - rock
+        - classic rock
+        - 80s
+        - radio
+        items:
+          type: string
+        type: array
+      last_modified:
+        description: ISO 8601 para schema.org
+        example: "2025-12-23T19:30:00Z"
+        type: string
+      title:
+        example: Rock FM 100.1 - Classic Rock Radio
+        type: string
+    type: object
+  radio-backend_internal_domain.SitemapData:
+    properties:
+      last_updated:
+        example: "2025-12-23T19:30:00Z"
+        type: string
+      popular_countries:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PopularCountry'
+        type: array
+      popular_tags:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PopularTag'
+        type: array
+      total_stations:
+        example: 500
+        type: integer
+    type: object
+  radio-backend_internal_domain.Station:
+    properties:
+      country:
+        example: United States
+        type: string
+      created_at:
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      image_url:
+        example: https://cdn.rockfm.com/logo.png
+        type: string
+      is_active:
+        example: true
+        type: boolean
+      is_premium_only:
+        example: false
+        type: boolean
+      last_synced_at:
+        type: string
+      name:
+        example: Rock FM 100.1
+        type: string
+      seo_metadata:
+        $ref: '#/definitions/radio-backend_internal_domain.SEOMetadata'
+      slug:
+        description: SEO fields
+        example: rock-fm-100-1
+        type: string
+      source:
+        description: Cache metadata
+        example: radio_browser
+        type: string
+      stream_url:
+        example: https://stream.rockfm.com/live
+        type: string
+      stream_url_resolved:
+        example: https://cdn.rockfm.com/stream.mp3
+        type: string
+      sync_count:
+        example: 5
+        type: integer
+      tags:
+        example:
+        - rock
+        - classic rock
+        - 80s
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+      votes:
+        example: 1500
+        type: integer
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -421,12 +563,140 @@ paths:
       summary: Eliminar estación de favoritos
       tags:
       - Favorites
+  /seo/popular-countries:
+    get:
+      description: Lista de países con más estaciones activas (útil para sitemap y
+        navegación). Máximo 50 países.
+      parameters:
+      - default: 50
+        description: Límite de resultados
+        in: query
+        maximum: 50
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de países populares
+          schema:
+            properties:
+              data:
+                properties:
+                  count:
+                    type: integer
+                  countries:
+                    items:
+                      $ref: '#/definitions/radio-backend_internal_domain.PopularCountry'
+                    type: array
+                  total:
+                    type: integer
+                type: object
+            type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Top países populares
+      tags:
+      - SEO
+  /seo/popular-tags:
+    get:
+      description: Lista de tags con más estaciones activas (útil para sitemap y navegación).
+        Máximo 100 tags.
+      parameters:
+      - default: 100
+        description: Límite de resultados
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de tags populares
+          schema:
+            properties:
+              data:
+                properties:
+                  count:
+                    type: integer
+                  tags:
+                    items:
+                      $ref: '#/definitions/radio-backend_internal_domain.PopularTag'
+                    type: array
+                  total:
+                    type: integer
+                type: object
+            type: object
+        "400":
+          description: Parámetro inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Top tags/géneros populares
+      tags:
+      - SEO
+  /seo/refresh-stats:
+    post:
+      description: Actualiza las estadísticas de tags y países desde la base de datos.
+        Endpoint administrativo.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estadísticas actualizadas
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refrescar estadísticas SEO (Admin)
+      tags:
+      - SEO
+  /seo/sitemap-data:
+    get:
+      description: Retorna tags y países populares para construir sitemap.xml dinámico.
+        Los datos se cachean por 6 horas.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Datos del sitemap
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.SitemapData'
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Datos para generar sitemap
+      tags:
+      - SEO
   /stations/{id}:
     get:
       consumes:
       - application/json
-      description: Obtiene información detallada de una estación por su ID. Puede
-        devolver 503 si el servicio externo está temporalmente no disponible.
+      description: Obtiene información detallada de una estación por su ID con metadata
+        SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente
+        no disponible.
       parameters:
       - description: ID de la estación
         in: path
@@ -437,9 +707,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: Detalle de la estación
+          description: Detalle de la estación con SEO metadata
           schema:
-            additionalProperties: true
+            properties:
+              data:
+                $ref: '#/definitions/radio-backend_internal_domain.Station'
             type: object
         "403":
           description: Acceso denegado - Estación solo para Premium
@@ -468,8 +740,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Lista de estaciones de radio populares con filtros opcionales.
-        Puede devolver 503 si el servicio externo está temporalmente no disponible.
+      description: Lista de estaciones de radio populares con filtros opcionales y
+        metadata SEO. Puede devolver 503 si el servicio externo está temporalmente
+        no disponible.
       parameters:
       - default: 20
         description: Número máximo de estaciones
@@ -484,9 +757,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: Lista de estaciones populares
+          description: Lista de estaciones populares con SEO metadata
           schema:
-            additionalProperties: true
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/radio-backend_internal_domain.Station'
+                type: array
             type: object
         "500":
           description: Error interno del servidor
@@ -505,8 +782,9 @@ paths:
     get:
       consumes:
       - application/json
-      description: Busca estaciones de radio por nombre o tags. Puede devolver 503
-        si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).
+      description: Busca estaciones de radio por nombre o tags con metadata SEO enriquecida.
+        Puede devolver 503 si el servicio externo está temporalmente no disponible
+        (Circuit Breaker abierto).
       parameters:
       - description: Término de búsqueda
         in: query
@@ -522,9 +800,20 @@ paths:
       - application/json
       responses:
         "200":
-          description: Resultados de búsqueda
+          description: Resultados de búsqueda con SEO metadata
           schema:
-            additionalProperties: true
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/radio-backend_internal_domain.Station'
+                type: array
+              meta:
+                properties:
+                  count:
+                    type: integer
+                  query:
+                    type: string
+                type: object
             type: object
         "400":
           description: Parámetro de búsqueda requerido

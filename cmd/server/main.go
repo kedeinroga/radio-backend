@@ -108,9 +108,15 @@ func main() {
 	stationCacheRepo := postgres.NewStationCacheRepository(db)
 	searchCacheRepo := postgres.NewSearchCacheRepository(db)
 	favoriteRepo := postgres.NewFavoriteRepository(db)
+	seoRepo := postgres.NewSEORepository(db.DB) // NUEVO: SEO repo usa *sql.DB directamente
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
+	// Initialize cache components
+	seoCache := cache.NewSEOCache(redisClient) // NUEVO: Cache SEO
+
 	// Initialize services
+	slugService := services.NewSlugService()                                                 // NUEVO: Servicio de slugs
+	seoService := services.NewSEOService(seoRepo, seoCache, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
 	authService := services.NewAuthService(userRepo, passwordHasher, tokenManager, tokenManager)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
 	stationService := services.NewStationService(
@@ -118,6 +124,7 @@ func main() {
 		radioBrowserRepo,
 		searchCacheRepo,
 		analyticsService,
+		seoService, // NUEVO: Inyectar SEO service
 		cfg.Cache.StationMaxAge,
 		cfg.Cache.SearchCacheTTL,
 	)
@@ -137,6 +144,7 @@ func main() {
 	stationHandler := handlers.NewStationHandler(stationService, analyticsService)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 	favoriteHandler := handlers.NewFavoriteHandler(favoriteService)
+	seoHandler := handlers.NewSEOHandler(seoService) // NUEVO: Handler SEO
 
 	// Setup router
 	router := server.NewRouter(
@@ -147,6 +155,7 @@ func main() {
 		stationHandler,
 		analyticsHandler,
 		favoriteHandler,
+		seoHandler, // NUEVO: Inyectar SEO handler
 	)
 	engine := router.Setup()
 

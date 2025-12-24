@@ -32,6 +32,7 @@ type ServerConfig struct {
 	Host    string
 	Env     string
 	Timeout time.Duration
+	BaseURL string // NUEVO: URL base para generar links SEO
 }
 
 // DatabaseConfig holds database configuration
@@ -123,6 +124,7 @@ func Load() (*Config, error) {
 			Host:    getEnv("SERVER_HOST", "0.0.0.0"),
 			Env:     getEnv("SERVER_ENV", "development"),
 			Timeout: getDurationEnv("SERVER_TIMEOUT", 30*time.Second),
+			BaseURL: getEnv("SERVER_BASE_URL", "http://localhost:8080"), // NUEVO: URL base
 		},
 		Database: DatabaseConfig{
 			URL:                getEnv("DATABASE_URL", ""),
