@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"radio-backend/internal/domain"
+	"radio-backend/internal/i18n"
 	"radio-backend/internal/infrastructure/logger"
 )
 
@@ -75,11 +76,11 @@ func (s *FavoriteService) GetUserFavorites(userID string) ([]domain.Station, err
 }
 
 // AddFavorite adds a station to user's favorites
-func (s *FavoriteService) AddFavorite(userID, stationID string, userType domain.UserType) error {
-	logger.Info("adding favorite", "user_id", userID, "station_id", stationID)
+func (s *FavoriteService) AddFavorite(userID, stationID string, userType domain.UserType, lang i18n.Language) error {
+	logger.Info("adding favorite", "user_id", userID, "station_id", stationID, "language", lang)
 
 	// Verify station exists and is accessible
-	station, err := s.stationSvc.GetByID(stationID, userType)
+	station, err := s.stationSvc.GetByID(stationID, userType, lang)
 	if err != nil {
 		if err == domain.ErrUnauthorized {
 			return domain.ErrUnauthorized

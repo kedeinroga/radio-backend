@@ -6,29 +6,33 @@ import (
 	"time"
 
 	"radio-backend/internal/domain"
+	"radio-backend/internal/i18n"
 	"radio-backend/internal/infrastructure/logger"
 )
 
 // SEOService maneja la lógica de negocio para SEO
 type SEOService struct {
-	seoRepo     domain.SEORepository
-	seoCache    domain.SEOCache
-	slugService *SlugService
-	baseURL     string
+	seoRepo            domain.SEORepository
+	seoCache           domain.SEOCache
+	translationService *TranslationService
+	slugService        *SlugService
+	baseURL            string
 }
 
 // NewSEOService crea una nueva instancia del servicio SEO
 func NewSEOService(
 	seoRepo domain.SEORepository,
 	seoCache domain.SEOCache,
+	translationService *TranslationService,
 	slugService *SlugService,
 	baseURL string,
 ) *SEOService {
 	return &SEOService{
-		seoRepo:     seoRepo,
-		seoCache:    seoCache,
-		slugService: slugService,
-		baseURL:     baseURL,
+		seoRepo:            seoRepo,
+		seoCache:           seoCache,
+		translationService: translationService,
+		slugService:        slugService,
+		baseURL:            baseURL,
 	}
 }
 
@@ -87,50 +91,60 @@ func (s *SEOService) GetSitemapData() (*domain.SitemapData, error) {
 }
 
 // EnrichStationWithSEO enriquece una estación con metadata SEO
-func (s *SEOService) EnrichStationWithSEO(station *domain.Station) {
+// Ahora acepta un parámetro de idioma para traducciones multiidioma
+func (s *SEOService) EnrichStationWithSEO(station *domain.Station, lang i18n.Language) {
 	if station == nil {
 		return
 	}
 
-	logger.Info("enriching station with SEO metadata", "station_id", station.ID, "station_name", station.Name)
+	logger.Info("enriching station with SEO metadata",
+		"station_id", station.ID,
+		"station_name", station.Name,
+		"language", lang)
 
 	// 1. Generar slug
 	station.Slug = s.slugService.Slugify(station.Name)
 
-	// 2. Intentar obtener metadata desde cache
-	cached, err := s.seoCache.GetStationSEO(station.ID)
+	// 2. Intentar obtener metadata desde cache (con idioma)
+	cached, err := s.seoCache.GetStationSEO(station.ID, string(lang))
 	if err == nil && cached != nil {
-		logger.Info("station SEO metadata retrieved from cache", "station_id", station.ID)
+		logger.Info("station SEO metadata retrieved from cache",
+			"station_id", station.ID,
+			"language", lang)
 		station.SEOMetadata = cached
 		return
 	}
 
-	// 3. Generar metadata
-	metadata := s.generateMetadata(station)
+	// 3. Generar metadata con traducciones
+	metadata := s.generateMetadata(station, lang)
 	station.SEOMetadata = metadata
 
 	// 4. Guardar en cache (24 horas de TTL)
-	if err := s.seoCache.SetStationSEO(station.ID, metadata, 24*time.Hour); err != nil {
-		logger.Warn("failed to cache station SEO metadata", "error", err, "station_id", station.ID)
+	if err := s.seoCache.SetStationSEO(station.ID, string(lang), metadata, 24*time.Hour); err != nil {
+		logger.Warn("failed to cache station SEO metadata",
+			"error", err,
+			"station_id", station.ID,
+			"language", lang)
 	}
 
-	logger.Info("station enriched with SEO metadata", "station_id", station.ID, "slug", station.Slug)
+	logger.Info("station enriched with SEO metadata",
+		"station_id", station.ID,
+		"slug", station.Slug,
+		"language", lang)
 }
 
 // EnrichStationsWithSEO enriquece múltiples estaciones con metadata SEO
-func (s *SEOService) EnrichStationsWithSEO(stations []domain.Station) {
+func (s *SEOService) EnrichStationsWithSEO(stations []domain.Station, lang i18n.Language) {
 	for i := range stations {
-		s.EnrichStationWithSEO(&stations[i])
+		s.EnrichStationWithSEO(&stations[i], lang)
 	}
 }
 
 // generateMetadata genera metadata SEO para una estación
-func (s *SEOService) generateMetadata(station *domain.Station) *domain.SEOMetadata {
-	// Generar título optimizado
-	title := s.generateTitle(station)
-
-	// Generar descripción automática
-	description := s.generateDescription(station)
+// Ahora usa TranslationService para obtener traducciones
+func (s *SEOService) generateMetadata(station *domain.Station, lang i18n.Language) *domain.SEOMetadata {
+	// Obtener traducción (de BD o generada por defecto)
+	translation := s.translationService.GetOrGenerateTranslation(station, lang)
 
 	// Validar y proporcionar fallback de imagen
 	imageURL := s.validateImageURL(station.ImageURL)
@@ -138,73 +152,27 @@ func (s *SEOService) generateMetadata(station *domain.Station) *domain.SEOMetada
 	// Generar canonical URL
 	canonicalURL := fmt.Sprintf("%s/radio/%s", s.baseURL, station.Slug)
 
-	// Keywords desde tags
-	keywords := station.Tags
-	if len(keywords) == 0 {
-		keywords = []string{"radio", "streaming", "online"}
-	}
-
 	// Last modified
 	lastModified := station.UpdatedAt.Format(time.RFC3339)
 
 	// Alternate names (opcional)
 	alternateNames := s.generateAlternateNames(station)
 
+	// Generar hreflang tags para SEO multiidioma
+	hreflangTags := s.generateHreflangTags(station.Slug)
+
 	return &domain.SEOMetadata{
-		Title:          title,
-		Description:    description,
+		Title:          translation.Title,
+		Description:    translation.Description,
 		CanonicalURL:   canonicalURL,
-		Keywords:       keywords,
+		Keywords:       translation.Keywords,
 		ImageURL:       imageURL,
 		LastModified:   lastModified,
 		AlternateNames: alternateNames,
+		Language:       lang.String(),
+		HreflangTags:   hreflangTags,
 	}
 }
-
-// generateTitle genera un título SEO-optimizado
-func (s *SEOService) generateTitle(station *domain.Station) string {
-	siteName := "Radio Online"
-
-	// Incluir país si está disponible
-	if station.Country != "" {
-		return fmt.Sprintf("%s - %s Online | %s", station.Name, station.Country, siteName)
-	}
-
-	// Si hay tags, incluir el primero
-	if len(station.Tags) > 0 {
-		return fmt.Sprintf("%s - %s Radio Online | %s", station.Name, station.Tags[0], siteName)
-	}
-
-	return fmt.Sprintf("%s - Radio en Vivo | %s", station.Name, siteName)
-}
-
-// generateDescription genera una descripción automática
-func (s *SEOService) generateDescription(station *domain.Station) string {
-	// Formato base
-	description := fmt.Sprintf("Escucha %s en vivo", station.Name)
-
-	// Agregar géneros si existen
-	if len(station.Tags) > 0 {
-		genres := s.formatTags(station.Tags)
-		description += fmt.Sprintf(", una emisora de %s", genres)
-	}
-
-	// Agregar país
-	if station.Country != "" {
-		description += fmt.Sprintf(" transmitiendo desde %s", station.Country)
-	}
-
-	// Agregar información adicional
-	description += ". Streaming de alta calidad, disponible 24/7."
-
-	// Limitar longitud a ~160 caracteres (óptimo para meta description)
-	if len(description) > 160 {
-		description = description[:157] + "..."
-	}
-
-	return description
-}
-
 // validateImageURL valida y proporciona fallback para la URL de imagen
 func (s *SEOService) validateImageURL(imageURL string) string {
 	// Si no hay imagen o es inválida, usar fallback
@@ -227,24 +195,6 @@ func (s *SEOService) isValidURL(url string) bool {
 	return strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
 }
 
-// formatTags formatea los tags para descripción legible
-func (s *SEOService) formatTags(tags []string) string {
-	if len(tags) == 0 {
-		return "música"
-	}
-
-	if len(tags) == 1 {
-		return tags[0]
-	}
-
-	if len(tags) == 2 {
-		return fmt.Sprintf("%s y %s", tags[0], tags[1])
-	}
-
-	// Más de 2 tags: mostrar primeros 2
-	return fmt.Sprintf("%s, %s y más", tags[0], tags[1])
-}
-
 // generateAlternateNames genera nombres alternativos para la estación
 func (s *SEOService) generateAlternateNames(station *domain.Station) []string {
 	names := []string{}
@@ -264,6 +214,20 @@ func (s *SEOService) generateAlternateNames(station *domain.Station) []string {
 	}
 
 	return names
+}
+
+// generateHreflangTags genera tags hreflang para SEO internacional
+func (s *SEOService) generateHreflangTags(slug string) []domain.HreflangTag {
+	tags := make([]domain.HreflangTag, 0, len(i18n.SupportedLanguages))
+
+	for _, lang := range i18n.SupportedLanguages {
+		tags = append(tags, domain.HreflangTag{
+			Language: lang.String(),
+			URL:      fmt.Sprintf("%s/radio/%s?lang=%s", s.baseURL, slug, lang),
+		})
+	}
+
+	return tags
 }
 
 // InvalidateSitemapCache invalida el cache de sitemap

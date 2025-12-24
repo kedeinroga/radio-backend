@@ -1,7 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "API para streaming de radio con autenticación JWT y analytics",
+        "description": "API para streaming de radio con autenticación JWT, analytics y soporte multiidioma (i18n). Idiomas soportados: Español (es), Inglés (en), Francés (fr), Alemán (de). Use el parámetro 'lang' o el header 'Accept-Language' para especificar el idioma deseado.",
         "title": "Radio Backend API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
@@ -17,6 +17,465 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/admin/translations": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Crea una nueva traducción para una estación en un idioma específico (solo admin). Ejemplo de request: {\"station_id\": \"abc123\", \"language_code\": \"en\", \"title\": \"Rock FM - Free Online Radio\", \"description\": \"Listen to Rock FM live from USA\", \"keywords\": [\"rock\", \"usa\", \"music\", \"online\", \"free\"]}",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Crear una nueva traducción",
+                "parameters": [
+                    {
+                        "description": "Datos de la traducción",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.CreateTranslationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Traducción creada exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado - Solo admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Estación no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "409": {
+                        "description": "La traducción ya existe",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/translations/bulk": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Crea múltiples traducciones en una sola operación (solo admin). Útil para poblar traducciones de múltiples estaciones. Ejemplo: [{\"station_id\":\"abc\",\"language_code\":\"en\",\"title\":\"Radio FM\",\"description\":\"Listen live\",\"keywords\":[\"radio\",\"music\"]},{\"station_id\":\"abc\",\"language_code\":\"fr\",\"title\":\"Radio FM\",\"description\":\"Écoutez en direct\",\"keywords\":[\"radio\",\"musique\"]}]",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Crear múltiples traducciones",
+                "parameters": [
+                    {
+                        "description": "Lista de traducciones a crear",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/radio-backend_internal_domain.CreateTranslationRequest"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Traducciones creadas exitosamente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado - Solo admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/translations/{stationId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Obtiene todas las traducciones disponibles para una estación (solo admin)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Listar todas las traducciones de una estación",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la estación",
+                        "name": "stationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de traducciones",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado - Solo admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Estación no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/translations/{stationId}/{lang}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Obtiene la traducción de una estación en un idioma específico (solo admin)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Obtener una traducción específica",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la estación",
+                        "name": "stationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Código de idioma (es, en, fr, de)",
+                        "name": "lang",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Traducción encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado - Solo admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Traducción no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Actualiza una traducción existente (solo admin)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Actualizar una traducción",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la estación",
+                        "name": "stationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Código de idioma (es, en, fr, de)",
+                        "name": "lang",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Datos actualizados de la traducción",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.UpdateTranslationRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Traducción actualizada exitosamente",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado - Solo admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Traducción no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Elimina una traducción existente (solo admin)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Eliminar una traducción",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la estación",
+                        "name": "stationId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Código de idioma (es, en, fr, de)",
+                        "name": "lang",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Traducción eliminada exitosamente",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado - Solo admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Traducción no encontrada",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/analytics/searches/trending": {
             "get": {
                 "security": [
@@ -787,6 +1246,13 @@
                         "description": "Filtrar por código de país",
                         "name": "country",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "es",
+                        "description": "Código de idioma (es, en, fr, de)",
+                        "name": "lang",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -847,6 +1313,13 @@
                         "default": 20,
                         "description": "Número máximo de resultados",
                         "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "es",
+                        "description": "Código de idioma (es, en, fr, de)",
+                        "name": "lang",
                         "in": "query"
                     }
                 ],
@@ -920,6 +1393,13 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "es",
+                        "description": "Código de idioma (es, en, fr, de)",
+                        "name": "lang",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -957,6 +1437,50 @@
                     },
                     "503": {
                         "description": "Servicio externo temporalmente no disponible",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/translations/{stationId}/languages": {
+            "get": {
+                "description": "Obtiene la lista de idiomas para los cuales existen traducciones de una estación. Útil para mostrar selector de idiomas en el frontend. Retorna códigos de idioma: es, en, fr, de",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Translations"
+                ],
+                "summary": "Obtener idiomas disponibles para una estación",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID de la estación",
+                        "name": "stationId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de idiomas disponibles. Ejemplo: {\\\"success\\\":true,\\\"data\\\":[\\\"es\\\",\\\"en\\\",\\\"fr\\\"],\\\"count\\\":3}",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud inválida",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1016,6 +1540,49 @@
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.CreateTranslationRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "language_code",
+                "station_id",
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "language_code": {
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200
+                }
+            }
+        },
+        "radio-backend_internal_domain.HreflangTag": {
+            "type": "object",
+            "properties": {
+                "lang": {
+                    "type": "string",
+                    "example": "es"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://radioapp.com/stations/rock-fm-100-1?lang=es"
                 }
             }
         },
@@ -1084,6 +1651,13 @@
                     "type": "string",
                     "example": "Listen to the best classic rock hits from the 80s and 90s on Rock FM 100.1"
                 },
+                "hreflang_tags": {
+                    "description": "Tags hreflang para SEO multiidioma",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.HreflangTag"
+                    }
+                },
                 "image_url": {
                     "type": "string",
                     "example": "https://cdn.rockfm.com/logo.png"
@@ -1099,6 +1673,11 @@
                         "80s",
                         "radio"
                     ]
+                },
+                "language": {
+                    "description": "Código de idioma (es, en, fr, de)",
+                    "type": "string",
+                    "example": "es"
                 },
                 "last_modified": {
                     "description": "ISO 8601 para schema.org",
@@ -1211,6 +1790,57 @@
                 "votes": {
                     "type": "integer",
                     "example": 1500
+                }
+            }
+        },
+        "radio-backend_internal_domain.TranslationResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "language_code": {
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.UpdateTranslationRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "title"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200
                 }
             }
         }

@@ -24,7 +24,7 @@ func NewStationCacheRepository(db *database.Connection) *StationCacheRepository 
 // Get retrieves a single station from cache by ID
 func (r *StationCacheRepository) Get(id string) (*domain.Station, error) {
 	query := `
-		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country, 
+		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
 		       created_at, updated_at
 		FROM stations
@@ -66,6 +66,11 @@ func (r *StationCacheRepository) Get(id string) (*domain.Station, error) {
 	}
 
 	return &station, nil
+}
+
+// FindByID busca una estación por su ID (implementa domain.StationRepository)
+func (r *StationCacheRepository) FindByID(id string) (*domain.Station, error) {
+	return r.Get(id)
 }
 
 // Save upserts a station to the cache
@@ -223,6 +228,35 @@ func (r *StationCacheRepository) FindPopular(limit int, country string) ([]domai
 	rows, err := r.db.DB.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find popular stations: %w", err)
+	}
+	defer rows.Close()
+
+	return r.scanStations(rows)
+}
+
+// Search busca estaciones por nombre o tags (implementa domain.StationRepository)
+func (r *StationCacheRepository) Search(query string, limit int) ([]domain.Station, error) {
+	sqlQuery := `
+		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country, 
+		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
+		       created_at, updated_at
+		FROM stations
+		WHERE is_active = true
+		  AND (
+			  LOWER(name) LIKE LOWER($1)
+			  OR EXISTS (
+				  SELECT 1 FROM unnest(tags) AS tag
+				  WHERE LOWER(tag) LIKE LOWER($1)
+			  )
+		  )
+		ORDER BY votes DESC
+		LIMIT $2
+	`
+
+	searchPattern := "%" + query + "%"
+	rows, err := r.db.DB.Query(sqlQuery, searchPattern, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search stations: %w", err)
 	}
 	defer rows.Close()
 

@@ -1,6 +1,6 @@
 // @title Radio Backend API
 // @version 1.0
-// @description API para streaming de radio con autenticación JWT y analytics
+// @description API para streaming de radio con autenticación JWT, analytics y soporte multiidioma (i18n). Idiomas soportados: Español (es), Inglés (en), Francés (fr), Alemán (de). Use el parámetro 'lang' o el header 'Accept-Language' para especificar el idioma deseado.
 // @termsOfService http://swagger.io/terms/
 
 // @contact.name API Support
@@ -109,6 +109,7 @@ func main() {
 	searchCacheRepo := postgres.NewSearchCacheRepository(db)
 	favoriteRepo := postgres.NewFavoriteRepository(db)
 	seoRepo := postgres.NewSEORepository(db.DB) // NUEVO: SEO repo usa *sql.DB directamente
+	translationRepo := postgres.NewTranslationRepository(db.DB) // NUEVO: Translation repo
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
 	// Initialize cache components
@@ -116,7 +117,8 @@ func main() {
 
 	// Initialize services
 	slugService := services.NewSlugService()                                                 // NUEVO: Servicio de slugs
-	seoService := services.NewSEOService(seoRepo, seoCache, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
+	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)  // NUEVO: Servicio de traducciones
+	seoService := services.NewSEOService(seoRepo, seoCache, translationService, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
 	authService := services.NewAuthService(userRepo, passwordHasher, tokenManager, tokenManager)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
 	stationService := services.NewStationService(
@@ -145,6 +147,7 @@ func main() {
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 	favoriteHandler := handlers.NewFavoriteHandler(favoriteService)
 	seoHandler := handlers.NewSEOHandler(seoService) // NUEVO: Handler SEO
+	translationHandler := handlers.NewTranslationHandler(translationService) // NUEVO: Handler de traducciones
 
 	// Setup router
 	router := server.NewRouter(
@@ -156,6 +159,7 @@ func main() {
 		analyticsHandler,
 		favoriteHandler,
 		seoHandler, // NUEVO: Inyectar SEO handler
+		translationHandler, // NUEVO: Inyectar Translation handler
 	)
 	engine := router.Setup()
 

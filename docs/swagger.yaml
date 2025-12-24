@@ -34,6 +34,36 @@ definitions:
     - email
     - password
     type: object
+  radio-backend_internal_domain.CreateTranslationRequest:
+    properties:
+      description:
+        type: string
+      keywords:
+        items:
+          type: string
+        type: array
+      language_code:
+        type: string
+      station_id:
+        type: string
+      title:
+        maxLength: 200
+        type: string
+    required:
+    - description
+    - language_code
+    - station_id
+    - title
+    type: object
+  radio-backend_internal_domain.HreflangTag:
+    properties:
+      lang:
+        example: es
+        type: string
+      url:
+        example: https://radioapp.com/stations/rock-fm-100-1?lang=es
+        type: string
+    type: object
   radio-backend_internal_domain.PopularCountry:
     properties:
       code:
@@ -82,6 +112,11 @@ definitions:
         example: Listen to the best classic rock hits from the 80s and 90s on Rock
           FM 100.1
         type: string
+      hreflang_tags:
+        description: Tags hreflang para SEO multiidioma
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.HreflangTag'
+        type: array
       image_url:
         example: https://cdn.rockfm.com/logo.png
         type: string
@@ -94,6 +129,10 @@ definitions:
         items:
           type: string
         type: array
+      language:
+        description: Código de idioma (es, en, fr, de)
+        example: es
+        type: string
       last_modified:
         description: ISO 8601 para schema.org
         example: "2025-12-23T19:30:00Z"
@@ -176,12 +215,49 @@ definitions:
         example: 1500
         type: integer
     type: object
+  radio-backend_internal_domain.TranslationResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      keywords:
+        items:
+          type: string
+        type: array
+      language_code:
+        type: string
+      station_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  radio-backend_internal_domain.UpdateTranslationRequest:
+    properties:
+      description:
+        type: string
+      keywords:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 200
+        type: string
+    required:
+    - description
+    - title
+    type: object
 host: localhost:8080
 info:
   contact:
     email: support@radiobackend.com
     name: API Support
-  description: API para streaming de radio con autenticación JWT y analytics
+  description: 'API para streaming de radio con autenticación JWT, analytics y soporte
+    multiidioma (i18n). Idiomas soportados: Español (es), Inglés (en), Francés (fr),
+    Alemán (de). Use el parámetro ''lang'' o el header ''Accept-Language'' para especificar
+    el idioma deseado.'
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -189,6 +265,322 @@ info:
   title: Radio Backend API
   version: "1.0"
 paths:
+  /admin/translations:
+    post:
+      consumes:
+      - application/json
+      description: 'Crea una nueva traducción para una estación en un idioma específico
+        (solo admin). Ejemplo de request: {"station_id": "abc123", "language_code":
+        "en", "title": "Rock FM - Free Online Radio", "description": "Listen to Rock
+        FM live from USA", "keywords": ["rock", "usa", "music", "online", "free"]}'
+      parameters:
+      - description: Datos de la traducción
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/radio-backend_internal_domain.CreateTranslationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Traducción creada exitosamente
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: No autorizado - Solo admin
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Estación no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: La traducción ya existe
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear una nueva traducción
+      tags:
+      - Translations
+  /admin/translations/{stationId}:
+    get:
+      description: Obtiene todas las traducciones disponibles para una estación (solo
+        admin)
+      parameters:
+      - description: ID de la estación
+        in: path
+        name: stationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de traducciones
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: No autorizado - Solo admin
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Estación no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar todas las traducciones de una estación
+      tags:
+      - Translations
+  /admin/translations/{stationId}/{lang}:
+    delete:
+      description: Elimina una traducción existente (solo admin)
+      parameters:
+      - description: ID de la estación
+        in: path
+        name: stationId
+        required: true
+        type: string
+      - description: Código de idioma (es, en, fr, de)
+        in: path
+        name: lang
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Traducción eliminada exitosamente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: No autorizado - Solo admin
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Traducción no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Eliminar una traducción
+      tags:
+      - Translations
+    get:
+      description: Obtiene la traducción de una estación en un idioma específico (solo
+        admin)
+      parameters:
+      - description: ID de la estación
+        in: path
+        name: stationId
+        required: true
+        type: string
+      - description: Código de idioma (es, en, fr, de)
+        in: path
+        name: lang
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Traducción encontrada
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: No autorizado - Solo admin
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Traducción no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener una traducción específica
+      tags:
+      - Translations
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una traducción existente (solo admin)
+      parameters:
+      - description: ID de la estación
+        in: path
+        name: stationId
+        required: true
+        type: string
+      - description: Código de idioma (es, en, fr, de)
+        in: path
+        name: lang
+        required: true
+        type: string
+      - description: Datos actualizados de la traducción
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/radio-backend_internal_domain.UpdateTranslationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Traducción actualizada exitosamente
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: No autorizado - Solo admin
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Traducción no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Actualizar una traducción
+      tags:
+      - Translations
+  /admin/translations/bulk:
+    post:
+      consumes:
+      - application/json
+      description: 'Crea múltiples traducciones en una sola operación (solo admin).
+        Útil para poblar traducciones de múltiples estaciones. Ejemplo: [{"station_id":"abc","language_code":"en","title":"Radio
+        FM","description":"Listen live","keywords":["radio","music"]},{"station_id":"abc","language_code":"fr","title":"Radio
+        FM","description":"Écoutez en direct","keywords":["radio","musique"]}]'
+      parameters:
+      - description: Lista de traducciones a crear
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/radio-backend_internal_domain.CreateTranslationRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Traducciones creadas exitosamente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: No autorizado - Solo admin
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear múltiples traducciones
+      tags:
+      - Translations
   /analytics/searches/trending:
     get:
       consumes:
@@ -703,6 +1095,11 @@ paths:
         name: id
         required: true
         type: string
+      - default: es
+        description: Código de idioma (es, en, fr, de)
+        in: query
+        name: lang
+        type: string
       produces:
       - application/json
       responses:
@@ -753,6 +1150,11 @@ paths:
         in: query
         name: country
         type: string
+      - default: es
+        description: Código de idioma (es, en, fr, de)
+        in: query
+        name: lang
+        type: string
       produces:
       - application/json
       responses:
@@ -796,6 +1198,11 @@ paths:
         in: query
         name: limit
         type: integer
+      - default: es
+        description: Código de idioma (es, en, fr, de)
+        in: query
+        name: lang
+        type: string
       produces:
       - application/json
       responses:
@@ -833,6 +1240,38 @@ paths:
       summary: Buscar estaciones
       tags:
       - Stations
+  /translations/{stationId}/languages:
+    get:
+      description: 'Obtiene la lista de idiomas para los cuales existen traducciones
+        de una estación. Útil para mostrar selector de idiomas en el frontend. Retorna
+        códigos de idioma: es, en, fr, de'
+      parameters:
+      - description: ID de la estación
+        in: path
+        name: stationId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Lista de idiomas disponibles. Ejemplo: {\"success\":true,\"data\":[\"es\",\"en\",\"fr\"],\"count\":3}'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Solicitud inválida
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Obtener idiomas disponibles para una estación
+      tags:
+      - Translations
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

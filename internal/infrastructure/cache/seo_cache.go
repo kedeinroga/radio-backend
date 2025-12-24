@@ -65,48 +65,48 @@ func (c *SEOCache) SetSitemapData(data *domain.SitemapData, ttl time.Duration) e
 	return nil
 }
 
-// GetStationSEO obtiene los metadatos SEO de una estación desde cache
-func (c *SEOCache) GetStationSEO(stationID string) (*domain.SEOMetadata, error) {
+// GetStationSEO obtiene los metadatos SEO de una estación desde cache (con idioma)
+func (c *SEOCache) GetStationSEO(stationID string, language string) (*domain.SEOMetadata, error) {
 	ctx := context.Background()
-	key := fmt.Sprintf("seo:station:%s", stationID)
+	key := fmt.Sprintf("seo:station:%s:%s", stationID, language)
 
 	data, err := c.redis.client.Get(ctx, key).Result()
 	if err != nil {
 		if err.Error() == "redis: nil" {
-			logger.Info("station SEO cache miss", "station_id", stationID)
+			logger.Info("station SEO cache miss", "station_id", stationID, "language", language)
 			return nil, nil // Cache miss
 		}
-		logger.Error("failed to get station SEO from cache", "error", err, "station_id", stationID)
+		logger.Error("failed to get station SEO from cache", "error", err, "station_id", stationID, "language", language)
 		return nil, fmt.Errorf("failed to get station SEO from cache: %w", err)
 	}
 
 	var metadata domain.SEOMetadata
 	if err := json.Unmarshal([]byte(data), &metadata); err != nil {
-		logger.Error("failed to unmarshal station SEO", "error", err, "station_id", stationID)
+		logger.Error("failed to unmarshal station SEO", "error", err, "station_id", stationID, "language", language)
 		return nil, fmt.Errorf("failed to unmarshal station SEO: %w", err)
 	}
 
-	logger.Info("station SEO cache hit", "station_id", stationID)
+	logger.Info("station SEO cache hit", "station_id", stationID, "language", language)
 	return &metadata, nil
 }
 
-// SetStationSEO guarda los metadatos SEO de una estación en cache
-func (c *SEOCache) SetStationSEO(stationID string, metadata *domain.SEOMetadata, ttl time.Duration) error {
+// SetStationSEO guarda los metadatos SEO de una estación en cache (con idioma)
+func (c *SEOCache) SetStationSEO(stationID string, language string, metadata *domain.SEOMetadata, ttl time.Duration) error {
 	ctx := context.Background()
-	key := fmt.Sprintf("seo:station:%s", stationID)
+	key := fmt.Sprintf("seo:station:%s:%s", stationID, language)
 
 	jsonData, err := json.Marshal(metadata)
 	if err != nil {
-		logger.Error("failed to marshal station SEO", "error", err, "station_id", stationID)
+		logger.Error("failed to marshal station SEO", "error", err, "station_id", stationID, "language", language)
 		return fmt.Errorf("failed to marshal station SEO: %w", err)
 	}
 
 	if err := c.redis.client.Set(ctx, key, jsonData, ttl).Err(); err != nil {
-		logger.Error("failed to set station SEO in cache", "error", err, "station_id", stationID, "ttl", ttl)
+		logger.Error("failed to set station SEO in cache", "error", err, "station_id", stationID, "language", language, "ttl", ttl)
 		return fmt.Errorf("failed to set station SEO in cache: %w", err)
 	}
 
-	logger.Info("station SEO cached successfully", "station_id", stationID, "ttl", ttl)
+	logger.Info("station SEO cached successfully", "station_id", stationID, "language", language, "ttl", ttl)
 	return nil
 }
 
@@ -124,17 +124,30 @@ func (c *SEOCache) InvalidateSitemapData() error {
 	return nil
 }
 
-// InvalidateStationSEO invalida el cache SEO de una estación específica
+// InvalidateStationSEO invalida el cache SEO de una estación específica (todos los idiomas)
 func (c *SEOCache) InvalidateStationSEO(stationID string) error {
 	ctx := context.Background()
-	key := fmt.Sprintf("seo:station:%s", stationID)
+	pattern := fmt.Sprintf("seo:station:%s:*", stationID)
 
-	if err := c.redis.client.Del(ctx, key).Err(); err != nil {
+	// Obtener todas las claves que coincidan con el patrón
+	keys, err := c.redis.client.Keys(ctx, pattern).Result()
+	if err != nil {
+		logger.Error("failed to get keys for station SEO invalidation", "error", err, "station_id", stationID)
+		return fmt.Errorf("failed to get keys for station SEO invalidation: %w", err)
+	}
+
+	if len(keys) == 0 {
+		logger.Info("no cache keys found for station", "station_id", stationID)
+		return nil
+	}
+
+	// Eliminar todas las claves
+	if err := c.redis.client.Del(ctx, keys...).Err(); err != nil {
 		logger.Error("failed to invalidate station SEO", "error", err, "station_id", stationID)
 		return fmt.Errorf("failed to invalidate station SEO: %w", err)
 	}
 
-	logger.Info("station SEO cache invalidated", "station_id", stationID)
+	logger.Info("station SEO cache invalidated for all languages", "station_id", stationID, "keys_deleted", len(keys))
 	return nil
 }
 

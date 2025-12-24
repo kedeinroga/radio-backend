@@ -25,7 +25,8 @@ type Router struct {
 	stationHandler   *handlers.StationHandler
 	analyticsHandler *handlers.AnalyticsHandler
 	favoriteHandler  *handlers.FavoriteHandler
-	seoHandler       *handlers.SEOHandler // NUEVO: Handler SEO
+	seoHandler       *handlers.SEOHandler       // NUEVO: Handler SEO
+	translationHandler *handlers.TranslationHandler // NUEVO: Handler de traducciones
 }
 
 // NewRouter creates a new router
@@ -38,6 +39,7 @@ func NewRouter(
 	analyticsHandler *handlers.AnalyticsHandler,
 	favoriteHandler *handlers.FavoriteHandler,
 	seoHandler *handlers.SEOHandler, // NUEVO: Handler SEO
+	translationHandler *handlers.TranslationHandler, // NUEVO: Handler de traducciones
 ) *Router {
 	return &Router{
 		engine:              gin.New(),
@@ -49,6 +51,7 @@ func NewRouter(
 		analyticsHandler:    analyticsHandler,
 		favoriteHandler:     favoriteHandler,
 		seoHandler:          seoHandler, // NUEVO
+		translationHandler:  translationHandler, // NUEVO
 	}
 }
 
@@ -58,6 +61,7 @@ func (r *Router) Setup() *gin.Engine {
 	r.engine.Use(gin.Recovery())
 	r.engine.Use(r.corsMiddleware)
 	r.engine.Use(middleware.LoggingMiddleware())
+	r.engine.Use(middleware.LanguageDetector()) // NUEVO: Middleware de detección de idioma
 	r.engine.Use(r.analyticsMiddleware.Track())
 
 	// Health check
@@ -113,6 +117,24 @@ func (r *Router) Setup() *gin.Engine {
 			seo.GET("/popular-countries", r.seoHandler.GetPopularCountries)
 			// Admin endpoint - debería tener autenticación admin en producción
 			seo.POST("/refresh-stats", r.seoHandler.RefreshSEOStats)
+		}
+
+		// Translation routes (admin only - por ahora requiere autenticación, TODO: agregar AdminOnly middleware)
+		adminTranslations := v1.Group("/admin/translations")
+		adminTranslations.Use(r.authMiddleware.Required())
+		{
+			adminTranslations.POST("", r.translationHandler.CreateTranslation)
+			adminTranslations.POST("/bulk", r.translationHandler.BulkCreateTranslations)
+			adminTranslations.GET("/:stationId", r.translationHandler.ListTranslations)
+			adminTranslations.GET("/:stationId/:lang", r.translationHandler.GetTranslation)
+			adminTranslations.PUT("/:stationId/:lang", r.translationHandler.UpdateTranslation)
+			adminTranslations.DELETE("/:stationId/:lang", r.translationHandler.DeleteTranslation)
+		}
+
+		// Public translation routes
+		translations := v1.Group("/translations")
+		{
+			translations.GET("/:stationId/languages", r.translationHandler.GetAvailableLanguages)
 		}
 	}
 

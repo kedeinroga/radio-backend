@@ -95,8 +95,9 @@ func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 
 	userID := middleware.GetUserID(c)
 	userType := middleware.GetUserType(c)
+	lang := middleware.GetLanguage(c)
 
-	err := h.favoriteService.AddFavorite(*userID, req.StationID, userType)
+	err := h.favoriteService.AddFavorite(*userID, req.StationID, userType, lang)
 	if err != nil {
 		if err == domain.ErrFavoriteAlreadyExists {
 			RespondWithError(c, http.StatusConflict, "already_exists", "Station is already in favorites")

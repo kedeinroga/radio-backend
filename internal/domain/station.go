@@ -4,15 +4,15 @@ import "time"
 
 // Station representa una estación de radio
 type Station struct {
-	ID                string     `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name              string     `json:"name" example:"Rock FM 100.1"`
-	StreamURL         string     `json:"stream_url" example:"https://stream.rockfm.com/live"`
-	StreamURLResolved string     `json:"stream_url_resolved,omitempty" example:"https://cdn.rockfm.com/stream.mp3"`
-	ImageURL          string     `json:"image_url,omitempty" example:"https://cdn.rockfm.com/logo.png"`
-	Tags              []string   `json:"tags" example:"rock,classic rock,80s"`
-	Country           string     `json:"country" example:"United States"`
-	Votes             int        `json:"votes" example:"1500"`
-	IsPremiumOnly     bool       `json:"is_premium_only" example:"false"`
+	ID                string   `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name              string   `json:"name" example:"Rock FM 100.1"`
+	StreamURL         string   `json:"stream_url" example:"https://stream.rockfm.com/live"`
+	StreamURLResolved string   `json:"stream_url_resolved,omitempty" example:"https://cdn.rockfm.com/stream.mp3"`
+	ImageURL          string   `json:"image_url,omitempty" example:"https://cdn.rockfm.com/logo.png"`
+	Tags              []string `json:"tags" example:"rock,classic rock,80s"`
+	Country           string   `json:"country" example:"United States"`
+	Votes             int      `json:"votes" example:"1500"`
+	IsPremiumOnly     bool     `json:"is_premium_only" example:"false"`
 
 	// SEO fields
 	Slug        string       `json:"slug" example:"rock-fm-100-1"`

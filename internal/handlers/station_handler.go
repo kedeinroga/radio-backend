@@ -34,6 +34,7 @@ func NewStationHandler(stationService *services.StationService, analyticsService
 // @Accept json
 // @Produce json
 // @Param id path string true "ID de la estación"
+// @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
 // @Success 200 {object} object{data=domain.Station} "Detalle de la estación con SEO metadata"
 // @Failure 404 {object} map[string]interface{} "Estación no encontrada"
 // @Failure 403 {object} map[string]interface{} "Acceso denegado - Estación solo para Premium"
@@ -50,8 +51,11 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 	// Get user type from context
 	userType := middleware.GetUserType(c)
 
+	// Get language from context (detectado por middleware)
+	lang := middleware.GetLanguage(c)
+
 	// Get station by ID
-	station, err := h.stationService.GetByID(stationID, userType)
+	station, err := h.stationService.GetByID(stationID, userType, lang)
 	if err != nil {
 		if err == domain.ErrStationNotFound {
 			RespondWithError(c, http.StatusNotFound, "station_not_found", "Station not found")
@@ -104,6 +108,7 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Número máximo de estaciones" default(20)
 // @Param country query string false "Filtrar por código de país"
+// @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
 // @Success 200 {object} object{data=[]domain.Station} "Lista de estaciones populares con SEO metadata"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
@@ -116,8 +121,11 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 	// Get user type from context
 	userType := middleware.GetUserType(c)
 
+	// Get language from context
+	lang := middleware.GetLanguage(c)
+
 	// Get popular stations
-	stations, err := h.stationService.ListPopular(limit, country, userType)
+	stations, err := h.stationService.ListPopular(limit, country, userType, lang)
 	if err != nil {
 		// Check if it's a circuit breaker error
 		if strings.Contains(err.Error(), "temporarily unavailable") {
@@ -164,6 +172,7 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 // @Produce json
 // @Param q query string true "Término de búsqueda"
 // @Param limit query int false "Número máximo de resultados" default(20)
+// @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
 // @Success 200 {object} object{data=[]domain.Station,meta=object{count=int,query=string}} "Resultados de búsqueda con SEO metadata"
 // @Failure 400 {object} map[string]interface{} "Parámetro de búsqueda requerido"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
@@ -183,8 +192,11 @@ func (h *StationHandler) Search(c *gin.Context) {
 	userType := middleware.GetUserType(c)
 	userID := middleware.GetUserID(c)
 
+	// Get language from context
+	lang := middleware.GetLanguage(c)
+
 	// Search stations
-	stations, err := h.stationService.Search(query, limit, userType)
+	stations, err := h.stationService.Search(query, limit, userType, lang)
 	if err != nil {
 		logger.Error("search failed", "query", query, "limit", limit, "user_type", userType, "error", err)
 

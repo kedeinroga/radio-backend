@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"radio-backend/internal/domain"
+	"radio-backend/internal/i18n"
 	"radio-backend/internal/infrastructure/logger"
 	"radio-backend/internal/repositories/postgres"
 )
@@ -42,8 +43,8 @@ func NewStationService(
 }
 
 // GetByID retrieves a station by ID using cache-aside pattern
-func (s *StationService) GetByID(id string, userType domain.UserType) (*domain.Station, error) {
-	logger.Info("fetching station by ID", "id", id, "user_type", userType)
+func (s *StationService) GetByID(id string, userType domain.UserType, lang i18n.Language) (*domain.Station, error) {
+	logger.Info("fetching station by ID", "id", id, "user_type", userType, "language", lang)
 
 	// 1. Try cache first
 	cachedStation, err := s.cacheRepo.Get(id)
@@ -52,9 +53,9 @@ func (s *StationService) GetByID(id string, userType domain.UserType) (*domain.S
 		if !cachedStation.IsAccessibleBy(userType) {
 			return nil, domain.ErrUnauthorized
 		}
-		// NUEVO: Enriquecer con SEO antes de retornar
+		// Enriquecer con SEO antes de retornar
 		if s.seoService != nil {
-			s.seoService.EnrichStationWithSEO(cachedStation)
+			s.seoService.EnrichStationWithSEO(cachedStation, lang)
 		}
 		return cachedStation, nil
 	}
@@ -75,26 +76,26 @@ func (s *StationService) GetByID(id string, userType domain.UserType) (*domain.S
 		return nil, domain.ErrUnauthorized
 	}
 
-	// NUEVO: Enriquecer con SEO antes de retornar
+	// Enriquecer con SEO antes de retornar
 	if s.seoService != nil {
-		s.seoService.EnrichStationWithSEO(station)
+		s.seoService.EnrichStationWithSEO(station, lang)
 	}
 
 	return station, nil
 }
 
 // ListPopular returns popular stations using cache-aside pattern
-func (s *StationService) ListPopular(limit int, country string, userType domain.UserType) ([]domain.Station, error) {
+func (s *StationService) ListPopular(limit int, country string, userType domain.UserType, lang i18n.Language) ([]domain.Station, error) {
 	// 1. Try cache first
-	logger.Info("fetching popular stations", "limit", limit, "country", country, "user_type", userType)
+	logger.Info("fetching popular stations", "limit", limit, "country", country, "user_type", userType, "language", lang)
 
 	cachedStations, err := s.cacheRepo.FindPopular(limit, country)
 	if err == nil && len(cachedStations) >= limit {
 		logger.Info("cache hit for popular stations", "count", len(cachedStations))
 		filtered := s.filterByUserType(cachedStations, userType)
-		// NUEVO: Enriquecer con SEO
+		// Enriquecer con SEO
 		if s.seoService != nil {
-			s.seoService.EnrichStationsWithSEO(filtered)
+			s.seoService.EnrichStationsWithSEO(filtered, lang)
 		}
 		return filtered, nil
 	}
@@ -108,9 +109,9 @@ func (s *StationService) ListPopular(limit int, country string, userType domain.
 		if len(cachedStations) > 0 {
 			logger.Warn("external API failed, using partial cache", "cached_count", len(cachedStations), "error", err)
 			filtered := s.filterByUserType(cachedStations, userType)
-			// NUEVO: Enriquecer con SEO
+			// Enriquecer con SEO
 			if s.seoService != nil {
-				s.seoService.EnrichStationsWithSEO(filtered)
+				s.seoService.EnrichStationsWithSEO(filtered, lang)
 			}
 			return filtered, nil
 		}
@@ -121,20 +122,20 @@ func (s *StationService) ListPopular(limit int, country string, userType domain.
 	go s.cacheStations(stations)
 
 	filtered := s.filterByUserType(stations, userType)
-	// NUEVO: Enriquecer con SEO
+	// Enriquecer con SEO
 	if s.seoService != nil {
-		s.seoService.EnrichStationsWithSEO(filtered)
+		s.seoService.EnrichStationsWithSEO(filtered, lang)
 	}
 	return filtered, nil
 }
 
 // Search searches for stations using cache-aside pattern
-func (s *StationService) Search(query string, limit int, userType domain.UserType) ([]domain.Station, error) {
+func (s *StationService) Search(query string, limit int, userType domain.UserType, lang i18n.Language) ([]domain.Station, error) {
 	if query == "" {
 		return nil, domain.ErrInvalidQuery
 	}
 
-	logger.Info("searching stations", "query", query, "limit", limit, "user_type", userType)
+	logger.Info("searching stations", "query", query, "limit", limit, "user_type", userType, "language", lang)
 
 	// 1. Check search cache
 	queryHash := s.hashQuery(query, limit)
@@ -153,9 +154,9 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 		stations, err := s.cacheRepo.GetMany(cachedEntry.StationIDs)
 		if err == nil && len(stations) > 0 {
 			filtered := s.filterByUserType(stations, userType)
-			// NUEVO: Enriquecer con SEO
+			// Enriquecer con SEO
 			if s.seoService != nil {
-				s.seoService.EnrichStationsWithSEO(filtered)
+				s.seoService.EnrichStationsWithSEO(filtered, lang)
 			}
 			return filtered, nil
 		}
@@ -169,9 +170,9 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 		logger.Info("found in local database", "count", len(cachedStations))
 		go s.saveSearchCache(queryHash, query, limit, cachedStations)
 		filtered := s.filterByUserType(cachedStations, userType)
-		// NUEVO: Enriquecer con SEO
+		// Enriquecer con SEO
 		if s.seoService != nil {
-			s.seoService.EnrichStationsWithSEO(filtered)
+			s.seoService.EnrichStationsWithSEO(filtered, lang)
 		}
 		return filtered, nil
 	}
@@ -185,9 +186,9 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 		if len(cachedStations) > 0 {
 			logger.Warn("external API failed, using partial cache", "cached_count", len(cachedStations), "error", err)
 			filtered := s.filterByUserType(cachedStations, userType)
-			// NUEVO: Enriquecer con SEO
+			// Enriquecer con SEO
 			if s.seoService != nil {
-				s.seoService.EnrichStationsWithSEO(filtered)
+				s.seoService.EnrichStationsWithSEO(filtered, lang)
 			}
 			return filtered, nil
 		}
@@ -199,9 +200,9 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 	go s.saveSearchCache(queryHash, query, limit, stations)
 
 	filtered := s.filterByUserType(stations, userType)
-	// NUEVO: Enriquecer con SEO
+	// Enriquecer con SEO
 	if s.seoService != nil {
-		s.seoService.EnrichStationsWithSEO(filtered)
+		s.seoService.EnrichStationsWithSEO(filtered, lang)
 	}
 	return filtered, nil
 }
