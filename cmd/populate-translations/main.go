@@ -104,7 +104,7 @@ func main() {
 // getAllStations obtiene todas las estaciones activas de la base de datos
 func getAllStations(db *sql.DB) ([]domain.Station, error) {
 	query := `
-		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country, 
+		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
 		       created_at, updated_at
 		FROM stations

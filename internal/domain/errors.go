@@ -31,12 +31,12 @@ var (
 	ErrFavoriteNotFound      = &DomainError{Code: "FAVORITE_NOT_FOUND", Message: "favorite not found"}
 
 	// Translation errors
-	ErrTranslationNotFound     = &DomainError{Code: "TRANSLATION_NOT_FOUND", Message: "translation not found"}
-	ErrTranslationExists       = &DomainError{Code: "TRANSLATION_EXISTS", Message: "translation already exists"}
-	ErrUnsupportedLanguage     = &DomainError{Code: "UNSUPPORTED_LANGUAGE", Message: "unsupported language code"}
-	ErrInvalidStationID        = &DomainError{Code: "INVALID_STATION_ID", Message: "invalid station id"}
-	ErrInvalidTitle            = &DomainError{Code: "INVALID_TITLE", Message: "title is required and must be less than 200 characters"}
-	ErrInvalidDescription      = &DomainError{Code: "INVALID_DESCRIPTION", Message: "description is required"}
+	ErrTranslationNotFound = &DomainError{Code: "TRANSLATION_NOT_FOUND", Message: "translation not found"}
+	ErrTranslationExists   = &DomainError{Code: "TRANSLATION_EXISTS", Message: "translation already exists"}
+	ErrUnsupportedLanguage = &DomainError{Code: "UNSUPPORTED_LANGUAGE", Message: "unsupported language code"}
+	ErrInvalidStationID    = &DomainError{Code: "INVALID_STATION_ID", Message: "invalid station id"}
+	ErrInvalidTitle        = &DomainError{Code: "INVALID_TITLE", Message: "title is required and must be less than 200 characters"}
+	ErrInvalidDescription  = &DomainError{Code: "INVALID_DESCRIPTION", Message: "description is required"}
 )
 
 // NewValidationError creates a new validation error

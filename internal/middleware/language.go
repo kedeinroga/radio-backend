@@ -9,10 +9,10 @@ import (
 const (
 	// LanguageContextKey es la clave para obtener el idioma del contexto
 	LanguageContextKey = "language"
-	
+
 	// LanguageQueryParam es el parámetro de query para especificar el idioma
 	LanguageQueryParam = "lang"
-	
+
 	// AcceptLanguageHeader es el header HTTP para especificar el idioma
 	AcceptLanguageHeader = "Accept-Language"
 )

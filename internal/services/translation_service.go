@@ -185,12 +185,12 @@ func (s *TranslationService) generateDefaultTranslation(station *domain.Station,
 
 // translationTemplate define el template de traducción para un idioma
 type translationTemplate struct {
-	TitleFormat                string
-	DescriptionFormat          string
-	DescriptionWithTagsFormat  string
-	KeywordRadio               string
-	KeywordLive                string
-	KeywordOnline              string
+	TitleFormat               string
+	DescriptionFormat         string
+	DescriptionWithTagsFormat string
+	KeywordRadio              string
+	KeywordLive               string
+	KeywordOnline             string
 }
 
 // getTranslationTemplates retorna los templates de traducción para cada idioma

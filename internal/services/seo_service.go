@@ -173,6 +173,7 @@ func (s *SEOService) generateMetadata(station *domain.Station, lang i18n.Languag
 		HreflangTags:   hreflangTags,
 	}
 }
+
 // validateImageURL valida y proporciona fallback para la URL de imagen
 func (s *SEOService) validateImageURL(imageURL string) string {
 	// Si no hay imagen o es inválida, usar fallback

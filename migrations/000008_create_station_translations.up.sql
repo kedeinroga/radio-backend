@@ -2,34 +2,34 @@
 CREATE TABLE IF NOT EXISTS station_translations (
     station_id VARCHAR(255) NOT NULL,
     language_code VARCHAR(5) NOT NULL,
-    
+
     -- SEO Metadata traducido
     title VARCHAR(200) NOT NULL,
     description TEXT NOT NULL,
     keywords TEXT[], -- Array de keywords por idioma
-    
+
     -- Metadata adicional
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    
+
     -- Clave primaria compuesta
     PRIMARY KEY (station_id, language_code),
-    
+
     -- Foreign key a stations (opcional, por si quieres integridad referencial)
-    CONSTRAINT fk_station_translations_station 
-        FOREIGN KEY (station_id) 
-        REFERENCES stations(id) 
+    CONSTRAINT fk_station_translations_station
+        FOREIGN KEY (station_id)
+        REFERENCES stations(id)
         ON DELETE CASCADE
 );
 
 -- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_station_translations_station_id 
+CREATE INDEX IF NOT EXISTS idx_station_translations_station_id
     ON station_translations(station_id);
 
-CREATE INDEX IF NOT EXISTS idx_station_translations_language 
+CREATE INDEX IF NOT EXISTS idx_station_translations_language
     ON station_translations(language_code);
 
-CREATE INDEX IF NOT EXISTS idx_station_translations_updated 
+CREATE INDEX IF NOT EXISTS idx_station_translations_updated
     ON station_translations(updated_at DESC);
 
 -- Trigger para actualizar updated_at automáticamente

@@ -72,14 +72,14 @@ func ParseAcceptLanguage(acceptLanguage string) Language {
 
 	// Dividir por comas
 	languages := strings.Split(acceptLanguage, ",")
-	
+
 	// Tomar el primer idioma (tiene mayor prioridad)
 	if len(languages) > 0 {
 		// Extraer solo el código del idioma (antes de ; o -)
 		firstLang := strings.TrimSpace(languages[0])
 		firstLang = strings.Split(firstLang, ";")[0] // Remover quality factor
 		firstLang = strings.Split(firstLang, "-")[0] // Remover región (en-US -> en)
-		
+
 		return ParseLanguage(firstLang)
 	}
 
@@ -94,10 +94,10 @@ func GetLanguageName(lang Language) string {
 		LanguageFR: "Français",
 		LanguageDE: "Deutsch",
 	}
-	
+
 	if name, ok := names[lang]; ok {
 		return name
 	}
-	
+
 	return names[DefaultLanguage]
 }

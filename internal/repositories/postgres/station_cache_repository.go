@@ -237,7 +237,7 @@ func (r *StationCacheRepository) FindPopular(limit int, country string) ([]domai
 // Search busca estaciones por nombre o tags (implementa domain.StationRepository)
 func (r *StationCacheRepository) Search(query string, limit int) ([]domain.Station, error) {
 	sqlQuery := `
-		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country, 
+		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
 		       created_at, updated_at
 		FROM stations

@@ -21,11 +21,11 @@ type Router struct {
 	corsMiddleware      gin.HandlerFunc
 
 	// Handlers
-	authHandler      *handlers.AuthHandler
-	stationHandler   *handlers.StationHandler
-	analyticsHandler *handlers.AnalyticsHandler
-	favoriteHandler  *handlers.FavoriteHandler
-	seoHandler       *handlers.SEOHandler       // NUEVO: Handler SEO
+	authHandler        *handlers.AuthHandler
+	stationHandler     *handlers.StationHandler
+	analyticsHandler   *handlers.AnalyticsHandler
+	favoriteHandler    *handlers.FavoriteHandler
+	seoHandler         *handlers.SEOHandler         // NUEVO: Handler SEO
 	translationHandler *handlers.TranslationHandler // NUEVO: Handler de traducciones
 }
 
@@ -50,7 +50,7 @@ func NewRouter(
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
 		favoriteHandler:     favoriteHandler,
-		seoHandler:          seoHandler, // NUEVO
+		seoHandler:          seoHandler,         // NUEVO
 		translationHandler:  translationHandler, // NUEVO
 	}
 }

@@ -108,7 +108,7 @@ func main() {
 	stationCacheRepo := postgres.NewStationCacheRepository(db)
 	searchCacheRepo := postgres.NewSearchCacheRepository(db)
 	favoriteRepo := postgres.NewFavoriteRepository(db)
-	seoRepo := postgres.NewSEORepository(db.DB) // NUEVO: SEO repo usa *sql.DB directamente
+	seoRepo := postgres.NewSEORepository(db.DB)                 // NUEVO: SEO repo usa *sql.DB directamente
 	translationRepo := postgres.NewTranslationRepository(db.DB) // NUEVO: Translation repo
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
@@ -116,8 +116,8 @@ func main() {
 	seoCache := cache.NewSEOCache(redisClient) // NUEVO: Cache SEO
 
 	// Initialize services
-	slugService := services.NewSlugService()                                                 // NUEVO: Servicio de slugs
-	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)  // NUEVO: Servicio de traducciones
+	slugService := services.NewSlugService()                                                                     // NUEVO: Servicio de slugs
+	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)                      // NUEVO: Servicio de traducciones
 	seoService := services.NewSEOService(seoRepo, seoCache, translationService, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
 	authService := services.NewAuthService(userRepo, passwordHasher, tokenManager, tokenManager)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
@@ -146,7 +146,7 @@ func main() {
 	stationHandler := handlers.NewStationHandler(stationService, analyticsService)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 	favoriteHandler := handlers.NewFavoriteHandler(favoriteService)
-	seoHandler := handlers.NewSEOHandler(seoService) // NUEVO: Handler SEO
+	seoHandler := handlers.NewSEOHandler(seoService)                         // NUEVO: Handler SEO
 	translationHandler := handlers.NewTranslationHandler(translationService) // NUEVO: Handler de traducciones
 
 	// Setup router
@@ -158,7 +158,7 @@ func main() {
 		stationHandler,
 		analyticsHandler,
 		favoriteHandler,
-		seoHandler, // NUEVO: Inyectar SEO handler
+		seoHandler,         // NUEVO: Inyectar SEO handler
 		translationHandler, // NUEVO: Inyectar Translation handler
 	)
 	engine := router.Setup()

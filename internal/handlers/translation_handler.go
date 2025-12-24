@@ -317,8 +317,8 @@ func (h *TranslationHandler) GetAvailableLanguages(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"success":   true,
-		"data":      languages,
-		"count":     len(languages),
+		"success": true,
+		"data":    languages,
+		"count":   len(languages),
 	})
 }
