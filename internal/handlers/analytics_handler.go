@@ -20,7 +20,7 @@ func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *Analytics
 
 // GetPopularStations returns popular stations analytics
 // @Summary Estadísticas de estaciones populares
-// @Description Analytics de estaciones más reproducidas (Solo usuarios Premium)
+// @Description Analytics de estaciones más reproducidas (Solo usuarios Admin)
 // @Tags Analytics
 // @Accept json
 // @Produce json
@@ -29,7 +29,7 @@ func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *Analytics
 // @Param limit query int false "Número máximo de resultados" default(10)
 // @Success 200 {object} map[string]interface{} "Estadísticas de estaciones"
 // @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Premium"
+// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Admin"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Router /analytics/stations/popular [get]
 func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
@@ -63,7 +63,7 @@ func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
 
 // GetTrendingSearches returns trending searches analytics
 // @Summary Búsquedas en tendencia
-// @Description Analytics de búsquedas más frecuentes (Solo usuarios Premium)
+// @Description Analytics de búsquedas más frecuentes (Solo usuarios Admin)
 // @Tags Analytics
 // @Accept json
 // @Produce json
@@ -72,7 +72,7 @@ func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
 // @Param limit query int false "Número máximo de resultados" default(10)
 // @Success 200 {object} map[string]interface{} "Estadísticas de búsquedas"
 // @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Premium"
+// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Admin"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Router /analytics/searches/trending [get]
 func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
@@ -106,14 +106,14 @@ func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
 
 // GetActiveUsers returns active users count
 // @Summary Usuarios activos
-// @Description Cuenta de usuarios activos en el sistema (Solo usuarios Premium)
+// @Description Cuenta de usuarios activos en el sistema (Solo usuarios Admin)
 // @Tags Analytics
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} map[string]interface{} "Cuenta de usuarios activos"
 // @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Premium"
+// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Admin"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Router /analytics/users/active [get]
 func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {

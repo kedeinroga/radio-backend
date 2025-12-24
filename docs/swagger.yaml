@@ -265,6 +265,38 @@ info:
   title: Radio Backend API
   version: "1.0"
 paths:
+  /admin/seo/refresh-stats:
+    post:
+      description: Actualiza las estadísticas de tags y países desde la base de datos.
+        Endpoint administrativo que requiere autenticación de admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Estadísticas actualizadas
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Acceso denegado - Solo Admin
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno del servidor
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Refrescar estadísticas SEO (Admin)
+      tags:
+      - SEO
   /admin/translations:
     post:
       consumes:
@@ -585,7 +617,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Analytics de búsquedas más frecuentes (Solo usuarios Premium)
+      description: Analytics de búsquedas más frecuentes (Solo usuarios Admin)
       parameters:
       - default: day
         description: 'Rango de tiempo: day, week, month'
@@ -611,7 +643,7 @@ paths:
             additionalProperties: true
             type: object
         "403":
-          description: Acceso denegado - Solo Premium
+          description: Acceso denegado - Solo Admin
           schema:
             additionalProperties: true
             type: object
@@ -629,7 +661,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Analytics de estaciones más reproducidas (Solo usuarios Premium)
+      description: Analytics de estaciones más reproducidas (Solo usuarios Admin)
       parameters:
       - default: day
         description: 'Rango de tiempo: day, week, month'
@@ -655,7 +687,7 @@ paths:
             additionalProperties: true
             type: object
         "403":
-          description: Acceso denegado - Solo Premium
+          description: Acceso denegado - Solo Admin
           schema:
             additionalProperties: true
             type: object
@@ -673,7 +705,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Cuenta de usuarios activos en el sistema (Solo usuarios Premium)
+      description: Cuenta de usuarios activos en el sistema (Solo usuarios Admin)
       produces:
       - application/json
       responses:
@@ -688,7 +720,7 @@ paths:
             additionalProperties: true
             type: object
         "403":
-          description: Acceso denegado - Solo Premium
+          description: Acceso denegado - Solo Admin
           schema:
             additionalProperties: true
             type: object
@@ -1041,26 +1073,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Top tags/géneros populares
-      tags:
-      - SEO
-  /seo/refresh-stats:
-    post:
-      description: Actualiza las estadísticas de tags y países desde la base de datos.
-        Endpoint administrativo.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Estadísticas actualizadas
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Error interno del servidor
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Refrescar estadísticas SEO (Admin)
       tags:
       - SEO
   /seo/sitemap-data:

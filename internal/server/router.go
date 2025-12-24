@@ -91,9 +91,9 @@ func (r *Router) Setup() *gin.Engine {
 			stations.GET("/:id", r.stationHandler.GetByID)
 		}
 
-		// Analytics routes (premium only)
+		// Analytics routes (admin only)
 		analytics := v1.Group("/analytics")
-		analytics.Use(r.authMiddleware.Required(), r.authMiddleware.PremiumOnly())
+		analytics.Use(r.authMiddleware.Required(), r.authMiddleware.AdminOnly())
 		{
 			analytics.GET("/stations/popular", r.analyticsHandler.GetPopularStations)
 			analytics.GET("/searches/trending", r.analyticsHandler.GetTrendingSearches)
@@ -115,13 +115,18 @@ func (r *Router) Setup() *gin.Engine {
 			seo.GET("/sitemap-data", r.seoHandler.GetSitemapData)
 			seo.GET("/popular-tags", r.seoHandler.GetPopularTags)
 			seo.GET("/popular-countries", r.seoHandler.GetPopularCountries)
-			// Admin endpoint - debería tener autenticación admin en producción
-			seo.POST("/refresh-stats", r.seoHandler.RefreshSEOStats)
 		}
 
-		// Translation routes (admin only - por ahora requiere autenticación, TODO: agregar AdminOnly middleware)
+		// Admin SEO routes
+		adminSEO := v1.Group("/admin/seo")
+		adminSEO.Use(r.authMiddleware.Required(), r.authMiddleware.AdminOnly())
+		{
+			adminSEO.POST("/refresh-stats", r.seoHandler.RefreshSEOStats)
+		}
+
+		// Translation routes (admin only)
 		adminTranslations := v1.Group("/admin/translations")
-		adminTranslations.Use(r.authMiddleware.Required())
+		adminTranslations.Use(r.authMiddleware.Required(), r.authMiddleware.AdminOnly())
 		{
 			adminTranslations.POST("", r.translationHandler.CreateTranslation)
 			adminTranslations.POST("/bulk", r.translationHandler.BulkCreateTranslations)

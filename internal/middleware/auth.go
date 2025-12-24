@@ -110,6 +110,20 @@ func (m *AuthMiddleware) PremiumOnly() gin.HandlerFunc {
 	}
 }
 
+// AdminOnly is middleware that requires admin user
+func (m *AuthMiddleware) AdminOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userType, exists := c.Get("user_type")
+		if !exists || userType != domain.UserTypeAdmin {
+			c.JSON(403, gin.H{"error": "admin access required"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+
 // GetUserType returns the user type from context
 func GetUserType(c *gin.Context) domain.UserType {
 	userType, exists := c.Get("user_type")

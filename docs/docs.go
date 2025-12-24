@@ -23,6 +23,53 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/admin/seo/refresh-stats": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Actualiza las estadísticas de tags y países desde la base de datos. Endpoint administrativo que requiere autenticación de admin.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SEO"
+                ],
+                "summary": "Refrescar estadísticas SEO (Admin)",
+                "responses": {
+                    "200": {
+                        "description": "Estadísticas actualizadas",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Acceso denegado - Solo Admin",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/admin/translations": {
             "post": {
                 "security": [
@@ -489,7 +536,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Analytics de búsquedas más frecuentes (Solo usuarios Premium)",
+                "description": "Analytics de búsquedas más frecuentes (Solo usuarios Admin)",
                 "consumes": [
                     "application/json"
                 ],
@@ -532,7 +579,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Premium",
+                        "description": "Acceso denegado - Solo Admin",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -555,7 +602,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Analytics de estaciones más reproducidas (Solo usuarios Premium)",
+                "description": "Analytics de estaciones más reproducidas (Solo usuarios Admin)",
                 "consumes": [
                     "application/json"
                 ],
@@ -598,7 +645,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Premium",
+                        "description": "Acceso denegado - Solo Admin",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -621,7 +668,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Cuenta de usuarios activos en el sistema (Solo usuarios Premium)",
+                "description": "Cuenta de usuarios activos en el sistema (Solo usuarios Admin)",
                 "consumes": [
                     "application/json"
                 ],
@@ -648,7 +695,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Premium",
+                        "description": "Acceso denegado - Solo Admin",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1156,34 +1203,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Parámetro inválido",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Error interno del servidor",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/seo/refresh-stats": {
-            "post": {
-                "description": "Actualiza las estadísticas de tags y países desde la base de datos. Endpoint administrativo.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "SEO"
-                ],
-                "summary": "Refrescar estadísticas SEO (Admin)",
-                "responses": {
-                    "200": {
-                        "description": "Estadísticas actualizadas",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

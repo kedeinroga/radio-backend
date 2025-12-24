@@ -8,6 +8,7 @@ type UserType string
 const (
 	UserTypeGuest   UserType = "guest"
 	UserTypePremium UserType = "premium"
+	UserTypeAdmin   UserType = "admin"
 )
 
 // String returns the string representation of UserType
@@ -17,7 +18,7 @@ func (ut UserType) String() string {
 
 // IsValid checks if the user type is valid
 func (ut UserType) IsValid() bool {
-	return ut == UserTypeGuest || ut == UserTypePremium
+	return ut == UserTypeGuest || ut == UserTypePremium || ut == UserTypeAdmin
 }
 
 // User represents a user in the system
@@ -33,6 +34,11 @@ type User struct {
 // IsPremium checks if the user has premium access
 func (u *User) IsPremium() bool {
 	return u.UserType == UserTypePremium
+}
+
+// IsAdmin checks if the user has admin access
+func (u *User) IsAdmin() bool {
+	return u.UserType == UserTypeAdmin
 }
 
 // UserRepository defines the interface for user data access

@@ -22,6 +22,11 @@ func TestUserType_String(t *testing.T) {
 			userType: UserTypePremium,
 			want:     "premium",
 		},
+		{
+			name:     "admin user type",
+			userType: UserTypeAdmin,
+			want:     "admin",
+		},
 	}
 
 	for _, tt := range tests {
@@ -46,6 +51,11 @@ func TestUserType_IsValid(t *testing.T) {
 		{
 			name:     "premium is valid",
 			userType: UserTypePremium,
+			want:     true,
+		},
+		{
+			name:     "admin is valid",
+			userType: UserTypeAdmin,
 			want:     true,
 		},
 		{
@@ -92,11 +102,63 @@ func TestUser_IsPremium(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "admin user returns false",
+			user: &User{
+				ID:       "user-3",
+				Email:    "admin@example.com",
+				UserType: UserTypeAdmin,
+			},
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.user.IsPremium()
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestUser_IsAdmin(t *testing.T) {
+	tests := []struct {
+		name string
+		user *User
+		want bool
+	}{
+		{
+			name: "admin user returns true",
+			user: &User{
+				ID:       "user-1",
+				Email:    "admin@example.com",
+				UserType: UserTypeAdmin,
+			},
+			want: true,
+		},
+		{
+			name: "premium user returns false",
+			user: &User{
+				ID:       "user-2",
+				Email:    "premium@example.com",
+				UserType: UserTypePremium,
+			},
+			want: false,
+		},
+		{
+			name: "guest user returns false",
+			user: &User{
+				ID:       "user-3",
+				Email:    "guest@example.com",
+				UserType: UserTypeGuest,
+			},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.user.IsAdmin()
 			assert.Equal(t, tt.want, got)
 		})
 	}

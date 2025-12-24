@@ -142,12 +142,15 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 
 // RefreshSEOStats refresca manualmente las estadísticas SEO
 // @Summary Refrescar estadísticas SEO (Admin)
-// @Description Actualiza las estadísticas de tags y países desde la base de datos. Endpoint administrativo.
+// @Description Actualiza las estadísticas de tags y países desde la base de datos. Endpoint administrativo que requiere autenticación de admin.
 // @Tags SEO
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {object} map[string]interface{} "Estadísticas actualizadas"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Admin"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
-// @Router /seo/refresh-stats [post]
+// @Router /admin/seo/refresh-stats [post]
 func (h *SEOHandler) RefreshSEOStats(c *gin.Context) {
 	logger.Info("manually refreshing SEO statistics")
 
