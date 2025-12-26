@@ -46,6 +46,16 @@ func (m *MockAnalyticsRepository) GetTrendingSearches(from, to time.Time, limit 
 	return args.Get(0).([]domain.SearchStats), args.Error(1)
 }
 
+func (m *MockAnalyticsRepository) CountActiveUsers(from time.Time) (int64, error) {
+	args := m.Called(from)
+	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockAnalyticsRepository) CountGuestUsers(from time.Time) (int64, error) {
+	args := m.Called(from)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 type MockAnalyticsCache struct {
 	mock.Mock
 }
@@ -238,7 +248,7 @@ func TestAnalyticsService_GetTrendingSearches(t *testing.T) {
 }
 
 func TestAnalyticsService_GetActiveUsersCount(t *testing.T) {
-	t.Run("returns active users count from cache", func(t *testing.T) {
+	t.Run("returns active users count from database", func(t *testing.T) {
 		mockRepo := new(MockAnalyticsRepository)
 		mockCache := new(MockAnalyticsCache)
 
@@ -246,12 +256,43 @@ func TestAnalyticsService_GetActiveUsersCount(t *testing.T) {
 
 		expectedCount := int64(42)
 
-		mockCache.On("GetActiveUsersCount").Return(expectedCount, nil)
+		// Mock should be called with a time approximately 24 hours ago
+		mockRepo.On("CountActiveUsers", mock.MatchedBy(func(from time.Time) bool {
+			// Check if the time is approximately 24 hours ago (within 1 second tolerance)
+			expectedFrom := time.Now().Add(-24 * time.Hour)
+			diff := expectedFrom.Sub(from)
+			return diff >= -time.Second && diff <= time.Second
+		})).Return(expectedCount, nil)
 
 		count, err := service.GetActiveUsersCount()
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedCount, count)
-		mockCache.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+	})
+}
+
+func TestAnalyticsService_GetGuestUsersCount(t *testing.T) {
+	t.Run("returns guest users count from database", func(t *testing.T) {
+		mockRepo := new(MockAnalyticsRepository)
+		mockCache := new(MockAnalyticsCache)
+
+		service := NewAnalyticsService(mockRepo, mockCache)
+
+		expectedCount := int64(128)
+
+		// Mock should be called with a time approximately 24 hours ago
+		mockRepo.On("CountGuestUsers", mock.MatchedBy(func(from time.Time) bool {
+			// Check if the time is approximately 24 hours ago (within 1 second tolerance)
+			expectedFrom := time.Now().Add(-24 * time.Hour)
+			diff := expectedFrom.Sub(from)
+			return diff >= -time.Second && diff <= time.Second
+		})).Return(expectedCount, nil)
+
+		count, err := service.GetGuestUsersCount()
+
+		assert.NoError(t, err)
+		assert.Equal(t, expectedCount, count)
+		mockRepo.AssertExpectations(t)
 	})
 }

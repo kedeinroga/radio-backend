@@ -106,9 +106,25 @@ func (s *AnalyticsService) GetTrendingSearches(timeRange string, limit int) ([]d
 
 // GetActiveUsersCount returns the count of active users
 func (s *AnalyticsService) GetActiveUsersCount() (int64, error) {
-	count, err := s.analyticsCache.GetActiveUsersCount()
+	// Count users with activity in the last 24 hours from database
+	from := time.Now().Add(-24 * time.Hour)
+	
+	count, err := s.analyticsRepo.CountActiveUsers(from)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get active users count: %w", err)
+	}
+
+	return count, nil
+}
+
+// GetGuestUsersCount returns the count of guest users
+func (s *AnalyticsService) GetGuestUsersCount() (int64, error) {
+	// Count guest users (by IP) with activity in the last 24 hours from database
+	from := time.Now().Add(-24 * time.Hour)
+	
+	count, err := s.analyticsRepo.CountGuestUsers(from)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get guest users count: %w", err)
 	}
 
 	return count, nil

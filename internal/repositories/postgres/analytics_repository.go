@@ -142,6 +142,42 @@ func (r *AnalyticsRepository) GetPopularStations(from, to time.Time, limit int) 
 	return stats, nil
 }
 
+// CountActiveUsers returns the count of unique users with activity since the given time
+func (r *AnalyticsRepository) CountActiveUsers(from time.Time) (int64, error) {
+	query := `
+		SELECT COUNT(DISTINCT user_id)
+		FROM request_logs
+		WHERE user_id IS NOT NULL
+		AND created_at >= $1
+	`
+
+	var count int64
+	err := r.db.DB.QueryRow(query, from).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count active users: %w", err)
+	}
+
+	return count, nil
+}
+
+// CountGuestUsers returns the count of unique guest users (by IP) with activity since the given time
+func (r *AnalyticsRepository) CountGuestUsers(from time.Time) (int64, error) {
+	query := `
+		SELECT COUNT(DISTINCT ip_address)
+		FROM request_logs
+		WHERE user_type = 'guest'
+		AND ip_address IS NOT NULL
+		AND created_at >= $1
+	`
+
+	var count int64
+	err := r.db.DB.QueryRow(query, from).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count guest users: %w", err)
+	}
+
+	return count, nil
+}
 // GetTrendingSearches returns the most trending searches in a time range
 func (r *AnalyticsRepository) GetTrendingSearches(from, to time.Time, limit int) ([]domain.SearchStats, error) {
 	query := `

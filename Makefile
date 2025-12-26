@@ -100,6 +100,11 @@ migrate-create: ## Create new migration (usage: make migrate-create NAME=create_
 	@echo "${GREEN}Creating migration: $(NAME)${NC}"
 	@$(HOME)/go/bin/migrate create -ext sql -dir ./migrations -seq $(NAME)
 
+populate-translations: ## Populate initial translations for existing stations
+	@echo "${GREEN}Populating translations...${NC}"
+	@go run ./cmd/populate-translations/main.go
+	@echo "${GREEN}Translations populated successfully${NC}"
+
 docker-build: ## Build Docker image
 	@echo "${GREEN}Building Docker image...${NC}"
 	@docker build -t $(BINARY_NAME):latest .

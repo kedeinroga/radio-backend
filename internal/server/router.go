@@ -98,6 +98,7 @@ func (r *Router) Setup() *gin.Engine {
 			analytics.GET("/stations/popular", r.analyticsHandler.GetPopularStations)
 			analytics.GET("/searches/trending", r.analyticsHandler.GetTrendingSearches)
 			analytics.GET("/users/active", r.analyticsHandler.GetActiveUsers)
+			analytics.GET("/users/guest", r.analyticsHandler.GetGuestUsers)
 		}
 
 		// Favorites routes (authenticated)

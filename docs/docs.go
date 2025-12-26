@@ -536,7 +536,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Analytics de búsquedas más frecuentes (Solo usuarios Admin)",
+                "description": "Retorna las consultas de búsqueda más frecuentes en un periodo de tiempo específico. Incluye conteo de búsquedas y promedio de resultados.",
                 "consumes": [
                     "application/json"
                 ],
@@ -549,44 +549,52 @@ const docTemplate = `{
                 "summary": "Búsquedas en tendencia",
                 "parameters": [
                     {
+                        "enum": [
+                            "hour",
+                            "day",
+                            "week",
+                            "month"
+                        ],
                         "type": "string",
                         "default": "day",
-                        "description": "Rango de tiempo: day, week, month",
+                        "description": "Rango de tiempo: hour, day, week, month",
                         "name": "range",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
-                        "description": "Número máximo de resultados",
+                        "description": "Número máximo de resultados a retornar",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estadísticas de búsquedas",
+                        "description": "Estadísticas de búsquedas en tendencia\" example({\"data\":[{\"query\":\"rock\",\"search_count\":320,\"avg_results\":15.5}],\"meta\":{\"count\":10,\"range\":\"day\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Admin",
+                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch trending searches\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -602,7 +610,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Analytics de estaciones más reproducidas (Solo usuarios Admin)",
+                "description": "Retorna las estaciones más reproducidas en un periodo de tiempo específico. Incluye conteo de reproducciones y duración total de escucha.",
                 "consumes": [
                     "application/json"
                 ],
@@ -615,44 +623,52 @@ const docTemplate = `{
                 "summary": "Estadísticas de estaciones populares",
                 "parameters": [
                     {
+                        "enum": [
+                            "hour",
+                            "day",
+                            "week",
+                            "month"
+                        ],
                         "type": "string",
                         "default": "day",
-                        "description": "Rango de tiempo: day, week, month",
+                        "description": "Rango de tiempo: hour, day, week, month",
                         "name": "range",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
                         "default": 10,
-                        "description": "Número máximo de resultados",
+                        "description": "Número máximo de resultados a retornar",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estadísticas de estaciones",
+                        "description": "Estadísticas de estaciones populares\" example({\"data\":[{\"station_id\":\"uuid-123\",\"play_count\":450,\"duration_ms\":125000}],\"meta\":{\"count\":10,\"range\":\"day\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Admin",
+                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch popular stations\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -668,7 +684,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Cuenta de usuarios activos en el sistema (Solo usuarios Admin)",
+                "description": "Retorna el número de usuarios autenticados activos en las últimas 24 horas. Los usuarios activos son aquellos que han realizado al menos una petición autenticada en el periodo especificado.",
                 "consumes": [
                     "application/json"
                 ],
@@ -681,28 +697,78 @@ const docTemplate = `{
                 "summary": "Usuarios activos",
                 "responses": {
                     "200": {
-                        "description": "Cuenta de usuarios activos",
+                        "description": "Respuesta exitosa\" example({\"success\":true,\"data\":{\"count\":1234}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Admin",
+                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch active users count\"}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/users/guest": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna el número de usuarios guest (no autenticados) activos en las últimas 24 horas. Los usuarios guest se identifican por su dirección IP única y representan usuarios que usan la aplicación sin registrarse.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Usuarios guest activos",
+                "responses": {
+                    "200": {
+                        "description": "Respuesta exitosa\" example({\"success\":true,\"data\":{\"count\":856}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch guest users count\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

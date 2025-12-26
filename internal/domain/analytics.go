@@ -44,6 +44,8 @@ type AnalyticsRepository interface {
 	SaveSearchQuery(query *SearchQuery) error
 	GetPopularStations(from, to time.Time, limit int) ([]StationStats, error)
 	GetTrendingSearches(from, to time.Time, limit int) ([]SearchStats, error)
+	CountActiveUsers(from time.Time) (int64, error)
+	CountGuestUsers(from time.Time) (int64, error)
 }
 
 // StationStats represents aggregated station statistics
