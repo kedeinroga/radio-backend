@@ -996,8 +996,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lista de estaciones favoritas",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
                     "401": {
@@ -1350,15 +1349,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Lista de estaciones populares con SEO metadata",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/radio-backend_internal_domain.Station"
-                                    }
-                                }
-                            }
+                            "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
                     "500": {
@@ -1418,26 +1409,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Resultados de búsqueda con SEO metadata",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/radio-backend_internal_domain.Station"
-                                    }
-                                },
-                                "meta": {
-                                    "type": "object",
-                                    "properties": {
-                                        "count": {
-                                            "type": "integer"
-                                        },
-                                        "query": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
+                            "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
                     "400": {
@@ -1497,12 +1469,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Detalle de la estación con SEO metadata",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "$ref": "#/definitions/radio-backend_internal_domain.Station"
-                                }
-                            }
+                            "$ref": "#/definitions/internal_handlers.StationDetailResponse"
                         }
                     },
                     "403": {
@@ -1631,6 +1598,83 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_handlers.StationDTO": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string",
+                    "example": "United States"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "image_url": {
+                    "type": "string",
+                    "example": "https://cdn.rockfm.com/logo.png"
+                },
+                "is_premium_only": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Rock FM 100.1"
+                },
+                "seo_metadata": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.SEOMetadata"
+                },
+                "slug": {
+                    "type": "string",
+                    "example": "rock-fm-100-1"
+                },
+                "stream_url": {
+                    "type": "string",
+                    "example": "https://stream.rockfm.com/live"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "rock",
+                        "classic rock",
+                        "80s"
+                    ]
+                },
+                "votes": {
+                    "type": "integer",
+                    "example": 1500
+                }
+            }
+        },
+        "internal_handlers.StationDetailResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/internal_handlers.StationDTO"
+                },
+                "seo_metadata": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.SEOMetadata"
+                }
+            }
+        },
+        "internal_handlers.StationListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.StationDTO"
+                    }
+                },
+                "meta": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
@@ -1803,84 +1847,6 @@ const docTemplate = `{
                 "total_stations": {
                     "type": "integer",
                     "example": 500
-                }
-            }
-        },
-        "radio-backend_internal_domain.Station": {
-            "type": "object",
-            "properties": {
-                "country": {
-                    "type": "string",
-                    "example": "United States"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "image_url": {
-                    "type": "string",
-                    "example": "https://cdn.rockfm.com/logo.png"
-                },
-                "is_active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "is_premium_only": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "last_synced_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Rock FM 100.1"
-                },
-                "seo_metadata": {
-                    "$ref": "#/definitions/radio-backend_internal_domain.SEOMetadata"
-                },
-                "slug": {
-                    "description": "SEO fields",
-                    "type": "string",
-                    "example": "rock-fm-100-1"
-                },
-                "source": {
-                    "description": "Cache metadata",
-                    "type": "string",
-                    "example": "radio_browser"
-                },
-                "stream_url": {
-                    "type": "string",
-                    "example": "https://stream.rockfm.com/live"
-                },
-                "stream_url_resolved": {
-                    "type": "string",
-                    "example": "https://cdn.rockfm.com/stream.mp3"
-                },
-                "sync_count": {
-                    "type": "integer",
-                    "example": 5
-                },
-                "tags": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "example": [
-                        "rock",
-                        "classic rock",
-                        "80s"
-                    ]
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "votes": {
-                    "type": "integer",
-                    "example": 1500
                 }
             }
         },

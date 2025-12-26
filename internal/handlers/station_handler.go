@@ -27,6 +27,32 @@ func NewStationHandler(stationService *services.StationService, analyticsService
 	}
 }
 
+// StationDTO represents a station in API responses
+type StationDTO struct {
+	ID            string               `json:"id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Name          string               `json:"name" example:"Rock FM 100.1"`
+	Slug          string               `json:"slug" example:"rock-fm-100-1"`
+	StreamURL     string               `json:"stream_url" example:"https://stream.rockfm.com/live"`
+	ImageURL      string               `json:"image_url,omitempty" example:"https://cdn.rockfm.com/logo.png"`
+	Tags          []string             `json:"tags" example:"rock,classic rock,80s"`
+	Country       string               `json:"country" example:"United States"`
+	Votes         int                  `json:"votes" example:"1500"`
+	IsPremiumOnly bool                 `json:"is_premium_only" example:"false"`
+	SEOMetadata   *domain.SEOMetadata  `json:"seo_metadata,omitempty"`
+}
+
+// StationDetailResponse represents the response for station detail endpoint
+type StationDetailResponse struct {
+	Data        StationDTO           `json:"data"`
+	SEOMetadata *domain.SEOMetadata  `json:"seo_metadata,omitempty"`
+}
+
+// StationListResponse represents the response for station list endpoints
+type StationListResponse struct {
+	Data []StationDTO           `json:"data"`
+	Meta map[string]interface{} `json:"meta,omitempty"`
+}
+
 // GetByID returns a station by ID
 // @Summary Obtener detalle de estación
 // @Description Obtiene información detallada de una estación por su ID con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible.
@@ -35,7 +61,7 @@ func NewStationHandler(stationService *services.StationService, analyticsService
 // @Produce json
 // @Param id path string true "ID de la estación"
 // @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
-// @Success 200 {object} object{data=domain.Station} "Detalle de la estación con SEO metadata"
+// @Success 200 {object} StationDetailResponse "Detalle de la estación con SEO metadata"
 // @Failure 404 {object} map[string]interface{} "Estación no encontrada"
 // @Failure 403 {object} map[string]interface{} "Acceso denegado - Estación solo para Premium"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
@@ -109,7 +135,7 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 // @Param limit query int false "Número máximo de estaciones" default(20)
 // @Param country query string false "Filtrar por código de país"
 // @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
-// @Success 200 {object} object{data=[]domain.Station} "Lista de estaciones populares con SEO metadata"
+// @Success 200 {object} StationListResponse "Lista de estaciones populares con SEO metadata"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
 // @Router /stations/popular [get]
@@ -173,7 +199,7 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 // @Param q query string true "Término de búsqueda"
 // @Param limit query int false "Número máximo de resultados" default(20)
 // @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
-// @Success 200 {object} object{data=[]domain.Station,meta=object{count=int,query=string}} "Resultados de búsqueda con SEO metadata"
+// @Success 200 {object} StationListResponse "Resultados de búsqueda con SEO metadata"
 // @Failure 400 {object} map[string]interface{} "Parámetro de búsqueda requerido"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"

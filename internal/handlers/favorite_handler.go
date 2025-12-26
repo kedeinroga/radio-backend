@@ -34,7 +34,7 @@ type AddFavoriteRequest struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Lista de estaciones favoritas"
+// @Success 200 {object} handlers.StationListResponse "Lista de estaciones favoritas"
 // @Failure 401 {object} map[string]interface{} "No autenticado"
 // @Failure 500 {object} map[string]interface{} "Error interno del servidor"
 // @Router /favorites [get]

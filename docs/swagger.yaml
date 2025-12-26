@@ -34,6 +34,60 @@ definitions:
     - email
     - password
     type: object
+  internal_handlers.StationDTO:
+    properties:
+      country:
+        example: United States
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      image_url:
+        example: https://cdn.rockfm.com/logo.png
+        type: string
+      is_premium_only:
+        example: false
+        type: boolean
+      name:
+        example: Rock FM 100.1
+        type: string
+      seo_metadata:
+        $ref: '#/definitions/radio-backend_internal_domain.SEOMetadata'
+      slug:
+        example: rock-fm-100-1
+        type: string
+      stream_url:
+        example: https://stream.rockfm.com/live
+        type: string
+      tags:
+        example:
+        - rock
+        - classic rock
+        - 80s
+        items:
+          type: string
+        type: array
+      votes:
+        example: 1500
+        type: integer
+    type: object
+  internal_handlers.StationDetailResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.StationDTO'
+      seo_metadata:
+        $ref: '#/definitions/radio-backend_internal_domain.SEOMetadata'
+    type: object
+  internal_handlers.StationListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.StationDTO'
+        type: array
+      meta:
+        additionalProperties: true
+        type: object
+    type: object
   radio-backend_internal_domain.CreateTranslationRequest:
     properties:
       description:
@@ -156,63 +210,6 @@ definitions:
         type: array
       total_stations:
         example: 500
-        type: integer
-    type: object
-  radio-backend_internal_domain.Station:
-    properties:
-      country:
-        example: United States
-        type: string
-      created_at:
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      image_url:
-        example: https://cdn.rockfm.com/logo.png
-        type: string
-      is_active:
-        example: true
-        type: boolean
-      is_premium_only:
-        example: false
-        type: boolean
-      last_synced_at:
-        type: string
-      name:
-        example: Rock FM 100.1
-        type: string
-      seo_metadata:
-        $ref: '#/definitions/radio-backend_internal_domain.SEOMetadata'
-      slug:
-        description: SEO fields
-        example: rock-fm-100-1
-        type: string
-      source:
-        description: Cache metadata
-        example: radio_browser
-        type: string
-      stream_url:
-        example: https://stream.rockfm.com/live
-        type: string
-      stream_url_resolved:
-        example: https://cdn.rockfm.com/stream.mp3
-        type: string
-      sync_count:
-        example: 5
-        type: integer
-      tags:
-        example:
-        - rock
-        - classic rock
-        - 80s
-        items:
-          type: string
-        type: array
-      updated_at:
-        type: string
-      votes:
-        example: 1500
         type: integer
     type: object
   radio-backend_internal_domain.TranslationResponse:
@@ -945,8 +942,7 @@ paths:
         "200":
           description: Lista de estaciones favoritas
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.StationListResponse'
         "401":
           description: No autenticado
           schema:
@@ -1186,10 +1182,7 @@ paths:
         "200":
           description: Detalle de la estación con SEO metadata
           schema:
-            properties:
-              data:
-                $ref: '#/definitions/radio-backend_internal_domain.Station'
-            type: object
+            $ref: '#/definitions/internal_handlers.StationDetailResponse'
         "403":
           description: Acceso denegado - Estación solo para Premium
           schema:
@@ -1241,12 +1234,7 @@ paths:
         "200":
           description: Lista de estaciones populares con SEO metadata
           schema:
-            properties:
-              data:
-                items:
-                  $ref: '#/definitions/radio-backend_internal_domain.Station'
-                type: array
-            type: object
+            $ref: '#/definitions/internal_handlers.StationListResponse'
         "500":
           description: Error interno del servidor
           schema:
@@ -1289,19 +1277,7 @@ paths:
         "200":
           description: Resultados de búsqueda con SEO metadata
           schema:
-            properties:
-              data:
-                items:
-                  $ref: '#/definitions/radio-backend_internal_domain.Station'
-                type: array
-              meta:
-                properties:
-                  count:
-                    type: integer
-                  query:
-                    type: string
-                type: object
-            type: object
+            $ref: '#/definitions/internal_handlers.StationListResponse'
         "400":
           description: Parámetro de búsqueda requerido
           schema:
