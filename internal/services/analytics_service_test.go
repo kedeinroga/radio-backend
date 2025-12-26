@@ -207,8 +207,22 @@ func TestAnalyticsService_GetPopularStations(t *testing.T) {
 		service := NewAnalyticsService(mockRepo, mockCache)
 
 		expectedStats := []domain.StationStats{
-			{StationID: "station-1", PlayCount: 100},
-			{StationID: "station-2", PlayCount: 50},
+			{
+				StationID: "station-1",
+				PlayCount: 100,
+				Name:      "Rock FM",
+				Country:   "USA",
+				Favicon:   "https://example.com/favicon.png",
+				URL:       "https://stream.example.com/rock",
+			},
+			{
+				StationID: "station-2",
+				PlayCount: 50,
+				Name:      "Pop Radio",
+				Country:   "UK",
+				Favicon:   "https://example.com/pop.png",
+				URL:       "https://stream.example.com/pop",
+			},
 		}
 
 		mockRepo.On("GetPopularStations", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), 10).
@@ -231,8 +245,8 @@ func TestAnalyticsService_GetTrendingSearches(t *testing.T) {
 		service := NewAnalyticsService(mockRepo, mockCache)
 
 		expectedStats := []domain.SearchStats{
-			{Query: "rock", SearchCount: 50},
-			{Query: "jazz", SearchCount: 30},
+			{Query: "rock", SearchCount: 50, TotalCount: 100},
+			{Query: "jazz", SearchCount: 30, TotalCount: 100},
 		}
 
 		mockRepo.On("GetTrendingSearches", mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time"), 10).

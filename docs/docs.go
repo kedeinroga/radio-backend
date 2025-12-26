@@ -536,7 +536,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna las consultas de búsqueda más frecuentes en un periodo de tiempo específico. Incluye conteo de búsquedas y promedio de resultados.",
+                "description": "Retorna los términos de búsqueda más frecuentes en un periodo de tiempo específico ordenadas por frecuencia. Incluye contador absoluto y porcentaje del total.",
                 "consumes": [
                     "application/json"
                 ],
@@ -573,7 +573,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estadísticas de búsquedas en tendencia\" example({\"data\":[{\"query\":\"rock\",\"search_count\":320,\"avg_results\":15.5}],\"meta\":{\"count\":10,\"range\":\"day\"}})",
+                        "description": "Estadísticas de búsquedas en tendencia\" example({\"success\":true,\"data\":[{\"search_term\":\"rock\",\"count\":456,\"percentage\":12.5}]})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -610,7 +610,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna las estaciones más reproducidas en un periodo de tiempo específico. Incluye conteo de reproducciones y duración total de escucha.",
+                "description": "Retorna las estaciones más reproducidas en un periodo de tiempo específico ordenadas por número de reproducciones. Incluye información completa de cada estación.",
                 "consumes": [
                     "application/json"
                 ],
@@ -647,7 +647,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estadísticas de estaciones populares\" example({\"data\":[{\"station_id\":\"uuid-123\",\"play_count\":450,\"duration_ms\":125000}],\"meta\":{\"count\":10,\"range\":\"day\"}})",
+                        "description": "Estadísticas de estaciones populares\" example({\"success\":true,\"data\":[{\"station_id\":\"abc123\",\"name\":\"Rock FM\",\"country\":\"USA\",\"plays\":1520,\"favicon\":\"https://...\",\"url\":\"https://...\"}]})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

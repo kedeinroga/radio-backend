@@ -112,10 +112,18 @@ func (r *AnalyticsRepository) SaveSearchQuery(query *domain.SearchQuery) error {
 // GetPopularStations returns the most popular stations in a time range
 func (r *AnalyticsRepository) GetPopularStations(from, to time.Time, limit int) ([]domain.StationStats, error) {
 	query := `
-		SELECT station_id, COUNT(*) as play_count, SUM(duration_ms) as total_duration
-		FROM station_plays
-		WHERE created_at BETWEEN $1 AND $2
-		GROUP BY station_id
+		SELECT 
+			sp.station_id, 
+			COUNT(*) as play_count, 
+			SUM(sp.duration_ms) as total_duration,
+			COALESCE(s.name, '') as name,
+			COALESCE(s.country, '') as country,
+			COALESCE(s.image_url, '') as favicon,
+			COALESCE(s.stream_url, '') as url
+		FROM station_plays sp
+		LEFT JOIN stations s ON sp.station_id = s.id
+		WHERE sp.created_at BETWEEN $1 AND $2
+		GROUP BY sp.station_id, s.name, s.country, s.image_url, s.stream_url
 		ORDER BY play_count DESC
 		LIMIT $3
 	`
@@ -131,7 +139,7 @@ func (r *AnalyticsRepository) GetPopularStations(from, to time.Time, limit int) 
 		var s domain.StationStats
 		var durationMs int64
 
-		if err := rows.Scan(&s.StationID, &s.PlayCount, &durationMs); err != nil {
+		if err := rows.Scan(&s.StationID, &s.PlayCount, &durationMs, &s.Name, &s.Country, &s.Favicon, &s.URL); err != nil {
 			return nil, fmt.Errorf("failed to scan station stats: %w", err)
 		}
 
@@ -178,8 +186,22 @@ func (r *AnalyticsRepository) CountGuestUsers(from time.Time) (int64, error) {
 
 	return count, nil
 }
+
 // GetTrendingSearches returns the most trending searches in a time range
 func (r *AnalyticsRepository) GetTrendingSearches(from, to time.Time, limit int) ([]domain.SearchStats, error) {
+	// Primero obtenemos el total de búsquedas en el período
+	var totalCount int
+	totalQuery := `
+		SELECT COUNT(*) 
+		FROM search_queries
+		WHERE created_at BETWEEN $1 AND $2
+	`
+	err := r.db.DB.QueryRow(totalQuery, from, to).Scan(&totalCount)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get total search count: %w", err)
+	}
+
+	// Luego obtenemos las búsquedas agrupadas
 	query := `
 		SELECT query, COUNT(*) as search_count, AVG(results_count) as avg_results
 		FROM search_queries
@@ -207,6 +229,8 @@ func (r *AnalyticsRepository) GetTrendingSearches(from, to time.Time, limit int)
 		if avgResults.Valid {
 			s.AvgResults = avgResults.Float64
 		}
+		
+		s.TotalCount = totalCount
 
 		stats = append(stats, s)
 	}

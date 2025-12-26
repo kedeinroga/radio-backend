@@ -53,6 +53,11 @@ type StationStats struct {
 	StationID string
 	PlayCount int
 	Duration  time.Duration
+	// Station details
+	Name     string
+	Country  string
+	Favicon  string
+	URL      string
 }
 
 // SearchStats represents aggregated search statistics
@@ -60,6 +65,7 @@ type SearchStats struct {
 	Query       string
 	SearchCount int
 	AvgResults  float64
+	TotalCount  int // Total de búsquedas en el período para calcular porcentaje
 }
 
 // AnalyticsCache defines the interface for real-time analytics caching
