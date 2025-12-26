@@ -112,9 +112,9 @@ func (r *AnalyticsRepository) SaveSearchQuery(query *domain.SearchQuery) error {
 // GetPopularStations returns the most popular stations in a time range
 func (r *AnalyticsRepository) GetPopularStations(from, to time.Time, limit int) ([]domain.StationStats, error) {
 	query := `
-		SELECT 
-			sp.station_id, 
-			COUNT(*) as play_count, 
+		SELECT
+			sp.station_id,
+			COUNT(*) as play_count,
 			SUM(sp.duration_ms) as total_duration,
 			COALESCE(s.name, '') as name,
 			COALESCE(s.country, '') as country,
@@ -192,7 +192,7 @@ func (r *AnalyticsRepository) GetTrendingSearches(from, to time.Time, limit int)
 	// Primero obtenemos el total de búsquedas en el período
 	var totalCount int
 	totalQuery := `
-		SELECT COUNT(*) 
+		SELECT COUNT(*)
 		FROM search_queries
 		WHERE created_at BETWEEN $1 AND $2
 	`
@@ -229,7 +229,7 @@ func (r *AnalyticsRepository) GetTrendingSearches(from, to time.Time, limit int)
 		if avgResults.Valid {
 			s.AvgResults = avgResults.Float64
 		}
-		
+
 		s.TotalCount = totalCount
 
 		stats = append(stats, s)

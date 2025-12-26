@@ -54,10 +54,10 @@ type StationStats struct {
 	PlayCount int
 	Duration  time.Duration
 	// Station details
-	Name     string
-	Country  string
-	Favicon  string
-	URL      string
+	Name    string
+	Country string
+	Favicon string
+	URL     string
 }
 
 // SearchStats represents aggregated search statistics

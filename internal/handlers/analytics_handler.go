@@ -92,7 +92,7 @@ func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
 		if stat.TotalCount > 0 {
 			percentage = (float64(stat.SearchCount) / float64(stat.TotalCount)) * 100
 		}
-		
+
 		statsDTOs = append(statsDTOs, gin.H{
 			"search_term": stat.Query,
 			"count":       stat.SearchCount,
