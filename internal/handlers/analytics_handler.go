@@ -19,18 +19,18 @@ func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *Analytics
 }
 
 // GetPopularStations returns popular stations analytics
-// @Summary Estadísticas de estaciones populares
-// @Description Retorna las estaciones más reproducidas en un periodo de tiempo específico ordenadas por número de reproducciones. Incluye información completa de cada estación.
+// @Summary Popular stations statistics
+// @Description Returns the most played stations in a specific time period ordered by number of plays. Includes complete information for each station.
 // @Tags Analytics
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param range query string false "Rango de tiempo: hour, day, week, month" default(day) Enums(hour, day, week, month)
-// @Param limit query int false "Número máximo de resultados a retornar" default(10) minimum(1) maximum(100)
-// @Success 200 {object} map[string]interface{} "Estadísticas de estaciones populares" example({"success":true,"data":[{"station_id":"abc123","name":"Rock FM","country":"USA","plays":1520,"favicon":"https://...","url":"https://..."}]})
-// @Failure 401 {object} map[string]interface{} "Token de autenticación inválido o ausente" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo usuarios Admin" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor" example({"error":{"code":"fetch_failed","message":"Failed to fetch popular stations"}})
+// @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
+// @Param limit query int false "Maximum number of results to return" default(10) minimum(1) maximum(100)
+// @Success 200 {object} map[string]interface{} "Popular stations statistics" example({"success":true,"data":[{"station_id":"abc123","name":"Rock FM","country":"USA","plays":1520,"favicon":"https://...","url":"https://..."}]})
+// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
+// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
+// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch popular stations"}})
 // @Router /analytics/stations/popular [get]
 func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
 	timeRange := c.DefaultQuery("range", "day")
@@ -62,18 +62,18 @@ func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
 }
 
 // GetTrendingSearches returns trending searches analytics
-// @Summary Búsquedas en tendencia
-// @Description Retorna los términos de búsqueda más frecuentes en un periodo de tiempo específico ordenadas por frecuencia. Incluye contador absoluto y porcentaje del total.
+// @Summary Trending searches
+// @Description Returns the most frequent search terms in a specific time period ordered by frequency. Includes absolute count and percentage of total.
 // @Tags Analytics
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param range query string false "Rango de tiempo: hour, day, week, month" default(day) Enums(hour, day, week, month)
-// @Param limit query int false "Número máximo de resultados a retornar" default(10) minimum(1) maximum(100)
-// @Success 200 {object} map[string]interface{} "Estadísticas de búsquedas en tendencia" example({"success":true,"data":[{"search_term":"rock","count":456,"percentage":12.5}]})
-// @Failure 401 {object} map[string]interface{} "Token de autenticación inválido o ausente" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo usuarios Admin" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor" example({"error":{"code":"fetch_failed","message":"Failed to fetch trending searches"}})
+// @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
+// @Param limit query int false "Maximum number of results to return" default(10) minimum(1) maximum(100)
+// @Success 200 {object} map[string]interface{} "Trending searches statistics" example({"success":true,"data":[{"search_term":"rock","count":456,"percentage":12.5}]})
+// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
+// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
+// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch trending searches"}})
 // @Router /analytics/searches/trending [get]
 func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
 	timeRange := c.DefaultQuery("range", "day")
@@ -107,16 +107,16 @@ func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
 }
 
 // GetActiveUsers returns active users count
-// @Summary Usuarios activos
-// @Description Retorna el número de usuarios autenticados activos en las últimas 24 horas. Los usuarios activos son aquellos que han realizado al menos una petición autenticada en el periodo especificado.
+// @Summary Active users
+// @Description Returns the number of authenticated active users in the last 24 hours. Active users are those who have made at least one authenticated request in the specified period.
 // @Tags Analytics
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Respuesta exitosa" example({"success":true,"data":{"count":1234}})
-// @Failure 401 {object} map[string]interface{} "Token de autenticación inválido o ausente" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo usuarios Admin" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor" example({"error":{"code":"fetch_failed","message":"Failed to fetch active users count"}})
+// @Success 200 {object} map[string]interface{} "Successful response" example({"success":true,"data":{"count":1234}})
+// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
+// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
+// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch active users count"}})
 // @Router /analytics/users/active [get]
 func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {
 	count, err := h.analyticsService.GetActiveUsersCount()
@@ -134,16 +134,16 @@ func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {
 }
 
 // GetGuestUsers returns guest users count
-// @Summary Usuarios guest activos
-// @Description Retorna el número de usuarios guest (no autenticados) activos en las últimas 24 horas. Los usuarios guest se identifican por su dirección IP única y representan usuarios que usan la aplicación sin registrarse.
+// @Summary Active guest users
+// @Description Returns the number of guest (unauthenticated) active users in the last 24 hours. Guest users are identified by their unique IP address and represent users using the application without registering.
 // @Tags Analytics
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Respuesta exitosa" example({"success":true,"data":{"count":856}})
-// @Failure 401 {object} map[string]interface{} "Token de autenticación inválido o ausente" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo usuarios Admin" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor" example({"error":{"code":"fetch_failed","message":"Failed to fetch guest users count"}})
+// @Success 200 {object} map[string]interface{} "Successful response" example({"success":true,"data":{"count":856}})
+// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
+// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
+// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch guest users count"}})
 // @Router /analytics/users/guest [get]
 func (h *AnalyticsHandler) GetGuestUsers(c *gin.Context) {
 	count, err := h.analyticsService.GetGuestUsersCount()

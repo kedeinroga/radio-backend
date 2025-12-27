@@ -30,38 +30,38 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Actualiza las estadísticas de tags y países desde la base de datos. Endpoint administrativo que requiere autenticación de admin.",
+                "description": "Updates tag and country statistics from the database. Administrative endpoint that requires admin authentication.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "SEO"
                 ],
-                "summary": "Refrescar estadísticas SEO (Admin)",
+                "summary": "Refresh SEO statistics (Admin)",
                 "responses": {
                     "200": {
-                        "description": "Estadísticas actualizadas",
+                        "description": "Statistics updated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo Admin",
+                        "description": "Access denied - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -77,7 +77,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Crea una nueva traducción para una estación en un idioma específico (solo admin). Ejemplo de request: {\"station_id\": \"abc123\", \"language_code\": \"en\", \"title\": \"Rock FM - Free Online Radio\", \"description\": \"Listen to Rock FM live from USA\", \"keywords\": [\"rock\", \"usa\", \"music\", \"online\", \"free\"]}",
+                "description": "Creates a new translation for a station in a specific language (admin only). Request example: {\"station_id\": \"abc123\", \"language_code\": \"en\", \"title\": \"Rock FM - Free Online Radio\", \"description\": \"Listen to Rock FM live from USA\", \"keywords\": [\"rock\", \"usa\", \"music\", \"online\", \"free\"]}",
                 "consumes": [
                     "application/json"
                 ],
@@ -87,10 +87,10 @@ const docTemplate = `{
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Crear una nueva traducción",
+                "summary": "Create a new translation",
                 "parameters": [
                     {
-                        "description": "Datos de la traducción",
+                        "description": "Translation data",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -101,48 +101,48 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Traducción creada exitosamente",
+                        "description": "Translation created successfully",
                         "schema": {
                             "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "No autorizado - Solo admin",
+                        "description": "Not authorized - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Estación no encontrada",
+                        "description": "Station not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "409": {
-                        "description": "La traducción ya existe",
+                        "description": "Translation already exists",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -158,7 +158,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Crea múltiples traducciones en una sola operación (solo admin). Útil para poblar traducciones de múltiples estaciones. Ejemplo: [{\"station_id\":\"abc\",\"language_code\":\"en\",\"title\":\"Radio FM\",\"description\":\"Listen live\",\"keywords\":[\"radio\",\"music\"]},{\"station_id\":\"abc\",\"language_code\":\"fr\",\"title\":\"Radio FM\",\"description\":\"Écoutez en direct\",\"keywords\":[\"radio\",\"musique\"]}]",
+                "description": "Creates multiple translations in a single operation (admin only). Useful for populating translations for multiple stations. Example: [{\"station_id\":\"abc\",\"language_code\":\"en\",\"title\":\"Radio FM\",\"description\":\"Listen live\",\"keywords\":[\"radio\",\"music\"]},{\"station_id\":\"abc\",\"language_code\":\"fr\",\"title\":\"Radio FM\",\"description\":\"Écoutez en direct\",\"keywords\":[\"radio\",\"musique\"]}]",
                 "consumes": [
                     "application/json"
                 ],
@@ -168,10 +168,10 @@ const docTemplate = `{
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Crear múltiples traducciones",
+                "summary": "Create multiple translations",
                 "parameters": [
                     {
-                        "description": "Lista de traducciones a crear",
+                        "description": "List of translations to create",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -185,35 +185,35 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Traducciones creadas exitosamente",
+                        "description": "Translations created successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "No autorizado - Solo admin",
+                        "description": "Not authorized - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -229,18 +229,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene todas las traducciones disponibles para una estación (solo admin)",
+                "description": "Gets all available translations for a station (admin only)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Listar todas las traducciones de una estación",
+                "summary": "List all translations for a station",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "stationId",
                         "in": "path",
                         "required": true
@@ -248,42 +248,42 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de traducciones",
+                        "description": "List of translations",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "No autorizado - Solo admin",
+                        "description": "Not authorized - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Estación no encontrada",
+                        "description": "Station not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -299,25 +299,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene la traducción de una estación en un idioma específico (solo admin)",
+                "description": "Gets a station translation in a specific language (admin only)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Obtener una traducción específica",
+                "summary": "Get a specific translation",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "stationId",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Código de idioma (es, en, fr, de)",
+                        "description": "Language code (es, en, fr, de)",
                         "name": "lang",
                         "in": "path",
                         "required": true
@@ -325,41 +325,41 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Traducción encontrada",
+                        "description": "Translation found",
                         "schema": {
                             "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "No autorizado - Solo admin",
+                        "description": "Not authorized - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Traducción no encontrada",
+                        "description": "Translation not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -373,7 +373,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Actualiza una traducción existente (solo admin)",
+                "description": "Updates an existing translation (admin only)",
                 "consumes": [
                     "application/json"
                 ],
@@ -383,24 +383,24 @@ const docTemplate = `{
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Actualizar una traducción",
+                "summary": "Update a translation",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "stationId",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Código de idioma (es, en, fr, de)",
+                        "description": "Language code (es, en, fr, de)",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Datos actualizados de la traducción",
+                        "description": "Updated translation data",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -411,41 +411,41 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Traducción actualizada exitosamente",
+                        "description": "Translation updated successfully",
                         "schema": {
                             "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "No autorizado - Solo admin",
+                        "description": "Not authorized - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Traducción no encontrada",
+                        "description": "Translation not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -459,25 +459,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Elimina una traducción existente (solo admin)",
+                "description": "Deletes an existing translation (admin only)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Eliminar una traducción",
+                "summary": "Delete a translation",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "stationId",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Código de idioma (es, en, fr, de)",
+                        "description": "Language code (es, en, fr, de)",
                         "name": "lang",
                         "in": "path",
                         "required": true
@@ -485,42 +485,42 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Traducción eliminada exitosamente",
+                        "description": "Translation deleted successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "No autorizado - Solo admin",
+                        "description": "Not authorized - Admin only",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Traducción no encontrada",
+                        "description": "Translation not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -536,7 +536,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna los términos de búsqueda más frecuentes en un periodo de tiempo específico ordenadas por frecuencia. Incluye contador absoluto y porcentaje del total.",
+                "description": "Returns the most frequent search terms in a specific time period ordered by frequency. Includes absolute count and percentage of total.",
                 "consumes": [
                     "application/json"
                 ],
@@ -546,7 +546,7 @@ const docTemplate = `{
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Búsquedas en tendencia",
+                "summary": "Trending searches",
                 "parameters": [
                     {
                         "enum": [
@@ -557,7 +557,7 @@ const docTemplate = `{
                         ],
                         "type": "string",
                         "default": "day",
-                        "description": "Rango de tiempo: hour, day, week, month",
+                        "description": "Time range: hour, day, week, month",
                         "name": "range",
                         "in": "query"
                     },
@@ -566,35 +566,35 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 10,
-                        "description": "Número máximo de resultados a retornar",
+                        "description": "Maximum number of results to return",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estadísticas de búsquedas en tendencia\" example({\"success\":true,\"data\":[{\"search_term\":\"rock\",\"count\":456,\"percentage\":12.5}]})",
+                        "description": "Trending searches statistics\" example({\"success\":true,\"data\":[{\"search_term\":\"rock\",\"count\":456,\"percentage\":12.5}]})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch trending searches\"}})",
+                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch trending searches\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -610,7 +610,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna las estaciones más reproducidas en un periodo de tiempo específico ordenadas por número de reproducciones. Incluye información completa de cada estación.",
+                "description": "Returns the most played stations in a specific time period ordered by number of plays. Includes complete information for each station.",
                 "consumes": [
                     "application/json"
                 ],
@@ -620,7 +620,7 @@ const docTemplate = `{
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Estadísticas de estaciones populares",
+                "summary": "Popular stations statistics",
                 "parameters": [
                     {
                         "enum": [
@@ -631,7 +631,7 @@ const docTemplate = `{
                         ],
                         "type": "string",
                         "default": "day",
-                        "description": "Rango de tiempo: hour, day, week, month",
+                        "description": "Time range: hour, day, week, month",
                         "name": "range",
                         "in": "query"
                     },
@@ -640,35 +640,35 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 10,
-                        "description": "Número máximo de resultados a retornar",
+                        "description": "Maximum number of results to return",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Estadísticas de estaciones populares\" example({\"success\":true,\"data\":[{\"station_id\":\"abc123\",\"name\":\"Rock FM\",\"country\":\"USA\",\"plays\":1520,\"favicon\":\"https://...\",\"url\":\"https://...\"}]})",
+                        "description": "Popular stations statistics\" example({\"success\":true,\"data\":[{\"station_id\":\"abc123\",\"name\":\"Rock FM\",\"country\":\"USA\",\"plays\":1520,\"favicon\":\"https://...\",\"url\":\"https://...\"}]})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch popular stations\"}})",
+                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch popular stations\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -684,7 +684,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna el número de usuarios autenticados activos en las últimas 24 horas. Los usuarios activos son aquellos que han realizado al menos una petición autenticada en el periodo especificado.",
+                "description": "Returns the number of authenticated active users in the last 24 hours. Active users are those who have made at least one authenticated request in the specified period.",
                 "consumes": [
                     "application/json"
                 ],
@@ -694,31 +694,31 @@ const docTemplate = `{
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Usuarios activos",
+                "summary": "Active users",
                 "responses": {
                     "200": {
-                        "description": "Respuesta exitosa\" example({\"success\":true,\"data\":{\"count\":1234}})",
+                        "description": "Successful response\" example({\"success\":true,\"data\":{\"count\":1234}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch active users count\"}})",
+                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch active users count\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -734,7 +734,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna el número de usuarios guest (no autenticados) activos en las últimas 24 horas. Los usuarios guest se identifican por su dirección IP única y representan usuarios que usan la aplicación sin registrarse.",
+                "description": "Returns the number of guest (unauthenticated) active users in the last 24 hours. Guest users are identified by their unique IP address and represent users using the application without registering.",
                 "consumes": [
                     "application/json"
                 ],
@@ -744,31 +744,31 @@ const docTemplate = `{
                 "tags": [
                     "Analytics"
                 ],
-                "summary": "Usuarios guest activos",
+                "summary": "Active guest users",
                 "responses": {
                     "200": {
-                        "description": "Respuesta exitosa\" example({\"success\":true,\"data\":{\"count\":856}})",
+                        "description": "Successful response\" example({\"success\":true,\"data\":{\"count\":856}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Token de autenticación inválido o ausente\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Solo usuarios Admin\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch guest users count\"}})",
+                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch guest users count\"}})",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -779,7 +779,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Autentica un usuario y retorna tokens JWT",
+                "description": "Authenticates a user and returns JWT tokens",
                 "consumes": [
                     "application/json"
                 ],
@@ -789,10 +789,10 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Iniciar sesión",
+                "summary": "User login",
                 "parameters": [
                     {
-                        "description": "Credenciales de inicio de sesión",
+                        "description": "Login credentials",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -803,28 +803,28 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Tokens de autenticación",
+                        "description": "Authentication tokens",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Credenciales inválidas",
+                        "description": "Invalid credentials",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -840,7 +840,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna la información del usuario autenticado",
+                "description": "Returns the authenticated user information",
                 "consumes": [
                     "application/json"
                 ],
@@ -850,17 +850,17 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Obtener información del usuario actual",
+                "summary": "Get current user information",
                 "responses": {
                     "200": {
-                        "description": "Información del usuario",
+                        "description": "User information",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -871,7 +871,7 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
-                "description": "Genera un nuevo access token usando un refresh token válido",
+                "description": "Generates a new access token using a valid refresh token",
                 "consumes": [
                     "application/json"
                 ],
@@ -881,7 +881,7 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Refrescar token de acceso",
+                "summary": "Refresh access token",
                 "parameters": [
                     {
                         "description": "Refresh token",
@@ -895,28 +895,28 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Nuevo access token",
+                        "description": "New access token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "Refresh token inválido o expirado",
+                        "description": "Invalid or expired refresh token",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -927,7 +927,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Crea una nueva cuenta de usuario guest",
+                "description": "Creates a new guest user account",
                 "consumes": [
                     "application/json"
                 ],
@@ -937,10 +937,10 @@ const docTemplate = `{
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Registrar nuevo usuario",
+                "summary": "Register new user",
                 "parameters": [
                     {
-                        "description": "Datos de registro",
+                        "description": "Registration data",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -951,21 +951,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Usuario creado exitosamente",
+                        "description": "User created successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -981,7 +981,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retorna la lista de estaciones favoritas del usuario autenticado",
+                "description": "Returns the list of favorite stations for the authenticated user",
                 "consumes": [
                     "application/json"
                 ],
@@ -991,23 +991,23 @@ const docTemplate = `{
                 "tags": [
                     "Favorites"
                 ],
-                "summary": "Obtener favoritos del usuario",
+                "summary": "Get user favorites",
                 "responses": {
                     "200": {
-                        "description": "Lista de estaciones favoritas",
+                        "description": "List of favorite stations",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1021,7 +1021,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Agrega una estación a la lista de favoritos del usuario autenticado",
+                "description": "Adds a station to the authenticated user's favorites list",
                 "consumes": [
                     "application/json"
                 ],
@@ -1031,10 +1031,10 @@ const docTemplate = `{
                 "tags": [
                     "Favorites"
                 ],
-                "summary": "Agregar estación a favoritos",
+                "summary": "Add station to favorites",
                 "parameters": [
                     {
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1045,49 +1045,49 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Favorito agregado exitosamente",
+                        "description": "Favorite added successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Estación solo para Premium",
+                        "description": "Access denied - Premium only station",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Estación no encontrada",
+                        "description": "Station not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "409": {
-                        "description": "Estación ya está en favoritos",
+                        "description": "Station already in favorites",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1103,7 +1103,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Elimina una estación de la lista de favoritos del usuario autenticado",
+                "description": "Removes a station from the authenticated user's favorites list",
                 "consumes": [
                     "application/json"
                 ],
@@ -1113,11 +1113,11 @@ const docTemplate = `{
                 "tags": [
                     "Favorites"
                 ],
-                "summary": "Eliminar estación de favoritos",
+                "summary": "Remove station from favorites",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "stationId",
                         "in": "path",
                         "required": true
@@ -1125,28 +1125,28 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Favorito eliminado exitosamente",
+                        "description": "Favorite removed successfully",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "401": {
-                        "description": "No autenticado",
+                        "description": "Not authenticated",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Favorito no encontrado",
+                        "description": "Favorite not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1157,28 +1157,28 @@ const docTemplate = `{
         },
         "/seo/popular-countries": {
             "get": {
-                "description": "Lista de países con más estaciones activas (útil para sitemap y navegación). Máximo 50 países.",
+                "description": "List of countries with most active stations (useful for sitemap and navigation). Maximum 50 countries.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "SEO"
                 ],
-                "summary": "Top países populares",
+                "summary": "Top popular countries",
                 "parameters": [
                     {
                         "maximum": 50,
                         "minimum": 1,
                         "type": "integer",
                         "default": 50,
-                        "description": "Límite de resultados",
+                        "description": "Results limit",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de países populares",
+                        "description": "List of popular countries",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1203,14 +1203,14 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Parámetro inválido",
+                        "description": "Invalid parameter",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1221,28 +1221,28 @@ const docTemplate = `{
         },
         "/seo/popular-tags": {
             "get": {
-                "description": "Lista de tags con más estaciones activas (útil para sitemap y navegación). Máximo 100 tags.",
+                "description": "List of tags with most active stations (useful for sitemap and navigation). Maximum 100 tags.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "SEO"
                 ],
-                "summary": "Top tags/géneros populares",
+                "summary": "Top popular tags/genres",
                 "parameters": [
                     {
                         "maximum": 100,
                         "minimum": 1,
                         "type": "integer",
                         "default": 100,
-                        "description": "Límite de resultados",
+                        "description": "Results limit",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de tags populares",
+                        "description": "List of popular tags",
                         "schema": {
                             "type": "object",
                             "properties": {
@@ -1267,14 +1267,14 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Parámetro inválido",
+                        "description": "Invalid parameter",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1285,23 +1285,23 @@ const docTemplate = `{
         },
         "/seo/sitemap-data": {
             "get": {
-                "description": "Retorna tags y países populares para construir sitemap.xml dinámico. Los datos se cachean por 6 horas.",
+                "description": "Returns popular tags and countries to build dynamic sitemap.xml. Data is cached for 6 hours.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "SEO"
                 ],
-                "summary": "Datos para generar sitemap",
+                "summary": "Data for generating sitemap",
                 "responses": {
                     "200": {
-                        "description": "Datos del sitemap",
+                        "description": "Sitemap data",
                         "schema": {
                             "$ref": "#/definitions/radio-backend_internal_domain.SitemapData"
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1312,7 +1312,7 @@ const docTemplate = `{
         },
         "/stations/popular": {
             "get": {
-                "description": "Lista de estaciones de radio populares con filtros opcionales y metadata SEO. Puede devolver 503 si el servicio externo está temporalmente no disponible.",
+                "description": "List of popular radio stations with optional filters and SEO metadata. May return 503 if external service is temporarily unavailable.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1322,45 +1322,45 @@ const docTemplate = `{
                 "tags": [
                     "Stations"
                 ],
-                "summary": "Obtener estaciones populares",
+                "summary": "Get popular stations",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 20,
-                        "description": "Número máximo de estaciones",
+                        "description": "Maximum number of stations",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filtrar por código de país",
+                        "description": "Filter by country code",
                         "name": "country",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "default": "es",
-                        "description": "Código de idioma (es, en, fr, de)",
+                        "description": "Language code (es, en, fr, de)",
                         "name": "lang",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de estaciones populares con SEO metadata",
+                        "description": "List of popular stations with SEO metadata",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "503": {
-                        "description": "Servicio externo temporalmente no disponible",
+                        "description": "External service temporarily unavailable",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1371,7 +1371,7 @@ const docTemplate = `{
         },
         "/stations/search": {
             "get": {
-                "description": "Busca estaciones de radio por nombre o tags con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).",
+                "description": "Searches for radio stations by name or tags with enriched SEO metadata. May return 503 if external service is temporarily unavailable (Circuit Breaker open).",
                 "consumes": [
                     "application/json"
                 ],
@@ -1381,11 +1381,11 @@ const docTemplate = `{
                 "tags": [
                     "Stations"
                 ],
-                "summary": "Buscar estaciones",
+                "summary": "Search stations",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Término de búsqueda",
+                        "description": "Search term",
                         "name": "q",
                         "in": "query",
                         "required": true
@@ -1393,41 +1393,41 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "default": 20,
-                        "description": "Número máximo de resultados",
+                        "description": "Maximum number of results",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "default": "es",
-                        "description": "Código de idioma (es, en, fr, de)",
+                        "description": "Language code (es, en, fr, de)",
                         "name": "lang",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Resultados de búsqueda con SEO metadata",
+                        "description": "Search results with SEO metadata",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
                     "400": {
-                        "description": "Parámetro de búsqueda requerido",
+                        "description": "Search parameter required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "503": {
-                        "description": "Servicio externo temporalmente no disponible",
+                        "description": "External service temporarily unavailable",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1438,7 +1438,7 @@ const docTemplate = `{
         },
         "/stations/{id}": {
             "get": {
-                "description": "Obtiene información detallada de una estación por su ID con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible.",
+                "description": "Gets detailed information for a station by its ID with enriched SEO metadata. May return 503 if external service is temporarily unavailable.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1448,11 +1448,11 @@ const docTemplate = `{
                 "tags": [
                     "Stations"
                 ],
-                "summary": "Obtener detalle de estación",
+                "summary": "Get station detail",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1460,41 +1460,41 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "default": "es",
-                        "description": "Código de idioma (es, en, fr, de)",
+                        "description": "Language code (es, en, fr, de)",
                         "name": "lang",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Detalle de la estación con SEO metadata",
+                        "description": "Station detail with SEO metadata",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StationDetailResponse"
                         }
                     },
                     "403": {
-                        "description": "Acceso denegado - Estación solo para Premium",
+                        "description": "Access denied - Premium only station",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "404": {
-                        "description": "Estación no encontrada",
+                        "description": "Station not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "503": {
-                        "description": "Servicio externo temporalmente no disponible",
+                        "description": "External service temporarily unavailable",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1505,18 +1505,18 @@ const docTemplate = `{
         },
         "/translations/{stationId}/languages": {
             "get": {
-                "description": "Obtiene la lista de idiomas para los cuales existen traducciones de una estación. Útil para mostrar selector de idiomas en el frontend. Retorna códigos de idioma: es, en, fr, de",
+                "description": "Gets the list of languages for which translations exist for a station. Useful for showing a language selector in the frontend. Returns language codes: es, en, fr, de",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Translations"
                 ],
-                "summary": "Obtener idiomas disponibles para una estación",
+                "summary": "Get available languages for a station",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la estación",
+                        "description": "Station ID",
                         "name": "stationId",
                         "in": "path",
                         "required": true
@@ -1524,21 +1524,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Lista de idiomas disponibles. Ejemplo: {\\\"success\\\":true,\\\"data\\\":[\\\"es\\\",\\\"en\\\",\\\"fr\\\"],\\\"count\\\":3}",
+                        "description": "List of available languages. Example: {\\\"success\\\":true,\\\"data\\\":[\\\"es\\\",\\\"en\\\",\\\"fr\\\"],\\\"count\\\":3}",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "400": {
-                        "description": "Solicitud inválida",
+                        "description": "Invalid request",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
                         }
                     },
                     "500": {
-                        "description": "Error interno del servidor",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true

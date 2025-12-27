@@ -54,18 +54,18 @@ type StationListResponse struct {
 }
 
 // GetByID returns a station by ID
-// @Summary Obtener detalle de estación
-// @Description Obtiene información detallada de una estación por su ID con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible.
+// @Summary Get station detail
+// @Description Gets detailed information for a station by its ID with enriched SEO metadata. May return 503 if external service is temporarily unavailable.
 // @Tags Stations
 // @Accept json
 // @Produce json
-// @Param id path string true "ID de la estación"
-// @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
-// @Success 200 {object} StationDetailResponse "Detalle de la estación con SEO metadata"
-// @Failure 404 {object} map[string]interface{} "Estación no encontrada"
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Estación solo para Premium"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
-// @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
+// @Param id path string true "Station ID"
+// @Param lang query string false "Language code (es, en, fr, de)" default(es)
+// @Success 200 {object} StationDetailResponse "Station detail with SEO metadata"
+// @Failure 404 {object} map[string]interface{} "Station not found"
+// @Failure 403 {object} map[string]interface{} "Access denied - Premium only station"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
 // @Router /stations/{id} [get]
 func (h *StationHandler) GetByID(c *gin.Context) {
 	stationID := c.Param("id")
@@ -103,7 +103,7 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 		return
 	}
 
-	// Verificar si la estación tiene stream válido (404 SEO)
+	// Check if station has a valid stream (404 for SEO)
 	if station.StreamURL == "" {
 		logger.Warn("station has no stream - returning 404 for SEO", "station_id", stationID)
 		RespondWithError(c, http.StatusNotFound, "station_unavailable", "Station is currently unavailable")
@@ -114,7 +114,7 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 		"data": gin.H{
 			"id":              station.ID,
 			"name":            station.Name,
-			"slug":            station.Slug, // NUEVO: Slug para SEO
+			"slug":            station.Slug,
 			"stream_url":      station.StreamURL,
 			"image_url":       station.ImageURL,
 			"tags":            station.Tags,
@@ -122,22 +122,22 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 			"votes":           station.Votes,
 			"is_premium_only": station.IsPremiumOnly,
 		},
-		"seo_metadata": station.SEOMetadata, // NUEVO: Metadata SEO
+		"seo_metadata": station.SEOMetadata,
 	})
 }
 
 // GetPopular returns popular stations
-// @Summary Obtener estaciones populares
-// @Description Lista de estaciones de radio populares con filtros opcionales y metadata SEO. Puede devolver 503 si el servicio externo está temporalmente no disponible.
+// @Summary Get popular stations
+// @Description List of popular radio stations with optional filters and SEO metadata. May return 503 if external service is temporarily unavailable.
 // @Tags Stations
 // @Accept json
 // @Produce json
-// @Param limit query int false "Número máximo de estaciones" default(20)
-// @Param country query string false "Filtrar por código de país"
-// @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
-// @Success 200 {object} StationListResponse "Lista de estaciones populares con SEO metadata"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
-// @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
+// @Param limit query int false "Maximum number of stations" default(20)
+// @Param country query string false "Filter by country code"
+// @Param lang query string false "Language code (es, en, fr, de)" default(es)
+// @Success 200 {object} StationListResponse "List of popular stations with SEO metadata"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
 // @Router /stations/popular [get]
 func (h *StationHandler) GetPopular(c *gin.Context) {
 	// Parse query parameters
@@ -191,18 +191,18 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 }
 
 // Search searches for stations
-// @Summary Buscar estaciones
-// @Description Busca estaciones de radio por nombre o tags con metadata SEO enriquecida. Puede devolver 503 si el servicio externo está temporalmente no disponible (Circuit Breaker abierto).
+// @Summary Search stations
+// @Description Searches for radio stations by name or tags with enriched SEO metadata. May return 503 if external service is temporarily unavailable (Circuit Breaker open).
 // @Tags Stations
 // @Accept json
 // @Produce json
-// @Param q query string true "Término de búsqueda"
-// @Param limit query int false "Número máximo de resultados" default(20)
-// @Param lang query string false "Código de idioma (es, en, fr, de)" default(es)
-// @Success 200 {object} StationListResponse "Resultados de búsqueda con SEO metadata"
-// @Failure 400 {object} map[string]interface{} "Parámetro de búsqueda requerido"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
-// @Failure 503 {object} map[string]interface{} "Servicio externo temporalmente no disponible"
+// @Param q query string true "Search term"
+// @Param limit query int false "Maximum number of results" default(20)
+// @Param lang query string false "Language code (es, en, fr, de)" default(es)
+// @Success 200 {object} StationListResponse "Search results with SEO metadata"
+// @Failure 400 {object} map[string]interface{} "Search parameter required"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
 // @Router /stations/search [get]
 func (h *StationHandler) Search(c *gin.Context) {
 	// Parse query parameters

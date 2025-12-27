@@ -38,15 +38,15 @@ type RefreshRequest struct {
 }
 
 // Register handles user registration
-// @Summary Registrar nuevo usuario
-// @Description Crea una nueva cuenta de usuario guest
+// @Summary Register new user
+// @Description Creates a new guest user account
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body RegisterRequest true "Datos de registro"
-// @Success 201 {object} map[string]interface{} "Usuario creado exitosamente"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param request body RegisterRequest true "Registration data"
+// @Success 201 {object} map[string]interface{} "User created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
@@ -75,16 +75,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 // Login handles user login
-// @Summary Iniciar sesión
-// @Description Autentica un usuario y retorna tokens JWT
+// @Summary User login
+// @Description Authenticates a user and returns JWT tokens
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body LoginRequest true "Credenciales de inicio de sesión"
-// @Success 200 {object} map[string]interface{} "Tokens de autenticación"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "Credenciales inválidas"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param request body LoginRequest true "Login credentials"
+// @Success 200 {object} map[string]interface{} "Authentication tokens"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Invalid credentials"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
@@ -111,16 +111,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 // RefreshToken handles token refresh
-// @Summary Refrescar token de acceso
-// @Description Genera un nuevo access token usando un refresh token válido
+// @Summary Refresh access token
+// @Description Generates a new access token using a valid refresh token
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param request body RefreshRequest true "Refresh token"
-// @Success 200 {object} map[string]interface{} "Nuevo access token"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "Refresh token inválido o expirado"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Success 200 {object} map[string]interface{} "New access token"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Invalid or expired refresh token"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /auth/refresh [post]
 func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	var req RefreshRequest
@@ -146,14 +146,14 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 }
 
 // Me returns the current user info
-// @Summary Obtener información del usuario actual
-// @Description Retorna la información del usuario autenticado
+// @Summary Get current user information
+// @Description Returns the authenticated user information
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Información del usuario"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Success 200 {object} map[string]interface{} "User information"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
 // @Router /auth/me [get]
 func (h *AuthHandler) Me(c *gin.Context) {
 	userID := middleware.GetUserID(c)

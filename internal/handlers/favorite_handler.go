@@ -28,15 +28,15 @@ type AddFavoriteRequest struct {
 }
 
 // GetFavorites returns user's favorite stations
-// @Summary Obtener favoritos del usuario
-// @Description Retorna la lista de estaciones favoritas del usuario autenticado
+// @Summary Get user favorites
+// @Description Returns the list of favorite stations for the authenticated user
 // @Tags Favorites
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} handlers.StationListResponse "Lista de estaciones favoritas"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Success 200 {object} handlers.StationListResponse "List of favorite stations"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /favorites [get]
 func (h *FavoriteHandler) GetFavorites(c *gin.Context) {
 	userID := middleware.GetUserID(c)
@@ -71,20 +71,20 @@ func (h *FavoriteHandler) GetFavorites(c *gin.Context) {
 }
 
 // AddFavorite adds a station to user's favorites
-// @Summary Agregar estación a favoritos
-// @Description Agrega una estación a la lista de favoritos del usuario autenticado
+// @Summary Add station to favorites
+// @Description Adds a station to the authenticated user's favorites list
 // @Tags Favorites
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body AddFavoriteRequest true "ID de la estación"
-// @Success 201 {object} map[string]interface{} "Favorito agregado exitosamente"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Estación solo para Premium"
-// @Failure 404 {object} map[string]interface{} "Estación no encontrada"
-// @Failure 409 {object} map[string]interface{} "Estación ya está en favoritos"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param request body AddFavoriteRequest true "Station ID"
+// @Success 201 {object} map[string]interface{} "Favorite added successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Access denied - Premium only station"
+// @Failure 404 {object} map[string]interface{} "Station not found"
+// @Failure 409 {object} map[string]interface{} "Station already in favorites"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /favorites [post]
 func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 	var req AddFavoriteRequest
@@ -121,17 +121,17 @@ func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 }
 
 // RemoveFavorite removes a station from user's favorites
-// @Summary Eliminar estación de favoritos
-// @Description Elimina una estación de la lista de favoritos del usuario autenticado
+// @Summary Remove station from favorites
+// @Description Removes a station from the authenticated user's favorites list
 // @Tags Favorites
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param stationId path string true "ID de la estación"
-// @Success 200 {object} map[string]interface{} "Favorito eliminado exitosamente"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 404 {object} map[string]interface{} "Favorito no encontrado"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param stationId path string true "Station ID"
+// @Success 200 {object} map[string]interface{} "Favorite removed successfully"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 404 {object} map[string]interface{} "Favorite not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /favorites/{stationId} [delete]
 func (h *FavoriteHandler) RemoveFavorite(c *gin.Context) {
 	stationID := c.Param("stationId")

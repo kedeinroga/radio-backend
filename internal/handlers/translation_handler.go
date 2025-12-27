@@ -23,20 +23,20 @@ func NewTranslationHandler(translationService *services.TranslationService) *Tra
 }
 
 // CreateTranslation godoc
-// @Summary Crear una nueva traducción
-// @Description Crea una nueva traducción para una estación en un idioma específico (solo admin). Ejemplo de request: {"station_id": "abc123", "language_code": "en", "title": "Rock FM - Free Online Radio", "description": "Listen to Rock FM live from USA", "keywords": ["rock", "usa", "music", "online", "free"]}
+// @Summary Create a new translation
+// @Description Creates a new translation for a station in a specific language (admin only). Request example: {"station_id": "abc123", "language_code": "en", "title": "Rock FM - Free Online Radio", "description": "Listen to Rock FM live from USA", "keywords": ["rock", "usa", "music", "online", "free"]}
 // @Tags Translations
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body domain.CreateTranslationRequest true "Datos de la traducción"
-// @Success 201 {object} domain.TranslationResponse "Traducción creada exitosamente"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "No autorizado - Solo admin"
-// @Failure 404 {object} map[string]interface{} "Estación no encontrada"
-// @Failure 409 {object} map[string]interface{} "La traducción ya existe"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param request body domain.CreateTranslationRequest true "Translation data"
+// @Success 201 {object} domain.TranslationResponse "Translation created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
+// @Failure 404 {object} map[string]interface{} "Station not found"
+// @Failure 409 {object} map[string]interface{} "Translation already exists"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/translations [post]
 func (h *TranslationHandler) CreateTranslation(c *gin.Context) {
 	var req domain.CreateTranslationRequest
@@ -45,7 +45,7 @@ func (h *TranslationHandler) CreateTranslation(c *gin.Context) {
 		return
 	}
 
-	// Crear la traducción
+	// Create the translation
 	translation, err := h.translationService.CreateTranslation(&req)
 	if err != nil {
 		switch err {
@@ -68,32 +68,32 @@ func (h *TranslationHandler) CreateTranslation(c *gin.Context) {
 }
 
 // GetTranslation godoc
-// @Summary Obtener una traducción específica
-// @Description Obtiene la traducción de una estación en un idioma específico (solo admin)
+// @Summary Get a specific translation
+// @Description Gets a station translation in a specific language (admin only)
 // @Tags Translations
 // @Produce json
 // @Security BearerAuth
-// @Param stationId path string true "ID de la estación"
-// @Param lang path string true "Código de idioma (es, en, fr, de)"
-// @Success 200 {object} domain.TranslationResponse "Traducción encontrada"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "No autorizado - Solo admin"
-// @Failure 404 {object} map[string]interface{} "Traducción no encontrada"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param stationId path string true "Station ID"
+// @Param lang path string true "Language code (es, en, fr, de)"
+// @Success 200 {object} domain.TranslationResponse "Translation found"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
+// @Failure 404 {object} map[string]interface{} "Translation not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/translations/{stationId}/{lang} [get]
 func (h *TranslationHandler) GetTranslation(c *gin.Context) {
 	stationID := c.Param("stationId")
 	langCode := c.Param("lang")
 
-	// Validar idioma
+	// Validate language
 	lang := i18n.ParseLanguage(langCode)
 	if !i18n.IsSupported(lang) {
 		RespondWithError(c, http.StatusBadRequest, "invalid_language", "Invalid or unsupported language code")
 		return
 	}
 
-	// Obtener la traducción
+	// Get the translation
 	translation, err := h.translationService.GetTranslation(stationID, lang)
 	if err != nil {
 		if err == domain.ErrTranslationNotFound {
@@ -111,23 +111,23 @@ func (h *TranslationHandler) GetTranslation(c *gin.Context) {
 }
 
 // ListTranslations godoc
-// @Summary Listar todas las traducciones de una estación
-// @Description Obtiene todas las traducciones disponibles para una estación (solo admin)
+// @Summary List all translations for a station
+// @Description Gets all available translations for a station (admin only)
 // @Tags Translations
 // @Produce json
 // @Security BearerAuth
-// @Param stationId path string true "ID de la estación"
-// @Success 200 {object} map[string]interface{} "Lista de traducciones"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "No autorizado - Solo admin"
-// @Failure 404 {object} map[string]interface{} "Estación no encontrada"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param stationId path string true "Station ID"
+// @Success 200 {object} map[string]interface{} "List of translations"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
+// @Failure 404 {object} map[string]interface{} "Station not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/translations/{stationId} [get]
 func (h *TranslationHandler) ListTranslations(c *gin.Context) {
 	stationID := c.Param("stationId")
 
-	// Listar traducciones
+	// List translations
 	translations, err := h.translationService.ListTranslationsByStation(stationID)
 	if err != nil {
 		if err == domain.ErrStationNotFound {
@@ -138,7 +138,7 @@ func (h *TranslationHandler) ListTranslations(c *gin.Context) {
 		return
 	}
 
-	// Convertir a responses
+	// Convert to responses
 	responses := make([]*domain.TranslationResponse, len(translations))
 	for i, t := range translations {
 		responses[i] = t.ToResponse()
@@ -152,27 +152,27 @@ func (h *TranslationHandler) ListTranslations(c *gin.Context) {
 }
 
 // UpdateTranslation godoc
-// @Summary Actualizar una traducción
-// @Description Actualiza una traducción existente (solo admin)
+// @Summary Update a translation
+// @Description Updates an existing translation (admin only)
 // @Tags Translations
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param stationId path string true "ID de la estación"
-// @Param lang path string true "Código de idioma (es, en, fr, de)"
-// @Param request body domain.UpdateTranslationRequest true "Datos actualizados de la traducción"
-// @Success 200 {object} domain.TranslationResponse "Traducción actualizada exitosamente"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "No autorizado - Solo admin"
-// @Failure 404 {object} map[string]interface{} "Traducción no encontrada"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param stationId path string true "Station ID"
+// @Param lang path string true "Language code (es, en, fr, de)"
+// @Param request body domain.UpdateTranslationRequest true "Updated translation data"
+// @Success 200 {object} domain.TranslationResponse "Translation updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
+// @Failure 404 {object} map[string]interface{} "Translation not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/translations/{stationId}/{lang} [put]
 func (h *TranslationHandler) UpdateTranslation(c *gin.Context) {
 	stationID := c.Param("stationId")
 	langCode := c.Param("lang")
 
-	// Validar idioma
+	// Validate language
 	lang := i18n.ParseLanguage(langCode)
 	if !i18n.IsSupported(lang) {
 		RespondWithError(c, http.StatusBadRequest, "invalid_language", "Invalid or unsupported language code")
@@ -185,7 +185,7 @@ func (h *TranslationHandler) UpdateTranslation(c *gin.Context) {
 		return
 	}
 
-	// Actualizar la traducción
+	// Update the translation
 	translation, err := h.translationService.UpdateTranslation(stationID, lang, &req)
 	if err != nil {
 		if err == domain.ErrTranslationNotFound {
@@ -203,32 +203,32 @@ func (h *TranslationHandler) UpdateTranslation(c *gin.Context) {
 }
 
 // DeleteTranslation godoc
-// @Summary Eliminar una traducción
-// @Description Elimina una traducción existente (solo admin)
+// @Summary Delete a translation
+// @Description Deletes an existing translation (admin only)
 // @Tags Translations
 // @Produce json
 // @Security BearerAuth
-// @Param stationId path string true "ID de la estación"
-// @Param lang path string true "Código de idioma (es, en, fr, de)"
-// @Success 200 {object} map[string]interface{} "Traducción eliminada exitosamente"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "No autorizado - Solo admin"
-// @Failure 404 {object} map[string]interface{} "Traducción no encontrada"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param stationId path string true "Station ID"
+// @Param lang path string true "Language code (es, en, fr, de)"
+// @Success 200 {object} map[string]interface{} "Translation deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
+// @Failure 404 {object} map[string]interface{} "Translation not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/translations/{stationId}/{lang} [delete]
 func (h *TranslationHandler) DeleteTranslation(c *gin.Context) {
 	stationID := c.Param("stationId")
 	langCode := c.Param("lang")
 
-	// Validar idioma
+	// Validate language
 	lang := i18n.ParseLanguage(langCode)
 	if !i18n.IsSupported(lang) {
 		RespondWithError(c, http.StatusBadRequest, "invalid_language", "Invalid or unsupported language code")
 		return
 	}
 
-	// Eliminar la traducción
+	// Delete the translation
 	err := h.translationService.DeleteTranslation(stationID, lang)
 	if err != nil {
 		if err == domain.ErrTranslationNotFound {
@@ -246,18 +246,18 @@ func (h *TranslationHandler) DeleteTranslation(c *gin.Context) {
 }
 
 // BulkCreateTranslations godoc
-// @Summary Crear múltiples traducciones
-// @Description Crea múltiples traducciones en una sola operación (solo admin). Útil para poblar traducciones de múltiples estaciones. Ejemplo: [{"station_id":"abc","language_code":"en","title":"Radio FM","description":"Listen live","keywords":["radio","music"]},{"station_id":"abc","language_code":"fr","title":"Radio FM","description":"Écoutez en direct","keywords":["radio","musique"]}]
+// @Summary Create multiple translations
+// @Description Creates multiple translations in a single operation (admin only). Useful for populating translations for multiple stations. Example: [{"station_id":"abc","language_code":"en","title":"Radio FM","description":"Listen live","keywords":["radio","music"]},{"station_id":"abc","language_code":"fr","title":"Radio FM","description":"Écoutez en direct","keywords":["radio","musique"]}]
 // @Tags Translations
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body []domain.CreateTranslationRequest true "Lista de traducciones a crear"
-// @Success 201 {object} map[string]interface{} "Traducciones creadas exitosamente"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "No autorizado - Solo admin"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param request body []domain.CreateTranslationRequest true "List of translations to create"
+// @Success 201 {object} map[string]interface{} "Translations created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/translations/bulk [post]
 func (h *TranslationHandler) BulkCreateTranslations(c *gin.Context) {
 	var requests []domain.CreateTranslationRequest
@@ -271,7 +271,7 @@ func (h *TranslationHandler) BulkCreateTranslations(c *gin.Context) {
 		return
 	}
 
-	// Convertir requests a StationTranslation
+	// Convert requests to StationTranslation
 	translations := make([]*domain.StationTranslation, len(requests))
 	for i, req := range requests {
 		translations[i] = &domain.StationTranslation{
@@ -283,7 +283,7 @@ func (h *TranslationHandler) BulkCreateTranslations(c *gin.Context) {
 		}
 	}
 
-	// Crear traducciones en bulk
+	// Create translations in bulk
 	err := h.translationService.BulkCreateTranslations(translations)
 	if err != nil {
 		RespondWithError(c, http.StatusInternalServerError, "internal_error", "Failed to create translations")
@@ -298,14 +298,14 @@ func (h *TranslationHandler) BulkCreateTranslations(c *gin.Context) {
 }
 
 // GetAvailableLanguages godoc
-// @Summary Obtener idiomas disponibles para una estación
-// @Description Obtiene la lista de idiomas para los cuales existen traducciones de una estación. Útil para mostrar selector de idiomas en el frontend. Retorna códigos de idioma: es, en, fr, de
+// @Summary Get available languages for a station
+// @Description Gets the list of languages for which translations exist for a station. Useful for showing a language selector in the frontend. Returns language codes: es, en, fr, de
 // @Tags Translations
 // @Produce json
-// @Param stationId path string true "ID de la estación"
-// @Success 200 {object} map[string]interface{} "Lista de idiomas disponibles. Ejemplo: {\"success\":true,\"data\":[\"es\",\"en\",\"fr\"],\"count\":3}"
-// @Failure 400 {object} map[string]interface{} "Solicitud inválida"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param stationId path string true "Station ID"
+// @Success 200 {object} map[string]interface{} "List of available languages. Example: {\"success\":true,\"data\":[\"es\",\"en\",\"fr\"],\"count\":3}"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /translations/{stationId}/languages [get]
 func (h *TranslationHandler) GetAvailableLanguages(c *gin.Context) {
 	stationID := c.Param("stationId")

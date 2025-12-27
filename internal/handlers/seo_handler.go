@@ -11,25 +11,25 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SEOHandler maneja los endpoints públicos de SEO
+// SEOHandler handles public SEO endpoints
 type SEOHandler struct {
 	seoService *services.SEOService
 }
 
-// NewSEOHandler crea una nueva instancia del handler SEO
+// NewSEOHandler creates a new SEO handler instance
 func NewSEOHandler(seoService *services.SEOService) *SEOHandler {
 	return &SEOHandler{
 		seoService: seoService,
 	}
 }
 
-// GetSitemapData retorna datos para generar sitemap.xml dinámico
-// @Summary Datos para generar sitemap
-// @Description Retorna tags y países populares para construir sitemap.xml dinámico. Los datos se cachean por 6 horas.
+// GetSitemapData returns data for generating dynamic sitemap.xml
+// @Summary Data for generating sitemap
+// @Description Returns popular tags and countries to build dynamic sitemap.xml. Data is cached for 6 hours.
 // @Tags SEO
 // @Produce json
-// @Success 200 {object} domain.SitemapData "Datos del sitemap"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Success 200 {object} domain.SitemapData "Sitemap data"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /seo/sitemap-data [get]
 func (h *SEOHandler) GetSitemapData(c *gin.Context) {
 	logger.Info("fetching sitemap data")
@@ -46,15 +46,15 @@ func (h *SEOHandler) GetSitemapData(c *gin.Context) {
 	})
 }
 
-// GetPopularTags retorna solo los tags más populares
-// @Summary Top tags/géneros populares
-// @Description Lista de tags con más estaciones activas (útil para sitemap y navegación). Máximo 100 tags.
+// GetPopularTags returns only the most popular tags
+// @Summary Top popular tags/genres
+// @Description List of tags with most active stations (useful for sitemap and navigation). Maximum 100 tags.
 // @Tags SEO
 // @Produce json
-// @Param limit query int false "Límite de resultados" default(100) minimum(1) maximum(100)
-// @Success 200 {object} object{data=object{tags=[]domain.PopularTag,count=int,total=int}} "Lista de tags populares"
-// @Failure 400 {object} map[string]interface{} "Parámetro inválido"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param limit query int false "Results limit" default(100) minimum(1) maximum(100)
+// @Success 200 {object} object{data=object{tags=[]domain.PopularTag,count=int,total=int}} "List of popular tags"
+// @Failure 400 {object} map[string]interface{} "Invalid parameter"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /seo/popular-tags [get]
 func (h *SEOHandler) GetPopularTags(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "100")
@@ -64,7 +64,7 @@ func (h *SEOHandler) GetPopularTags(c *gin.Context) {
 		return
 	}
 
-	// Limitar a máximo 100
+	// Limit to maximum 100
 	if limit > 100 {
 		limit = 100
 	}
@@ -93,15 +93,15 @@ func (h *SEOHandler) GetPopularTags(c *gin.Context) {
 	})
 }
 
-// GetPopularCountries retorna solo los países más populares
-// @Summary Top países populares
-// @Description Lista de países con más estaciones activas (útil para sitemap y navegación). Máximo 50 países.
+// GetPopularCountries returns only the most popular countries
+// @Summary Top popular countries
+// @Description List of countries with most active stations (useful for sitemap and navigation). Maximum 50 countries.
 // @Tags SEO
 // @Produce json
-// @Param limit query int false "Límite de resultados" default(50) minimum(1) maximum(50)
-// @Success 200 {object} object{data=object{countries=[]domain.PopularCountry,count=int,total=int}} "Lista de países populares"
-// @Failure 400 {object} map[string]interface{} "Parámetro inválido"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Param limit query int false "Results limit" default(50) minimum(1) maximum(50)
+// @Success 200 {object} object{data=object{countries=[]domain.PopularCountry,count=int,total=int}} "List of popular countries"
+// @Failure 400 {object} map[string]interface{} "Invalid parameter"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /seo/popular-countries [get]
 func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "50")
@@ -111,7 +111,7 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 		return
 	}
 
-	// Limitar a máximo 50
+	// Limit to maximum 50
 	if limit > 50 {
 		limit = 50
 	}
@@ -125,7 +125,7 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 		return
 	}
 
-	// Devolver solo los países limitados
+	// Return only limited countries
 	countries := data.PopularCountries
 	if len(countries) > limit {
 		countries = countries[:limit]
@@ -140,16 +140,16 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 	})
 }
 
-// RefreshSEOStats refresca manualmente las estadísticas SEO
-// @Summary Refrescar estadísticas SEO (Admin)
-// @Description Actualiza las estadísticas de tags y países desde la base de datos. Endpoint administrativo que requiere autenticación de admin.
+// RefreshSEOStats manually refreshes SEO statistics
+// @Summary Refresh SEO statistics (Admin)
+// @Description Updates tag and country statistics from the database. Administrative endpoint that requires admin authentication.
 // @Tags SEO
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Estadísticas actualizadas"
-// @Failure 401 {object} map[string]interface{} "No autenticado"
-// @Failure 403 {object} map[string]interface{} "Acceso denegado - Solo Admin"
-// @Failure 500 {object} map[string]interface{} "Error interno del servidor"
+// @Success 200 {object} map[string]interface{} "Statistics updated"
+// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Failure 403 {object} map[string]interface{} "Access denied - Admin only"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /admin/seo/refresh-stats [post]
 func (h *SEOHandler) RefreshSEOStats(c *gin.Context) {
 	logger.Info("manually refreshing SEO statistics")
