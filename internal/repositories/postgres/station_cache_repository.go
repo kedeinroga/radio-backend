@@ -208,22 +208,35 @@ func (r *StationCacheRepository) FindByCountry(country string, limit int) ([]dom
 
 // FindPopular finds popular stations from cache
 func (r *StationCacheRepository) FindPopular(limit int, country string) ([]domain.Station, error) {
-	query := `
-		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
-		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
-		       created_at, updated_at
-		FROM stations
-		WHERE is_active = true
-	`
+	var query string
+	var args []interface{}
 
-	args := []interface{}{limit}
 	if country != "" {
-		query += " AND country = $2"
-		args = append([]interface{}{limit, country}, args[1:]...)
-		args[1] = country
+		// With country filter
+		query = `
+			SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
+			       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
+			       created_at, updated_at
+			FROM stations
+			WHERE is_active = true
+			  AND country = $1
+			ORDER BY votes DESC
+			LIMIT $2
+		`
+		args = []interface{}{country, limit}
+	} else {
+		// Without country filter
+		query = `
+			SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
+			       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
+			       created_at, updated_at
+			FROM stations
+			WHERE is_active = true
+			ORDER BY votes DESC
+			LIMIT $1
+		`
+		args = []interface{}{limit}
 	}
-
-	query += " ORDER BY votes DESC LIMIT $1"
 
 	rows, err := r.db.DB.Query(query, args...)
 	if err != nil {
