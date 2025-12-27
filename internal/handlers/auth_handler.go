@@ -105,14 +105,14 @@ type RevokeTokenResponse struct {
 
 // SessionInfo represents a single session in the sessions list
 type SessionInfo struct {
-	SessionID    string       `json:"session_id" example:"550e8400-e29b-41d4-a716-446655440000"`
-	TokenID      string       `json:"token_id" example:"123e4567-e89b-12d3-a456-426614174000"`
-	DeviceInfo   DeviceInfo   `json:"device_info"`
-	Location     Location     `json:"location"`
-	CreatedAt    string       `json:"created_at" example:"2024-01-15T12:00:00Z"`
-	LastActivity string       `json:"last_activity" example:"2024-01-15T12:15:00Z"`
-	ExpiresAt    string       `json:"expires_at" example:"2024-01-15T20:00:00Z"`
-	IsCurrent    bool         `json:"is_current" example:"true"`
+	SessionID    string     `json:"session_id" example:"550e8400-e29b-41d4-a716-446655440000"`
+	TokenID      string     `json:"token_id" example:"123e4567-e89b-12d3-a456-426614174000"`
+	DeviceInfo   DeviceInfo `json:"device_info"`
+	Location     Location   `json:"location"`
+	CreatedAt    string     `json:"created_at" example:"2024-01-15T12:00:00Z"`
+	LastActivity string     `json:"last_activity" example:"2024-01-15T12:15:00Z"`
+	ExpiresAt    string     `json:"expires_at" example:"2024-01-15T20:00:00Z"`
+	IsCurrent    bool       `json:"is_current" example:"true"`
 }
 
 // DeviceInfo represents device information
@@ -143,7 +143,7 @@ type SuccessResponse struct {
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Success bool       `json:"success" example:"false"`
+	Success bool        `json:"success" example:"false"`
 	Error   ErrorDetail `json:"error"`
 }
 
@@ -152,7 +152,6 @@ type ErrorDetail struct {
 	Code    string `json:"code" example:"invalid_token"`
 	Message string `json:"message" example:"Token is invalid, expired or revoked"`
 }
-
 
 // Register handles user registration
 // @Summary Register new user
@@ -229,7 +228,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
 		"token_type":    "Bearer",
-		"expires_in":    900,  // 15 minutes in seconds
+		"expires_in":    900, // 15 minutes in seconds
 		"expires_at":    expiresAt.Format(time.RFC3339),
 		"session_id":    sessionID,
 		"jti":           tokenID,
@@ -504,7 +503,7 @@ func (h *AuthHandler) GetSessions(c *gin.Context) {
 	}
 
 	RespondWithSuccess(c, http.StatusOK, gin.H{
-		"sessions":      sessionList,
+		"sessions":       sessionList,
 		"total_sessions": len(sessionList),
 	})
 }

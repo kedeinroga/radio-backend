@@ -108,9 +108,9 @@ func main() {
 	stationCacheRepo := postgres.NewStationCacheRepository(db)
 	searchCacheRepo := postgres.NewSearchCacheRepository(db)
 	favoriteRepo := postgres.NewFavoriteRepository(db)
-	seoRepo := postgres.NewSEORepository(db.DB)                 // NUEVO: SEO repo usa *sql.DB directamente
-	translationRepo := postgres.NewTranslationRepository(db.DB) // NUEVO: Translation repo
-	sessionRepo := postgres.NewSessionRepository(db.DB)         // NUEVO: Session repo
+	seoRepo := postgres.NewSEORepository(db.DB)                     // NUEVO: SEO repo usa *sql.DB directamente
+	translationRepo := postgres.NewTranslationRepository(db.DB)     // NUEVO: Translation repo
+	sessionRepo := postgres.NewSessionRepository(db.DB)             // NUEVO: Session repo
 	securityEventRepo := postgres.NewSecurityEventRepository(db.DB) // NUEVO: Security event repo
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
@@ -122,13 +122,13 @@ func main() {
 	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)                      // NUEVO: Servicio de traducciones
 	seoService := services.NewSEOService(seoRepo, seoCache, translationService, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
 	authService := services.NewAuthService(
-		userRepo, 
-		sessionRepo,        // NUEVO: Session repository
-		securityEventRepo,  // NUEVO: Security event repository
-		passwordHasher, 
-		tokenManager, 
+		userRepo,
+		sessionRepo,       // NUEVO: Session repository
+		securityEventRepo, // NUEVO: Security event repository
+		passwordHasher,
 		tokenManager,
-		redisClient,        // NUEVO: Token blacklist (Redis)
+		tokenManager,
+		redisClient, // NUEVO: Token blacklist (Redis)
 	)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
 	stationService := services.NewStationService(

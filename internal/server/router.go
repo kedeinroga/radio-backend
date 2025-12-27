@@ -92,10 +92,10 @@ func (r *Router) Setup() *gin.Engine {
 			auth.POST("/register", r.authHandler.Register)
 			auth.POST("/login", r.authHandler.Login)
 			auth.POST("/refresh", r.authHandler.RefreshToken)
-			auth.POST("/validate", r.authHandler.ValidateToken)    // NUEVO: Validate token
+			auth.POST("/validate", r.authHandler.ValidateToken)                          // NUEVO: Validate token
 			auth.POST("/revoke", r.authMiddleware.Required(), r.authHandler.RevokeToken) // NUEVO: Revoke tokens
 			auth.GET("/me", r.authMiddleware.Required(), r.authHandler.Me)
-			auth.GET("/sessions", r.authMiddleware.Required(), r.authHandler.GetSessions)         // NUEVO: List sessions
+			auth.GET("/sessions", r.authMiddleware.Required(), r.authHandler.GetSessions)                 // NUEVO: List sessions
 			auth.DELETE("/sessions/:sessionId", r.authMiddleware.Required(), r.authHandler.DeleteSession) // NUEVO: Delete session
 		}
 

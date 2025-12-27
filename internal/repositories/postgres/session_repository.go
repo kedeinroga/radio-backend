@@ -323,7 +323,7 @@ func (r *SecurityEventRepository) Create(event *domain.SecurityEvent) error {
 
 	query := `
 		INSERT INTO security_events (
-			timestamp, event_type, user_id, token_id, 
+			timestamp, event_type, user_id, token_id,
 			ip_address, user_agent, reason, metadata
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 	`

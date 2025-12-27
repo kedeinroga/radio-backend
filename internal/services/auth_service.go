@@ -341,12 +341,12 @@ func (s *AuthService) RevokeToken(request *domain.RevokeTokenRequest) (int, erro
 		if err := s.tokenBlacklist.RevokeSession(request.SessionID); err != nil {
 			return count, fmt.Errorf("failed to revoke session: %w", err)
 		}
-		
+
 		// Also mark session as inactive in database
 		if err := s.sessionRepo.Delete(request.SessionID); err != nil {
 			fmt.Printf("failed to delete session: %v\n", err)
 		}
-		
+
 		count++
 
 		// Log security event
@@ -444,10 +444,10 @@ func (s *AuthService) LogSecurityEvent(event *domain.SecurityEvent) error {
 // parseUserAgent parses user agent string into device info
 func parseUserAgent(userAgent string) map[string]string {
 	info := make(map[string]string)
-	
+
 	// Simple parsing - in production, use a library like ua-parser
 	ua := strings.ToLower(userAgent)
-	
+
 	// Detect browser
 	if strings.Contains(ua, "chrome") {
 		info["browser"] = "Chrome"
@@ -460,7 +460,7 @@ func parseUserAgent(userAgent string) map[string]string {
 	} else {
 		info["browser"] = "Unknown"
 	}
-	
+
 	// Detect OS
 	if strings.Contains(ua, "windows") {
 		info["os"] = "Windows"
@@ -475,7 +475,7 @@ func parseUserAgent(userAgent string) map[string]string {
 	} else {
 		info["os"] = "Unknown"
 	}
-	
+
 	// Detect device type
 	if strings.Contains(ua, "mobile") || strings.Contains(ua, "android") || strings.Contains(ua, "iphone") {
 		info["device_type"] = "mobile"
@@ -484,7 +484,7 @@ func parseUserAgent(userAgent string) map[string]string {
 	} else {
 		info["device_type"] = "desktop"
 	}
-	
+
 	return info
 }
 

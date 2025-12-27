@@ -97,12 +97,12 @@ func (tm *TokenManager) generateToken(user *domain.User, sessionID string, expir
 		Role:      role,
 		SessionID: sessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Subject:   user.ID,                              // sub - standard claim
+			Subject:   user.ID,                                 // sub - standard claim
 			ExpiresAt: jwt.NewNumericDate(now.Add(expiration)), // exp - standard claim
-			IssuedAt:  jwt.NewNumericDate(now),              // iat - standard claim
-			NotBefore: jwt.NewNumericDate(now),              // nbf - standard claim
-			ID:        jti,                                  // jti - standard claim
-			Issuer:    tm.issuer,                            // iss - standard claim
+			IssuedAt:  jwt.NewNumericDate(now),                 // iat - standard claim
+			NotBefore: jwt.NewNumericDate(now),                 // nbf - standard claim
+			ID:        jti,                                     // jti - standard claim
+			Issuer:    tm.issuer,                               // iss - standard claim
 		},
 	}
 

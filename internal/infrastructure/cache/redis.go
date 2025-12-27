@@ -163,7 +163,7 @@ func (r *RedisClient) RevokeToken(tokenID string, expiresAt time.Time) error {
 	ctx := context.Background()
 	key := "revoked:token:" + tokenID
 	ttl := time.Until(expiresAt)
-	
+
 	// Only set if TTL is positive (token hasn't expired yet)
 	if ttl > 0 {
 		return r.client.Set(ctx, key, "1", ttl).Err()

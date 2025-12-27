@@ -7,7 +7,7 @@ type TokenClaims struct {
 	UserID    string
 	UserType  UserType
 	Email     string
-	Role      string    // admin | user | guest
+	Role      string // admin | user | guest
 	IssuedAt  time.Time
 	ExpiresAt time.Time
 	TokenID   string // jti - Unique token identifier
