@@ -36,37 +36,37 @@ check_server() {
 test_security_headers() {
     echo "🛡️  Test 1: Security Headers"
     echo "----------------------------"
-    
+
     HEADERS=$(curl -s -I "$BASE_URL/api/v1/stations/popular" 2>/dev/null)
-    
+
     # Check X-Frame-Options
     if echo "$HEADERS" | grep -q "X-Frame-Options: DENY"; then
         echo -e "${GREEN}✅ X-Frame-Options: DENY${NC}"
     else
         echo -e "${RED}❌ X-Frame-Options header missing${NC}"
     fi
-    
+
     # Check X-Content-Type-Options
     if echo "$HEADERS" | grep -q "X-Content-Type-Options: nosniff"; then
         echo -e "${GREEN}✅ X-Content-Type-Options: nosniff${NC}"
     else
         echo -e "${RED}❌ X-Content-Type-Options header missing${NC}"
     fi
-    
+
     # Check Content-Security-Policy
     if echo "$HEADERS" | grep -q "Content-Security-Policy"; then
         echo -e "${GREEN}✅ Content-Security-Policy present${NC}"
     else
         echo -e "${RED}❌ Content-Security-Policy header missing${NC}"
     fi
-    
+
     # Check Permissions-Policy
     if echo "$HEADERS" | grep -q "Permissions-Policy"; then
         echo -e "${GREEN}✅ Permissions-Policy present${NC}"
     else
         echo -e "${RED}❌ Permissions-Policy header missing${NC}"
     fi
-    
+
     echo ""
 }
 
@@ -74,37 +74,37 @@ test_security_headers() {
 test_rate_limiting() {
     echo "⚡ Test 2: Rate Limiting"
     echo "------------------------"
-    
+
     echo "Sending 15 rapid requests to /api/v1/auth/login..."
-    
+
     SUCCESS_COUNT=0
     RATE_LIMITED_COUNT=0
-    
+
     for i in {1..15}; do
         RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
             -X POST "$BASE_URL/api/v1/auth/login" \
             -H "Content-Type: application/json" \
             -d '{"email":"test@test.com","password":"test"}' 2>/dev/null)
-        
+
         if [ "$RESPONSE" -eq 429 ]; then
             RATE_LIMITED_COUNT=$((RATE_LIMITED_COUNT + 1))
         elif [ "$RESPONSE" -eq 400 ] || [ "$RESPONSE" -eq 401 ]; then
             SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         fi
-        
+
         # Small delay
         sleep 0.1
     done
-    
+
     echo "Requests allowed: $SUCCESS_COUNT"
     echo "Requests rate-limited: $RATE_LIMITED_COUNT"
-    
+
     if [ "$RATE_LIMITED_COUNT" -gt 0 ]; then
         echo -e "${GREEN}✅ Rate limiting is working (blocked $RATE_LIMITED_COUNT requests)${NC}"
     else
         echo -e "${YELLOW}⚠️  Rate limiting may not be working correctly${NC}"
     fi
-    
+
     echo ""
 }
 
@@ -112,29 +112,29 @@ test_rate_limiting() {
 test_cors() {
     echo "🌐 Test 3: CORS Configuration"
     echo "-----------------------------"
-    
+
     # Test allowed origin (localhost:3000)
     RESPONSE=$(curl -s -I -H "Origin: http://localhost:3000" \
         -H "Access-Control-Request-Method: GET" \
         "$BASE_URL/api/v1/stations/popular")
-    
+
     if echo "$RESPONSE" | grep -q "Access-Control-Allow-Origin"; then
         echo -e "${GREEN}✅ CORS allows localhost:3000${NC}"
     else
         echo -e "${RED}❌ CORS not allowing localhost:3000${NC}"
     fi
-    
+
     # Test disallowed origin
     RESPONSE=$(curl -s -I -H "Origin: http://evil-site.com" \
         -H "Access-Control-Request-Method: GET" \
         "$BASE_URL/api/v1/stations/popular")
-    
+
     if echo "$RESPONSE" | grep -q "evil-site.com"; then
         echo -e "${RED}❌ WARNING: CORS allows evil-site.com (wildcard configured?)${NC}"
     else
         echo -e "${GREEN}✅ CORS blocks unauthorized origins${NC}"
     fi
-    
+
     echo ""
 }
 
@@ -151,27 +151,27 @@ test_request_size() {
 test_authorization() {
     echo "🔐 Test 5: Authorization Middleware"
     echo "-----------------------------------"
-    
+
     # Test accessing admin endpoint without auth
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
         "$BASE_URL/api/v1/analytics/stations/popular")
-    
+
     if [ "$RESPONSE" -eq 401 ] || [ "$RESPONSE" -eq 403 ]; then
         echo -e "${GREEN}✅ Admin endpoints require authentication (got $RESPONSE)${NC}"
     else
         echo -e "${RED}❌ WARNING: Admin endpoint accessible without auth (got $RESPONSE)${NC}"
     fi
-    
+
     # Test accessing protected endpoint without auth
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
         "$BASE_URL/api/v1/favorites")
-    
+
     if [ "$RESPONSE" -eq 401 ]; then
         echo -e "${GREEN}✅ Protected endpoints require authentication${NC}"
     else
         echo -e "${RED}❌ WARNING: Protected endpoint accessible without auth (got $RESPONSE)${NC}"
     fi
-    
+
     echo ""
 }
 
@@ -179,9 +179,9 @@ test_authorization() {
 test_information_disclosure() {
     echo "🔍 Test 6: Information Disclosure"
     echo "---------------------------------"
-    
+
     HEADERS=$(curl -s -I "$BASE_URL/api/v1/stations/popular" 2>/dev/null)
-    
+
     # Check if Server header is removed/anonymized
     SERVER_HEADER=$(echo "$HEADERS" | grep "^Server: " | cut -d' ' -f2- || echo "")
     if [ -z "$SERVER_HEADER" ]; then
@@ -189,14 +189,14 @@ test_information_disclosure() {
     else
         echo -e "${YELLOW}⚠️  Server header present: $SERVER_HEADER${NC}"
     fi
-    
+
     # Check for X-Powered-By (should not be present)
     if echo "$HEADERS" | grep -q "X-Powered-By"; then
         echo -e "${RED}❌ X-Powered-By header present (information leak)${NC}"
     else
         echo -e "${GREEN}✅ X-Powered-By header not present${NC}"
     fi
-    
+
     echo ""
 }
 

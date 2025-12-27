@@ -19,9 +19,9 @@ type Router struct {
 	authMiddleware      *middleware.AuthMiddleware
 	analyticsMiddleware *middleware.AnalyticsMiddleware
 	corsMiddleware      gin.HandlerFunc
-	rateLimiter         *middleware.RateLimiter        // NUEVO: Rate limiter
-	authRateLimiter     *middleware.RateLimiter        // NUEVO: Rate limiter estricto para auth
-	isProduction        bool                           // NUEVO: Flag para producción
+	rateLimiter         *middleware.RateLimiter // NUEVO: Rate limiter
+	authRateLimiter     *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
+	isProduction        bool                    // NUEVO: Flag para producción
 
 	// Handlers
 	authHandler        *handlers.AuthHandler
@@ -37,9 +37,9 @@ func NewRouter(
 	authMiddleware *middleware.AuthMiddleware,
 	analyticsMiddleware *middleware.AnalyticsMiddleware,
 	corsMiddleware gin.HandlerFunc,
-	rateLimiter *middleware.RateLimiter,           // NUEVO
-	authRateLimiter *middleware.RateLimiter,       // NUEVO
-	isProduction bool,                             // NUEVO
+	rateLimiter *middleware.RateLimiter, // NUEVO
+	authRateLimiter *middleware.RateLimiter, // NUEVO
+	isProduction bool, // NUEVO
 	authHandler *handlers.AuthHandler,
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
@@ -52,9 +52,9 @@ func NewRouter(
 		authMiddleware:      authMiddleware,
 		analyticsMiddleware: analyticsMiddleware,
 		corsMiddleware:      corsMiddleware,
-		rateLimiter:         rateLimiter,        // NUEVO
-		authRateLimiter:     authRateLimiter,    // NUEVO
-		isProduction:        isProduction,       // NUEVO
+		rateLimiter:         rateLimiter,     // NUEVO
+		authRateLimiter:     authRateLimiter, // NUEVO
+		isProduction:        isProduction,    // NUEVO
 		authHandler:         authHandler,
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
