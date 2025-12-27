@@ -140,6 +140,10 @@ func main() {
 		cfg.CORS.AllowedMethods,
 		cfg.CORS.AllowedHeaders,
 	)
+	
+	// NUEVO: Initialize rate limiters
+	rateLimiter := middleware.NewRateLimiter(cfg.Security.RateLimitReqs)    // General: 100 req/min
+	authRateLimiter := middleware.NewRateLimiter(10)                         // Auth: 10 req/min (más estricto)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
@@ -154,6 +158,9 @@ func main() {
 		authMiddleware,
 		analyticsMiddleware,
 		corsMiddleware,
+		rateLimiter,        // NUEVO: Rate limiter general
+		authRateLimiter,    // NUEVO: Rate limiter para auth
+		cfg.IsProduction(), // NUEVO: Flag de producción
 		authHandler,
 		stationHandler,
 		analyticsHandler,

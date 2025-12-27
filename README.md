@@ -6,8 +6,10 @@ A production-ready radio streaming proxy backend built with Go, following Clean 
 
 - ✅ **Clean Architecture** - Hexagonal architecture with clear separation of concerns
 - ✅ **Authentication** - JWT-based authentication with guest/premium user support
+- ✅ **Security** - Rate limiting, security headers, CORS protection, and request size limits
 - ✅ **Analytics** - Comprehensive behavior tracking with PostgreSQL + Redis
 - ✅ **SEO Optimization** - Dynamic sitemap, URL slugs, and rich metadata for search engines
+- ✅ **Internationalization** - Multi-language support (ES, EN, FR, DE)
 - ✅ **Logging** - Structured JSON logging with request tracing
 - ✅ **Code Quality** - Enforced via golangci-lint with strict rules
 - ✅ **CI/CD** - GitHub Actions for automated testing and deployment

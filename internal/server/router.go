@@ -19,6 +19,9 @@ type Router struct {
 	authMiddleware      *middleware.AuthMiddleware
 	analyticsMiddleware *middleware.AnalyticsMiddleware
 	corsMiddleware      gin.HandlerFunc
+	rateLimiter         *middleware.RateLimiter        // NUEVO: Rate limiter
+	authRateLimiter     *middleware.RateLimiter        // NUEVO: Rate limiter estricto para auth
+	isProduction        bool                           // NUEVO: Flag para producción
 
 	// Handlers
 	authHandler        *handlers.AuthHandler
@@ -34,6 +37,9 @@ func NewRouter(
 	authMiddleware *middleware.AuthMiddleware,
 	analyticsMiddleware *middleware.AnalyticsMiddleware,
 	corsMiddleware gin.HandlerFunc,
+	rateLimiter *middleware.RateLimiter,           // NUEVO
+	authRateLimiter *middleware.RateLimiter,       // NUEVO
+	isProduction bool,                             // NUEVO
 	authHandler *handlers.AuthHandler,
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
@@ -46,6 +52,9 @@ func NewRouter(
 		authMiddleware:      authMiddleware,
 		analyticsMiddleware: analyticsMiddleware,
 		corsMiddleware:      corsMiddleware,
+		rateLimiter:         rateLimiter,        // NUEVO
+		authRateLimiter:     authRateLimiter,    // NUEVO
+		isProduction:        isProduction,       // NUEVO
 		authHandler:         authHandler,
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
@@ -59,9 +68,12 @@ func NewRouter(
 func (r *Router) Setup() *gin.Engine {
 	// Global middleware
 	r.engine.Use(gin.Recovery())
+	r.engine.Use(middleware.SecurityHeaders(r.isProduction)) // NUEVO: Security headers
+	r.engine.Use(middleware.MaxRequestSize(10 << 20))        // NUEVO: Limit to 10MB
 	r.engine.Use(r.corsMiddleware)
 	r.engine.Use(middleware.LoggingMiddleware())
 	r.engine.Use(middleware.LanguageDetector()) // NUEVO: Middleware de detección de idioma
+	r.engine.Use(r.rateLimiter.Middleware())    // NUEVO: Global rate limiting
 	r.engine.Use(r.analyticsMiddleware.Track())
 
 	// Health check
@@ -73,8 +85,9 @@ func (r *Router) Setup() *gin.Engine {
 	// API v1 routes
 	v1 := r.engine.Group("/api/v1")
 	{
-		// Auth routes (public)
+		// Auth routes (public) with strict rate limiting
 		auth := v1.Group("/auth")
+		auth.Use(r.authRateLimiter.StrictMiddleware()) // NUEVO: Rate limiting estricto para auth
 		{
 			auth.POST("/register", r.authHandler.Register)
 			auth.POST("/login", r.authHandler.Login)

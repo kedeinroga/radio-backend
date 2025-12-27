@@ -100,7 +100,15 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 func (m *AuthMiddleware) PremiumOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userType, exists := c.Get("user_type")
-		if !exists || userType != domain.UserTypePremium {
+		if !exists {
+			c.JSON(403, gin.H{"error": "authentication required"})
+			c.Abort()
+			return
+		}
+
+		// Type assertion with safety check
+		ut, ok := userType.(domain.UserType)
+		if !ok || ut != domain.UserTypePremium {
 			c.JSON(403, gin.H{"error": "premium access required"})
 			c.Abort()
 			return
@@ -114,7 +122,15 @@ func (m *AuthMiddleware) PremiumOnly() gin.HandlerFunc {
 func (m *AuthMiddleware) AdminOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userType, exists := c.Get("user_type")
-		if !exists || userType != domain.UserTypeAdmin {
+		if !exists {
+			c.JSON(403, gin.H{"error": "authentication required"})
+			c.Abort()
+			return
+		}
+
+		// Type assertion with safety check
+		ut, ok := userType.(domain.UserType)
+		if !ok || ut != domain.UserTypeAdmin {
 			c.JSON(403, gin.H{"error": "admin access required"})
 			c.Abort()
 			return
