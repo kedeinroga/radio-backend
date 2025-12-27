@@ -773,7 +773,7 @@
         },
         "/auth/login": {
             "post": {
-                "description": "Authenticates a user and returns JWT tokens",
+                "description": "Authenticates a user and returns JWT tokens with session information\nIncludes access token, refresh token, session ID, and token metadata",
                 "consumes": [
                     "application/json"
                 ],
@@ -786,7 +786,7 @@
                 "summary": "User login",
                 "parameters": [
                     {
-                        "description": "Login credentials",
+                        "description": "Login credentials (email and password)",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -797,31 +797,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Authentication tokens",
+                        "description": "Authentication tokens with session metadata",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.LoginResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Invalid request body",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid credentials",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -865,7 +861,7 @@
         },
         "/auth/refresh": {
             "post": {
-                "description": "Generates a new access token using a valid refresh token",
+                "description": "Generates a new access token using a valid refresh token\nReturns new access token with session ID and token metadata",
                 "consumes": [
                     "application/json"
                 ],
@@ -889,31 +885,27 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "New access token",
+                        "description": "New access token with metadata",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.RefreshTokenResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Invalid request body",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or expired refresh token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -963,6 +955,214 @@
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/revoke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Revokes tokens by token ID, session ID, or all user tokens\nUse token_id to revoke specific token, session_id for all session tokens, or revoke_all for all user tokens",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Revoke tokens",
+                "parameters": [
+                    {
+                        "description": "Revocation request (token_id, session_id, or revoke_all)",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.RevokeTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Number of tokens revoked",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.RevokeTokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to revoke token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns all active sessions for the authenticated user\nIncludes device info, location, and activity timestamps for each session\nCurrent session is marked with is_current flag",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get user sessions",
+                "responses": {
+                    "200": {
+                        "description": "List of active user sessions",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.GetSessionsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve sessions",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/sessions/{sessionId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Terminates a specific user session\nRevokes the session and all associated tokens\nCannot delete current session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Delete session",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID to delete",
+                        "name": "sessionId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session terminated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or missing session ID",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Session not found or not owned by user",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete session",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/validate": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Validates a JWT token and returns its claims and metadata\nChecks if token is valid, not expired, and not revoked\nOptional session metadata includes browser, OS, IP, and location",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Validate access token",
+                "parameters": [
+                    {
+                        "description": "Validation options (include_metadata)",
+                        "name": "request",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ValidateTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token validation result with claims",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ValidateTokenResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid, expired or revoked token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1554,6 +1754,84 @@
                 }
             }
         },
+        "internal_handlers.DeviceInfo": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string",
+                    "example": "Chrome"
+                },
+                "device_type": {
+                    "type": "string",
+                    "example": "desktop"
+                },
+                "os": {
+                    "type": "string",
+                    "example": "macOS"
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0..."
+                }
+            }
+        },
+        "internal_handlers.ErrorDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "invalid_token"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Token is invalid, expired or revoked"
+                }
+            }
+        },
+        "internal_handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/internal_handlers.ErrorDetail"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "internal_handlers.GetSessionsResponse": {
+            "type": "object",
+            "properties": {
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.SessionInfo"
+                    }
+                },
+                "total_sessions": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "internal_handlers.Location": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "example": "New York"
+                },
+                "country": {
+                    "type": "string",
+                    "example": "US"
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "192.168.1.1"
+                }
+            }
+        },
         "internal_handlers.LoginRequest": {
             "type": "object",
             "required": [
@@ -1569,6 +1847,39 @@
                 }
             }
         },
+        "internal_handlers.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2024-01-15T12:30:00Z"
+                },
+                "expires_in": {
+                    "type": "integer",
+                    "example": 900
+                },
+                "jti": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "refresh_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "session_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "token_type": {
+                    "type": "string",
+                    "example": "Bearer"
+                }
+            }
+        },
         "internal_handlers.RefreshRequest": {
             "type": "object",
             "required": [
@@ -1577,6 +1888,35 @@
             "properties": {
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_handlers.RefreshTokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2024-01-15T12:30:00Z"
+                },
+                "expires_in": {
+                    "type": "integer",
+                    "example": 900
+                },
+                "jti": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "session_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "token_type": {
+                    "type": "string",
+                    "example": "Bearer"
                 }
             }
         },
@@ -1592,6 +1932,105 @@
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_handlers.RevokeTokenRequest": {
+            "type": "object",
+            "properties": {
+                "revoke_all": {
+                    "type": "boolean"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "token_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.RevokeTokenResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Token revoked successfully"
+                },
+                "revoked_count": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "internal_handlers.SessionInfo": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2024-01-15T12:00:00Z"
+                },
+                "device_info": {
+                    "$ref": "#/definitions/internal_handlers.DeviceInfo"
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2024-01-15T20:00:00Z"
+                },
+                "is_current": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "last_activity": {
+                    "type": "string",
+                    "example": "2024-01-15T12:15:00Z"
+                },
+                "location": {
+                    "$ref": "#/definitions/internal_handlers.Location"
+                },
+                "session_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "token_id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                }
+            }
+        },
+        "internal_handlers.SessionMetadata": {
+            "type": "object",
+            "properties": {
+                "browser": {
+                    "type": "string",
+                    "example": "Chrome"
+                },
+                "city": {
+                    "type": "string",
+                    "example": "New York"
+                },
+                "country": {
+                    "type": "string",
+                    "example": "US"
+                },
+                "device_type": {
+                    "type": "string",
+                    "example": "desktop"
+                },
+                "ip_address": {
+                    "type": "string",
+                    "example": "192.168.1.1"
+                },
+                "last_activity": {
+                    "type": "string",
+                    "example": "2024-01-15T12:15:00Z"
+                },
+                "os": {
+                    "type": "string",
+                    "example": "macOS"
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0..."
                 }
             }
         },
@@ -1669,6 +2108,59 @@
                 "meta": {
                     "type": "object",
                     "additionalProperties": true
+                }
+            }
+        },
+        "internal_handlers.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Operation completed successfully"
+                }
+            }
+        },
+        "internal_handlers.ValidateTokenRequest": {
+            "type": "object",
+            "properties": {
+                "include_metadata": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "internal_handlers.ValidateTokenResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "expires_at": {
+                    "type": "string",
+                    "example": "2024-01-15T12:30:00Z"
+                },
+                "issued_at": {
+                    "type": "string",
+                    "example": "2024-01-15T12:15:00Z"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "guest"
+                },
+                "session_metadata": {
+                    "$ref": "#/definitions/internal_handlers.SessionMetadata"
+                },
+                "token_id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "valid": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

@@ -7,6 +7,60 @@ definitions:
     required:
     - station_id
     type: object
+  internal_handlers.DeviceInfo:
+    properties:
+      browser:
+        example: Chrome
+        type: string
+      device_type:
+        example: desktop
+        type: string
+      os:
+        example: macOS
+        type: string
+      user_agent:
+        example: Mozilla/5.0...
+        type: string
+    type: object
+  internal_handlers.ErrorDetail:
+    properties:
+      code:
+        example: invalid_token
+        type: string
+      message:
+        example: Token is invalid, expired or revoked
+        type: string
+    type: object
+  internal_handlers.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/internal_handlers.ErrorDetail'
+      success:
+        example: false
+        type: boolean
+    type: object
+  internal_handlers.GetSessionsResponse:
+    properties:
+      sessions:
+        items:
+          $ref: '#/definitions/internal_handlers.SessionInfo'
+        type: array
+      total_sessions:
+        example: 3
+        type: integer
+    type: object
+  internal_handlers.Location:
+    properties:
+      city:
+        example: New York
+        type: string
+      country:
+        example: US
+        type: string
+      ip:
+        example: 192.168.1.1
+        type: string
+    type: object
   internal_handlers.LoginRequest:
     properties:
       email:
@@ -17,12 +71,57 @@ definitions:
     - email
     - password
     type: object
+  internal_handlers.LoginResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_at:
+        example: "2024-01-15T12:30:00Z"
+        type: string
+      expires_in:
+        example: 900
+        type: integer
+      jti:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      refresh_token:
+        example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      session_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      token_type:
+        example: Bearer
+        type: string
+    type: object
   internal_handlers.RefreshRequest:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
+    type: object
+  internal_handlers.RefreshTokenResponse:
+    properties:
+      access_token:
+        example: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_at:
+        example: "2024-01-15T12:30:00Z"
+        type: string
+      expires_in:
+        example: 900
+        type: integer
+      jti:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      session_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      token_type:
+        example: Bearer
+        type: string
     type: object
   internal_handlers.RegisterRequest:
     properties:
@@ -33,6 +132,76 @@ definitions:
     required:
     - email
     - password
+    type: object
+  internal_handlers.RevokeTokenRequest:
+    properties:
+      revoke_all:
+        type: boolean
+      session_id:
+        type: string
+      token_id:
+        type: string
+    type: object
+  internal_handlers.RevokeTokenResponse:
+    properties:
+      message:
+        example: Token revoked successfully
+        type: string
+      revoked_count:
+        example: 1
+        type: integer
+    type: object
+  internal_handlers.SessionInfo:
+    properties:
+      created_at:
+        example: "2024-01-15T12:00:00Z"
+        type: string
+      device_info:
+        $ref: '#/definitions/internal_handlers.DeviceInfo'
+      expires_at:
+        example: "2024-01-15T20:00:00Z"
+        type: string
+      is_current:
+        example: true
+        type: boolean
+      last_activity:
+        example: "2024-01-15T12:15:00Z"
+        type: string
+      location:
+        $ref: '#/definitions/internal_handlers.Location'
+      session_id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      token_id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  internal_handlers.SessionMetadata:
+    properties:
+      browser:
+        example: Chrome
+        type: string
+      city:
+        example: New York
+        type: string
+      country:
+        example: US
+        type: string
+      device_type:
+        example: desktop
+        type: string
+      ip_address:
+        example: 192.168.1.1
+        type: string
+      last_activity:
+        example: "2024-01-15T12:15:00Z"
+        type: string
+      os:
+        example: macOS
+        type: string
+      user_agent:
+        example: Mozilla/5.0...
+        type: string
     type: object
   internal_handlers.StationDTO:
     properties:
@@ -87,6 +256,43 @@ definitions:
       meta:
         additionalProperties: true
         type: object
+    type: object
+  internal_handlers.SuccessResponse:
+    properties:
+      message:
+        example: Operation completed successfully
+        type: string
+    type: object
+  internal_handlers.ValidateTokenRequest:
+    properties:
+      include_metadata:
+        type: boolean
+    type: object
+  internal_handlers.ValidateTokenResponse:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      expires_at:
+        example: "2024-01-15T12:30:00Z"
+        type: string
+      issued_at:
+        example: "2024-01-15T12:15:00Z"
+        type: string
+      role:
+        example: guest
+        type: string
+      session_metadata:
+        $ref: '#/definitions/internal_handlers.SessionMetadata'
+      token_id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      user_id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      valid:
+        example: true
+        type: boolean
     type: object
   radio-backend_internal_domain.CreateTranslationRequest:
     properties:
@@ -799,9 +1005,11 @@ paths:
     post:
       consumes:
       - application/json
-      description: Authenticates a user and returns JWT tokens
+      description: |-
+        Authenticates a user and returns JWT tokens with session information
+        Includes access token, refresh token, session ID, and token metadata
       parameters:
-      - description: Login credentials
+      - description: Login credentials (email and password)
         in: body
         name: request
         required: true
@@ -811,25 +1019,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Authentication tokens
+          description: Authentication tokens with session metadata
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.LoginResponse'
         "400":
-          description: Invalid request
+          description: Invalid request body
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Invalid credentials
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: User login
       tags:
       - Authentication
@@ -860,7 +1064,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Generates a new access token using a valid refresh token
+      description: |-
+        Generates a new access token using a valid refresh token
+        Returns new access token with session ID and token metadata
       parameters:
       - description: Refresh token
         in: body
@@ -872,25 +1078,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: New access token
+          description: New access token with metadata
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.RefreshTokenResponse'
         "400":
-          description: Invalid request
+          description: Invalid request body
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Invalid or expired refresh token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Refresh access token
       tags:
       - Authentication
@@ -925,6 +1127,148 @@ paths:
             additionalProperties: true
             type: object
       summary: Register new user
+      tags:
+      - Authentication
+  /auth/revoke:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Revokes tokens by token ID, session ID, or all user tokens
+        Use token_id to revoke specific token, session_id for all session tokens, or revoke_all for all user tokens
+      parameters:
+      - description: Revocation request (token_id, session_id, or revoke_all)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.RevokeTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Number of tokens revoked
+          schema:
+            $ref: '#/definitions/internal_handlers.RevokeTokenResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: User not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Failed to revoke token
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke tokens
+      tags:
+      - Authentication
+  /auth/sessions:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Returns all active sessions for the authenticated user
+        Includes device info, location, and activity timestamps for each session
+        Current session is marked with is_current flag
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of active user sessions
+          schema:
+            $ref: '#/definitions/internal_handlers.GetSessionsResponse'
+        "401":
+          description: User not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Failed to retrieve sessions
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user sessions
+      tags:
+      - Authentication
+  /auth/sessions/{sessionId}:
+    delete:
+      consumes:
+      - application/json
+      description: |-
+        Terminates a specific user session
+        Revokes the session and all associated tokens
+        Cannot delete current session
+      parameters:
+      - description: Session ID to delete
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Session terminated successfully
+          schema:
+            $ref: '#/definitions/internal_handlers.SuccessResponse'
+        "400":
+          description: Invalid or missing session ID
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: User not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Session not found or not owned by user
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Failed to delete session
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete session
+      tags:
+      - Authentication
+  /auth/validate:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Validates a JWT token and returns its claims and metadata
+        Checks if token is valid, not expired, and not revoked
+        Optional session metadata includes browser, OS, IP, and location
+      parameters:
+      - description: Validation options (include_metadata)
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/internal_handlers.ValidateTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token validation result with claims
+          schema:
+            $ref: '#/definitions/internal_handlers.ValidateTokenResponse'
+        "401":
+          description: Invalid, expired or revoked token
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Validate access token
       tags:
       - Authentication
   /favorites:

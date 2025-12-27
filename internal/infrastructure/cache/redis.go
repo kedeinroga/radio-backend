@@ -146,3 +146,65 @@ func (r *RedisClient) GetInt(key string) (int, error) {
 	}
 	return strconv.Atoi(val)
 }
+
+// IsTokenRevoked checks if a token has been revoked
+func (r *RedisClient) IsTokenRevoked(tokenID string) (bool, error) {
+	ctx := context.Background()
+	key := "revoked:token:" + tokenID
+	result, err := r.client.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	return result > 0, nil
+}
+
+// RevokeToken revokes a token by adding it to the blacklist
+func (r *RedisClient) RevokeToken(tokenID string, expiresAt time.Time) error {
+	ctx := context.Background()
+	key := "revoked:token:" + tokenID
+	ttl := time.Until(expiresAt)
+	
+	// Only set if TTL is positive (token hasn't expired yet)
+	if ttl > 0 {
+		return r.client.Set(ctx, key, "1", ttl).Err()
+	}
+	return nil
+}
+
+// RevokeAllUserTokens revokes all tokens for a user
+func (r *RedisClient) RevokeAllUserTokens(userID string) error {
+	ctx := context.Background()
+	// Add user to revoked users set with 7 days expiration (max refresh token lifetime)
+	key := "revoked:user:" + userID
+	return r.client.Set(ctx, key, "1", 7*24*time.Hour).Err()
+}
+
+// IsUserTokensRevoked checks if all user tokens have been revoked
+func (r *RedisClient) IsUserTokensRevoked(userID string) (bool, error) {
+	ctx := context.Background()
+	key := "revoked:user:" + userID
+	result, err := r.client.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	return result > 0, nil
+}
+
+// RevokeSession revokes all tokens for a specific session
+func (r *RedisClient) RevokeSession(sessionID string) error {
+	ctx := context.Background()
+	key := "revoked:session:" + sessionID
+	// Set with 7 days expiration
+	return r.client.Set(ctx, key, "1", 7*24*time.Hour).Err()
+}
+
+// IsSessionRevoked checks if a session has been revoked
+func (r *RedisClient) IsSessionRevoked(sessionID string) (bool, error) {
+	ctx := context.Background()
+	key := "revoked:session:" + sessionID
+	result, err := r.client.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	return result > 0, nil
+}

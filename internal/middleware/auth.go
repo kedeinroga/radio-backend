@@ -13,12 +13,16 @@ import (
 
 // AuthMiddleware handles authentication
 type AuthMiddleware struct {
-	authService domain.AuthService
+	tokenValidator domain.TokenValidator
+	tokenBlacklist domain.TokenBlacklist
 }
 
 // NewAuthMiddleware creates a new auth middleware
-func NewAuthMiddleware(authService domain.AuthService) *AuthMiddleware {
-	return &AuthMiddleware{authService: authService}
+func NewAuthMiddleware(tokenValidator domain.TokenValidator, tokenBlacklist domain.TokenBlacklist) *AuthMiddleware {
+	return &AuthMiddleware{
+		tokenValidator: tokenValidator,
+		tokenBlacklist: tokenBlacklist,
+	}
 }
 
 // Optional is middleware that optionally authenticates users (non-blocking)
@@ -33,19 +37,29 @@ func (m *AuthMiddleware) Optional() gin.HandlerFunc {
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 			if token != authHeader {
 				// Validate token
-				claims, err := m.authService.ValidateToken(token)
-				if err == nil {
-					userType = claims.UserType
-					userID = &claims.UserID
+				claims, err := m.tokenValidator.ValidateToken(token)
+				if err == nil && !claims.IsExpired() {
+					// Check if token is revoked
+					revoked, err := m.tokenBlacklist.IsTokenRevoked(claims.TokenID)
+					if err == nil && !revoked {
+						// Check if session is revoked
+						sessionRevoked, err := m.tokenBlacklist.IsSessionRevoked(claims.SessionID)
+						if err == nil && !sessionRevoked {
+							userType = claims.UserType
+							userID = &claims.UserID
 
-					// Set user context
-					c.Set("user_id", claims.UserID)
-					c.Set("user_type", claims.UserType)
-					c.Set("user_email", claims.Email)
+							// Set user context
+							c.Set("user_id", claims.UserID)
+							c.Set("user_type", claims.UserType)
+							c.Set("user_email", claims.Email)
+							c.Set("session_id", claims.SessionID)
+							c.Set("token_id", claims.TokenID)
 
-					// Add user ID to logger context
-					ctx := logger.WithUserID(c.Request.Context(), claims.UserID)
-					c.Request = c.Request.WithContext(ctx)
+							// Add user ID to logger context
+							ctx := logger.WithUserID(c.Request.Context(), claims.UserID)
+							c.Request = c.Request.WithContext(ctx)
+						}
+					}
 				}
 			}
 		}
@@ -76,9 +90,32 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := m.authService.ValidateToken(token)
+		claims, err := m.tokenValidator.ValidateToken(token)
 		if err != nil {
 			c.JSON(401, gin.H{"error": "invalid or expired token"})
+			c.Abort()
+			return
+		}
+
+		// Check if token is expired
+		if claims.IsExpired() {
+			c.JSON(401, gin.H{"error": "token expired"})
+			c.Abort()
+			return
+		}
+
+		// Check if token is revoked
+		revoked, err := m.tokenBlacklist.IsTokenRevoked(claims.TokenID)
+		if err != nil || revoked {
+			c.JSON(401, gin.H{"error": "token revoked"})
+			c.Abort()
+			return
+		}
+
+		// Check if session is revoked
+		sessionRevoked, err := m.tokenBlacklist.IsSessionRevoked(claims.SessionID)
+		if err != nil || sessionRevoked {
+			c.JSON(401, gin.H{"error": "session revoked"})
 			c.Abort()
 			return
 		}
@@ -87,6 +124,8 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 		c.Set("user_id", claims.UserID)
 		c.Set("user_type", claims.UserType)
 		c.Set("user_email", claims.Email)
+		c.Set("session_id", claims.SessionID)
+		c.Set("token_id", claims.TokenID)
 
 		// Add user ID to logger context
 		ctx := logger.WithUserID(c.Request.Context(), claims.UserID)

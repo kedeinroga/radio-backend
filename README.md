@@ -2,10 +2,26 @@
 
 A production-ready radio streaming proxy backend built with Go, following Clean Architecture principles.
 
+## 🆕 What's New in v2.0
+
+- ✅ **JWT with RFC 7519 Claims** - Standard claims (exp, iat, jti, iss, sub) for better security
+- ✅ **Token Validation Endpoint** - Validate tokens without loading full user data
+- ✅ **Token Revocation** - Revoke tokens individually, by session, or all at once
+- ✅ **Session Management** - Track and manage user sessions across devices
+- ✅ **Redis Blacklist** - Instant token revocation with Redis
+- ✅ **Security Event Logging** - Complete audit trail of authentication events
+- ✅ **Enhanced Security** - Multi-layer validation with token blacklist checks
+
+📖 **[Complete Authentication Guide →](docs/AUTHENTICATION.md)**  
+📖 **[Migration Guide →](docs/MIGRATION_GUIDE.md)**  
+📖 **[Quick Reference →](QUICK_REFERENCE.md)**
+
 ## Features
 
 - ✅ **Clean Architecture** - Hexagonal architecture with clear separation of concerns
 - ✅ **Authentication** - JWT-based authentication with guest/premium user support
+- ✅ **Session Management** - Track user sessions across multiple devices
+- ✅ **Token Revocation** - Instant token invalidation with Redis blacklist
 - ✅ **Security** - Rate limiting, security headers, CORS protection, and request size limits
 - ✅ **Analytics** - Comprehensive behavior tracking with PostgreSQL + Redis
 - ✅ **SEO Optimization** - Dynamic sitemap, URL slugs, and rich metadata for search engines
@@ -90,9 +106,15 @@ The server will start on `http://localhost:8080`
 ### Authentication
 
 - `POST /api/v1/auth/register` - Register new user
-- `POST /api/v1/auth/login` - Login user
-- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/login` - Login user (returns enhanced response with session info)
+- `POST /api/v1/auth/refresh` - Refresh access token (returns enhanced response)
 - `GET /api/v1/auth/me` - Get current user (requires auth)
+- `POST /api/v1/auth/validate` - **NEW** Validate token and get claims
+- `POST /api/v1/auth/revoke` - **NEW** Revoke tokens (by token_id, session_id, or all)
+- `GET /api/v1/auth/sessions` - **NEW** List active sessions
+- `DELETE /api/v1/auth/sessions/:id` - **NEW** Terminate specific session
+
+📖 **[Full API Documentation →](docs/AUTHENTICATION.md)**
 
 ### Stations
 

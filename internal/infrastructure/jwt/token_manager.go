@@ -1,7 +1,9 @@
 package jwt
 
 import (
+	"crypto/rand"
 	"crypto/rsa"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"time"
@@ -17,13 +19,16 @@ type TokenManager struct {
 	publicKey         *rsa.PublicKey
 	accessExpiration  time.Duration
 	refreshExpiration time.Duration
+	issuer            string
 }
 
-// Claims represents JWT claims
+// Claims represents JWT claims with RFC 7519 standard fields
 type Claims struct {
-	UserID   string `json:"user_id"`
-	Email    string `json:"email"`
-	UserType string `json:"user_type"`
+	UserID    string `json:"user_id"`
+	Email     string `json:"email"`
+	UserType  string `json:"user_type"`
+	Role      string `json:"role"` // admin | user | guest
+	SessionID string `json:"session_id"`
 	jwt.RegisteredClaims
 }
 
@@ -44,35 +49,70 @@ func NewTokenManager(privateKeyPath, publicKeyPath string, accessExp, refreshExp
 		publicKey:         publicKey,
 		accessExpiration:  accessExp,
 		refreshExpiration: refreshExp,
+		issuer:            "radioapp-backend",
 	}, nil
 }
 
-// GenerateAccessToken generates an access token for a user
-func (tm *TokenManager) GenerateAccessToken(user *domain.User) (string, error) {
-	return tm.generateToken(user, tm.accessExpiration)
+// GenerateAccessToken generates an access token for a user with session info
+func (tm *TokenManager) GenerateAccessToken(user *domain.User, sessionID string, ipAddress string, userAgent string) (string, string, error) {
+	return tm.generateToken(user, sessionID, tm.accessExpiration)
 }
 
 // GenerateRefreshToken generates a refresh token for a user
-func (tm *TokenManager) GenerateRefreshToken(user *domain.User) (string, error) {
-	return tm.generateToken(user, tm.refreshExpiration)
+func (tm *TokenManager) GenerateRefreshToken(user *domain.User, sessionID string) (string, error) {
+	token, _, err := tm.generateToken(user, sessionID, tm.refreshExpiration)
+	return token, err
 }
 
-// generateToken generates a JWT token
-func (tm *TokenManager) generateToken(user *domain.User, expiration time.Duration) (string, error) {
+// generateUniqueID generates a unique ID for JWT tokens
+func generateUniqueID() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
+// generateToken generates a JWT token with RFC 7519 compliant claims
+func (tm *TokenManager) generateToken(user *domain.User, sessionID string, expiration time.Duration) (string, string, error) {
 	now := time.Now()
+	jti, err := generateUniqueID()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate token ID: %w", err)
+	}
+
+	// Map UserType to role
+	role := "user"
+	switch user.UserType {
+	case domain.UserTypeAdmin:
+		role = "admin"
+	case domain.UserTypeGuest:
+		role = "guest"
+	}
+
 	claims := Claims{
-		UserID:   user.ID,
-		Email:    user.Email,
-		UserType: user.UserType.String(),
+		UserID:    user.ID,
+		Email:     user.Email,
+		UserType:  user.UserType.String(),
+		Role:      role,
+		SessionID: sessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(now.Add(expiration)),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
+			Subject:   user.ID,                              // sub - standard claim
+			ExpiresAt: jwt.NewNumericDate(now.Add(expiration)), // exp - standard claim
+			IssuedAt:  jwt.NewNumericDate(now),              // iat - standard claim
+			NotBefore: jwt.NewNumericDate(now),              // nbf - standard claim
+			ID:        jti,                                  // jti - standard claim
+			Issuer:    tm.issuer,                            // iss - standard claim
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	return token.SignedString(tm.privateKey)
+	tokenString, err := token.SignedString(tm.privateKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	return tokenString, jti, nil
 }
 
 // ValidateToken validates a JWT token and returns the claims
@@ -102,8 +142,12 @@ func (tm *TokenManager) ValidateToken(tokenString string) (*domain.TokenClaims, 
 		UserID:    claims.UserID,
 		UserType:  userType,
 		Email:     claims.Email,
+		Role:      claims.Role,
 		IssuedAt:  claims.IssuedAt.Time,
 		ExpiresAt: claims.ExpiresAt.Time,
+		TokenID:   claims.ID,
+		SessionID: claims.SessionID,
+		Issuer:    claims.Issuer,
 	}, nil
 }
 

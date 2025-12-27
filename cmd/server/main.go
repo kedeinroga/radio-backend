@@ -110,6 +110,8 @@ func main() {
 	favoriteRepo := postgres.NewFavoriteRepository(db)
 	seoRepo := postgres.NewSEORepository(db.DB)                 // NUEVO: SEO repo usa *sql.DB directamente
 	translationRepo := postgres.NewTranslationRepository(db.DB) // NUEVO: Translation repo
+	sessionRepo := postgres.NewSessionRepository(db.DB)         // NUEVO: Session repo
+	securityEventRepo := postgres.NewSecurityEventRepository(db.DB) // NUEVO: Security event repo
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
 	// Initialize cache components
@@ -119,7 +121,15 @@ func main() {
 	slugService := services.NewSlugService()                                                                     // NUEVO: Servicio de slugs
 	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)                      // NUEVO: Servicio de traducciones
 	seoService := services.NewSEOService(seoRepo, seoCache, translationService, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
-	authService := services.NewAuthService(userRepo, passwordHasher, tokenManager, tokenManager)
+	authService := services.NewAuthService(
+		userRepo, 
+		sessionRepo,        // NUEVO: Session repository
+		securityEventRepo,  // NUEVO: Security event repository
+		passwordHasher, 
+		tokenManager, 
+		tokenManager,
+		redisClient,        // NUEVO: Token blacklist (Redis)
+	)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
 	stationService := services.NewStationService(
 		stationCacheRepo,
@@ -133,7 +143,7 @@ func main() {
 	favoriteService := services.NewFavoriteService(favoriteRepo, stationCacheRepo, stationService)
 
 	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(authService)
+	authMiddleware := middleware.NewAuthMiddleware(tokenManager, redisClient) // NUEVO: Pasa tokenManager y redisClient
 	analyticsMiddleware := middleware.NewAnalyticsMiddleware(analyticsService)
 	corsMiddleware := middleware.CORSMiddleware(
 		cfg.CORS.AllowedOrigins,
