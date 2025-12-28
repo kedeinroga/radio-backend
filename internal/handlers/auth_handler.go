@@ -239,7 +239,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Success 200 {object} LoginResponse "Authentication tokens with session metadata"
 // @Failure 400 {object} ErrorResponse "Invalid request body"
 // @Failure 401 {object} ErrorResponse "Invalid credentials or account locked"
-// @Failure 429 {object} ErrorResponse "Too many login attempts (rate limit exceeded)" 
+// @Failure 429 {object} ErrorResponse "Too many login attempts (rate limit exceeded)"
 // @Header 429 {integer} Retry-After "Number of seconds to wait before retrying"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /auth/login [post]
@@ -254,7 +254,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	if err := h.emailRateLimiter.CheckEmailRateLimit(req.Email); err != nil {
 		ttl, _ := h.emailRateLimiter.GetTTL(req.Email)
 		c.Header("Retry-After", fmt.Sprintf("%d", int(ttl.Seconds())))
-		RespondWithError(c, http.StatusTooManyRequests, "email_rate_limit_exceeded", 
+		RespondWithError(c, http.StatusTooManyRequests, "email_rate_limit_exceeded",
 			"Too many login attempts for this email. Please try again later.")
 		return
 	}

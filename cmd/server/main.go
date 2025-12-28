@@ -171,8 +171,8 @@ func main() {
 	)
 
 	// NUEVO: Initialize rate limiters
-	rateLimiter := middleware.NewRateLimiter(cfg.Security.RateLimitReqs)              // General: 100 req/min
-	authRateLimiter := middleware.NewRateLimiter(10)                                  // Auth: 10 req/min (más estricto)
+	rateLimiter := middleware.NewRateLimiter(cfg.Security.RateLimitReqs)             // General: 100 req/min
+	authRateLimiter := middleware.NewRateLimiter(10)                                 // Auth: 10 req/min (más estricto)
 	emailRateLimiter := middleware.NewEmailRateLimiter(redisClient, 10, 1*time.Hour) // Email: 10 attempts per hour
 
 	// Initialize handlers

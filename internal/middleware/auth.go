@@ -124,7 +124,7 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 
 		// Validate session hijacking (User-Agent)
 		if err := m.validateSessionSecurity(claims.SessionID, c.Request.UserAgent()); err != nil {
-			logger.Warn("Session validation failed", 
+			logger.Warn("Session validation failed",
 				"session_id", claims.SessionID,
 				"user_id", claims.UserID,
 				"error", err.Error())
