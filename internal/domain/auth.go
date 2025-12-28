@@ -110,6 +110,26 @@ type SessionRepository interface {
 	DeleteExpired() error
 }
 
+// LoginAttempt represents a login attempt record for account lockout
+type LoginAttempt struct {
+	Email       string
+	FailedCount int
+	LastAttempt time.Time
+	IsLocked    bool
+	UnlockAt    *time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+// LoginAttemptRepository defines the interface for login attempt management
+type LoginAttemptRepository interface {
+	GetByEmail(email string) (*LoginAttempt, error)
+	Create(attempt *LoginAttempt) error
+	Update(attempt *LoginAttempt) error
+	Reset(email string) error
+	DeleteExpired() error
+}
+
 // AuthService defines the interface for authentication operations
 type AuthService interface {
 	Register(email, password string) (*User, error)

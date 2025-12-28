@@ -68,6 +68,7 @@ func NewRouter(
 func (r *Router) Setup() *gin.Engine {
 	// Global middleware
 	r.engine.Use(gin.Recovery())
+	r.engine.Use(middleware.ForceHTTPS(r.isProduction))      // NUEVO: Force HTTPS in production
 	r.engine.Use(middleware.SecurityHeaders(r.isProduction)) // NUEVO: Security headers
 	r.engine.Use(middleware.MaxRequestSize(10 << 20))        // NUEVO: Limit to 10MB
 	r.engine.Use(r.corsMiddleware)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -13,12 +14,16 @@ import (
 
 // AuthHandler handles authentication endpoints
 type AuthHandler struct {
-	authService *services.AuthService
+	authService      *services.AuthService
+	emailRateLimiter *middleware.EmailRateLimiter
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(authService *services.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService *services.AuthService, emailRateLimiter *middleware.EmailRateLimiter) *AuthHandler {
+	return &AuthHandler{
+		authService:      authService,
+		emailRateLimiter: emailRateLimiter,
+	}
 }
 
 // RegisterRequest represents a registration request
@@ -155,13 +160,30 @@ type ErrorDetail struct {
 
 // Register handles user registration
 // @Summary Register new user
-// @Description Creates a new guest user account
+// @Description Creates a new guest user account.
+// @Description
+// @Description **Password Requirements:**
+// @Description - Minimum 8 characters
+// @Description - At least one special character (!@#$%^&*(),.?":{}|<>)
+// @Description - Cannot be one of 47 common passwords (e.g., 'password', '12345678', 'qwerty')
+// @Description - Passwords are hashed with bcrypt (cost factor 12)
+// @Description
+// @Description **Security Features:**
+// @Description - Email uniqueness validation (generic error to prevent enumeration)
+// @Description - Rate limiting inherited from IP-based middleware
+// @Description - HTTPS enforcement in production
+// @Description
+// @Description **Error Codes:**
+// @Description - `WEAK_PASSWORD`: Password does not meet strength requirements
+// @Description - `COMMON_PASSWORD`: Password is in the common passwords blacklist
+// @Description - `EMAIL_EXISTS`: Email already registered (generic message)
+// @Description - `VALIDATION_ERROR`: Invalid input format
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param request body RegisterRequest true "Registration data"
 // @Success 201 {object} map[string]interface{} "User created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 400 {object} map[string]interface{} "Invalid request or password does not meet requirements"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -192,21 +214,48 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 // Login handles user login
 // @Summary User login
-// @Description Authenticates a user and returns JWT tokens with session information
-// @Description Includes access token, refresh token, session ID, and token metadata
+// @Description Authenticates a user and returns JWT tokens with session information.
+// @Description Includes access token, refresh token, session ID, and token metadata.
+// @Description
+// @Description **Security Features:**
+// @Description - Password hashing: bcrypt with cost factor 12
+// @Description - Timing attack prevention: Constant-time operations
+// @Description - Rate limiting: 5 attempts per IP per 15 minutes
+// @Description - Email rate limiting: 10 attempts per email per hour
+// @Description - Account lockout: 10 failed attempts = 30 minute lockout
+// @Description - Session hijacking protection: User-Agent validation
+// @Description - Security event logging: All failed login attempts logged
+// @Description - HTTPS enforcement: Production environment only
+// @Description
+// @Description **Error Codes:**
+// @Description - `INVALID_CREDENTIALS`: Invalid email or password
+// @Description - `ACCOUNT_LOCKED`: Account temporarily locked due to multiple failed attempts
+// @Description - `TOO_MANY_ATTEMPTS`: Rate limit exceeded (IP or email)
+// @Description - `VALIDATION_ERROR`: Invalid input format
 // @Tags Authentication
 // @Accept json
 // @Produce json
 // @Param request body LoginRequest true "Login credentials (email and password)"
 // @Success 200 {object} LoginResponse "Authentication tokens with session metadata"
 // @Failure 400 {object} ErrorResponse "Invalid request body"
-// @Failure 401 {object} ErrorResponse "Invalid credentials"
+// @Failure 401 {object} ErrorResponse "Invalid credentials or account locked"
+// @Failure 429 {object} ErrorResponse "Too many login attempts (rate limit exceeded)" 
+// @Header 429 {integer} Retry-After "Number of seconds to wait before retrying"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		RespondWithError(c, http.StatusBadRequest, "invalid_request", "Invalid request body")
+		return
+	}
+
+	// Check email rate limit
+	if err := h.emailRateLimiter.CheckEmailRateLimit(req.Email); err != nil {
+		ttl, _ := h.emailRateLimiter.GetTTL(req.Email)
+		c.Header("Retry-After", fmt.Sprintf("%d", int(ttl.Seconds())))
+		RespondWithError(c, http.StatusTooManyRequests, "email_rate_limit_exceeded", 
+			"Too many login attempts for this email. Please try again later.")
 		return
 	}
 

@@ -183,27 +183,64 @@ func (m *MockTokenBlacklist) IsSessionRevoked(sessionID string) (bool, error) {
 	return args.Bool(0), args.Error(1)
 }
 
+// MockLoginAttemptRepository is a mock implementation of domain.LoginAttemptRepository
+type MockLoginAttemptRepository struct {
+	mock.Mock
+}
+
+func (m *MockLoginAttemptRepository) GetByEmail(email string) (*domain.LoginAttempt, error) {
+	args := m.Called(email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.LoginAttempt), args.Error(1)
+}
+
+func (m *MockLoginAttemptRepository) Create(attempt *domain.LoginAttempt) error {
+	args := m.Called(attempt)
+	return args.Error(0)
+}
+
+func (m *MockLoginAttemptRepository) Update(attempt *domain.LoginAttempt) error {
+	args := m.Called(attempt)
+	return args.Error(0)
+}
+
+func (m *MockLoginAttemptRepository) Reset(email string) error {
+	args := m.Called(email)
+	return args.Error(0)
+}
+
+func (m *MockLoginAttemptRepository) DeleteExpired() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
 // Helper function to create a complete service with all mocks
-func setupAuthService() (*AuthService, *MockUserRepository, *MockSessionRepository, *MockSecurityEventRepository, *MockPasswordHasher, *MockTokenGenerator, *MockTokenValidator, *MockTokenBlacklist) {
+func setupAuthService() (*AuthService, *MockUserRepository, *MockSessionRepository, *MockSecurityEventRepository, *MockLoginAttemptRepository, *MockPasswordHasher, *MockTokenGenerator, *MockTokenValidator, *MockTokenBlacklist) {
 	mockUserRepo := new(MockUserRepository)
 	mockSessionRepo := new(MockSessionRepository)
 	mockSecurityEventRepo := new(MockSecurityEventRepository)
+	mockLoginAttemptRepo := new(MockLoginAttemptRepository)
 	mockHasher := new(MockPasswordHasher)
 	mockTokenGen := new(MockTokenGenerator)
 	mockTokenVal := new(MockTokenValidator)
 	mockBlacklist := new(MockTokenBlacklist)
 
-	service := NewAuthService(mockUserRepo, mockSessionRepo, mockSecurityEventRepo, mockHasher, mockTokenGen, mockTokenVal, mockBlacklist)
-	return service, mockUserRepo, mockSessionRepo, mockSecurityEventRepo, mockHasher, mockTokenGen, mockTokenVal, mockBlacklist
+	// Mock the dummy hash generation in NewAuthService
+	mockHasher.On("Hash", "dummy_password_for_timing_attack_prevention_12345").Return("$2a$12$dummy_hash", nil)
+
+	service := NewAuthService(mockUserRepo, mockSessionRepo, mockSecurityEventRepo, mockLoginAttemptRepo, mockHasher, mockTokenGen, mockTokenVal, mockBlacklist)
+	return service, mockUserRepo, mockSessionRepo, mockSecurityEventRepo, mockLoginAttemptRepo, mockHasher, mockTokenGen, mockTokenVal, mockBlacklist
 }
 
 // Tests
 func TestAuthService_Register(t *testing.T) {
 	t.Run("successful registration", func(t *testing.T) {
-		service, mockUserRepo, _, _, mockHasher, _, _, _ := setupAuthService()
+		service, mockUserRepo, _, _, _, mockHasher, _, _, _ := setupAuthService()
 
 		email := "test@example.com"
-		password := "Password123"
+		password := "Password123!@#"
 		hashedPassword := "hashed_password"
 
 		mockUserRepo.On("FindByEmail", email).Return(nil, domain.ErrUserNotFound)
@@ -222,10 +259,10 @@ func TestAuthService_Register(t *testing.T) {
 	})
 
 	t.Run("registration with existing email", func(t *testing.T) {
-		service, mockUserRepo, _, _, _, _, _, _ := setupAuthService()
+		service, mockUserRepo, _, _, _, _, _, _, _ := setupAuthService()
 
 		email := "existing@example.com"
-		password := "Password123"
+		password := "Password123!@#"
 
 		existingUser := &domain.User{
 			ID:    "user-1",
@@ -245,12 +282,16 @@ func TestAuthService_Register(t *testing.T) {
 
 func TestAuthService_Login_Basic(t *testing.T) {
 	t.Run("login with non-existent user", func(t *testing.T) {
-		service, mockUserRepo, _, _, _, _, _, _ := setupAuthService()
+		service, mockUserRepo, _, mockSecurityEventRepo, mockLoginAttemptRepo, mockHasher, _, _, _ := setupAuthService()
 
 		email := "notfound@example.com"
-		password := "Password123"
+		password := "Password123!@#"
 
+		mockLoginAttemptRepo.On("GetByEmail", email).Return(nil, domain.ErrNotFound)
 		mockUserRepo.On("FindByEmail", email).Return(nil, domain.ErrUserNotFound)
+		mockHasher.On("Compare", mock.Anything, password).Return(domain.ErrInvalidCredentials)
+		mockLoginAttemptRepo.On("Create", mock.AnythingOfType("*domain.LoginAttempt")).Return(nil)
+		mockSecurityEventRepo.On("Create", mock.AnythingOfType("*domain.SecurityEvent")).Return(nil)
 
 		_, _, _, _, _, err := service.Login(email, password, "127.0.0.1", "Test User Agent")
 
@@ -260,10 +301,10 @@ func TestAuthService_Login_Basic(t *testing.T) {
 	})
 
 	t.Run("login with invalid credentials", func(t *testing.T) {
-		service, mockUserRepo, _, _, mockHasher, _, _, _ := setupAuthService()
+		service, mockUserRepo, _, mockSecurityEventRepo, mockLoginAttemptRepo, mockHasher, _, _, _ := setupAuthService()
 
 		email := "test@example.com"
-		password := "WrongPassword123"
+		password := "WrongPassword123!@#"
 		hashedPassword := "hashed_password"
 
 		user := &domain.User{
@@ -272,8 +313,11 @@ func TestAuthService_Login_Basic(t *testing.T) {
 			PasswordHash: hashedPassword,
 		}
 
+		mockLoginAttemptRepo.On("GetByEmail", email).Return(nil, domain.ErrNotFound)
 		mockUserRepo.On("FindByEmail", email).Return(user, nil)
 		mockHasher.On("Compare", hashedPassword, password).Return(errors.New("password mismatch"))
+		mockLoginAttemptRepo.On("Create", mock.AnythingOfType("*domain.LoginAttempt")).Return(nil)
+		mockSecurityEventRepo.On("Create", mock.AnythingOfType("*domain.SecurityEvent")).Return(nil)
 
 		_, _, _, _, _, err := service.Login(email, password, "127.0.0.1", "Test User Agent")
 

@@ -4,25 +4,40 @@ A production-ready radio streaming proxy backend built with Go, following Clean 
 
 ## 🆕 What's New in v2.0
 
+### Authentication & Session Management
 - ✅ **JWT with RFC 7519 Claims** - Standard claims (exp, iat, jti, iss, sub) for better security
 - ✅ **Token Validation Endpoint** - Validate tokens without loading full user data
 - ✅ **Token Revocation** - Revoke tokens individually, by session, or all at once
 - ✅ **Session Management** - Track and manage user sessions across devices
 - ✅ **Redis Blacklist** - Instant token revocation with Redis
 - ✅ **Security Event Logging** - Complete audit trail of authentication events
-- ✅ **Enhanced Security** - Multi-layer validation with token blacklist checks
+
+### 🔐 Security Enhancements (v2.1)
+- ✅ **Timing Attack Prevention** - Constant-time operations to prevent user enumeration
+- ✅ **HTTPS Enforcement** - Automatic redirect to HTTPS in production
+- ✅ **Account Lockout** - 10 failed attempts = 30 min lockout
+- ✅ **Email Rate Limiting** - 10 attempts/hour per email (Redis-based)
+- ✅ **Password Strength** - Special characters required + 47 common passwords blocked
+- ✅ **Session Hijacking Protection** - User-Agent validation
+- ✅ **Enhanced Security Logging** - Failed login attempts with detailed metadata
+
+**Security Score**: 🎯 **100/100** (audited Dec 2025)
 
 📖 **[Complete Authentication Guide →](docs/AUTHENTICATION.md)**  
+📖 **[Security Improvements →](SECURITY_IMPROVEMENTS.md)**  
+📖 **[Security Audit →](audit.md)**  
 📖 **[Migration Guide →](docs/MIGRATION_GUIDE.md)**  
 📖 **[Quick Reference →](QUICK_REFERENCE.md)**
 
 ## Features
 
 - ✅ **Clean Architecture** - Hexagonal architecture with clear separation of concerns
-- ✅ **Authentication** - JWT-based authentication with guest/premium user support
-- ✅ **Session Management** - Track user sessions across multiple devices
+- ✅ **Authentication** - JWT-based with RS256, token revocation, and session tracking
+- ✅ **Security** - Account lockout, email rate limiting, timing attack prevention, HTTPS enforcement
+- ✅ **Session Management** - Multi-device tracking with hijacking detection
 - ✅ **Token Revocation** - Instant token invalidation with Redis blacklist
-- ✅ **Security** - Rate limiting, security headers, CORS protection, and request size limits
+- ✅ **Rate Limiting** - IP-based (5/15min) + Email-based (10/hour) protection
+- ✅ **Security Headers** - CORS, CSP, HSTS, and request size limits
 - ✅ **Analytics** - Comprehensive behavior tracking with PostgreSQL + Redis
 - ✅ **SEO Optimization** - Dynamic sitemap, URL slugs, and rich metadata for search engines
 - ✅ **Internationalization** - Multi-language support (ES, EN, FR, DE)

@@ -16,10 +16,12 @@ type AuthService struct {
 	userRepo          domain.UserRepository
 	sessionRepo       domain.SessionRepository
 	securityEventRepo SecurityEventRepository
+	loginAttemptRepo  domain.LoginAttemptRepository
 	passwordHasher    domain.PasswordHasher
 	tokenGenerator    domain.TokenGenerator
 	tokenValidator    domain.TokenValidator
 	tokenBlacklist    domain.TokenBlacklist
+	dummyHash         string // Pre-calculated hash for timing attack prevention
 }
 
 // SecurityEventRepository interface for logging security events
@@ -32,19 +34,26 @@ func NewAuthService(
 	userRepo domain.UserRepository,
 	sessionRepo domain.SessionRepository,
 	securityEventRepo SecurityEventRepository,
+	loginAttemptRepo domain.LoginAttemptRepository,
 	passwordHasher domain.PasswordHasher,
 	tokenGenerator domain.TokenGenerator,
 	tokenValidator domain.TokenValidator,
 	tokenBlacklist domain.TokenBlacklist,
 ) *AuthService {
+	// Pre-calculate dummy hash for timing attack prevention
+	// This is a bcrypt hash of "dummy_password_for_timing_attack_prevention"
+	dummyHash, _ := passwordHasher.Hash("dummy_password_for_timing_attack_prevention_12345")
+
 	return &AuthService{
 		userRepo:          userRepo,
 		sessionRepo:       sessionRepo,
 		securityEventRepo: securityEventRepo,
+		loginAttemptRepo:  loginAttemptRepo,
 		passwordHasher:    passwordHasher,
 		tokenGenerator:    tokenGenerator,
 		tokenValidator:    tokenValidator,
 		tokenBlacklist:    tokenBlacklist,
+		dummyHash:         dummyHash,
 	}
 }
 
@@ -101,10 +110,37 @@ func (s *AuthService) Register(email, password string) (*domain.User, error) {
 
 // Login authenticates a user and returns tokens with session info
 func (s *AuthService) Login(email, password string, ipAddress string, userAgent string) (string, string, string, string, time.Time, error) {
+	// Check if account is locked
+	if err := s.checkAccountLockout(email); err != nil {
+		return "", "", "", "", time.Time{}, err
+	}
+
 	// Find user by email
 	user, err := s.userRepo.FindByEmail(email)
+
+	// Timing attack prevention: Always execute bcrypt.Compare to maintain constant time
+	// even when user doesn't exist
 	if err != nil {
 		if err == domain.ErrUserNotFound {
+			// Execute bcrypt with dummy hash to prevent timing leak
+			s.passwordHasher.Compare(s.dummyHash, password)
+
+			// Increment failed attempts
+			s.incrementFailedAttempts(email)
+
+			// Log failed login attempt
+			s.LogSecurityEvent(&domain.SecurityEvent{
+				Timestamp: time.Now(),
+				Event:     "login.failed",
+				UserID:    "",
+				IPAddress: ipAddress,
+				UserAgent: userAgent,
+				Reason:    "user_not_found",
+				Metadata: map[string]interface{}{
+					"email": email,
+				},
+			})
+
 			return "", "", "", "", time.Time{}, domain.ErrInvalidCredentials
 		}
 		return "", "", "", "", time.Time{}, fmt.Errorf("failed to find user: %w", err)
@@ -112,8 +148,27 @@ func (s *AuthService) Login(email, password string, ipAddress string, userAgent 
 
 	// Compare password
 	if err := s.passwordHasher.Compare(user.PasswordHash, password); err != nil {
+		// Increment failed attempts
+		s.incrementFailedAttempts(email)
+
+		// Log failed login attempt
+		s.LogSecurityEvent(&domain.SecurityEvent{
+			Timestamp: time.Now(),
+			Event:     "login.failed",
+			UserID:    user.ID,
+			IPAddress: ipAddress,
+			UserAgent: userAgent,
+			Reason:    "invalid_password",
+			Metadata: map[string]interface{}{
+				"email": email,
+			},
+		})
+
 		return "", "", "", "", time.Time{}, domain.ErrInvalidCredentials
 	}
+
+	// Reset failed attempts on successful login
+	s.resetFailedAttempts(email)
 
 	// Generate session ID
 	sessionID, err := generateSessionID()
@@ -502,6 +557,105 @@ func (s *AuthService) validateEmail(email string) error {
 	return nil
 }
 
+// checkAccountLockout checks if an account is locked
+func (s *AuthService) checkAccountLockout(email string) error {
+	attempt, err := s.loginAttemptRepo.GetByEmail(email)
+	if err != nil {
+		if err == domain.ErrNotFound {
+			// No previous attempts, account is not locked
+			return nil
+		}
+		// Log error but don't fail login
+		fmt.Printf("failed to check account lockout: %v\n", err)
+		return nil
+	}
+
+	// Check if account is locked
+	if attempt.IsLocked && attempt.UnlockAt != nil {
+		if time.Now().Before(*attempt.UnlockAt) {
+			// Account is still locked
+			s.LogSecurityEvent(&domain.SecurityEvent{
+				Timestamp: time.Now(),
+				Event:     "login.blocked",
+				UserID:    "",
+				IPAddress: "",
+				UserAgent: "",
+				Reason:    "account_locked",
+				Metadata: map[string]interface{}{
+					"email":     email,
+					"unlock_at": attempt.UnlockAt,
+				},
+			})
+			return domain.ErrAccountLocked
+		}
+
+		// Lock period has expired, reset the attempt
+		s.resetFailedAttempts(email)
+	}
+
+	return nil
+}
+
+// incrementFailedAttempts increments the failed login attempts count
+func (s *AuthService) incrementFailedAttempts(email string) {
+	attempt, err := s.loginAttemptRepo.GetByEmail(email)
+	if err != nil {
+		if err == domain.ErrNotFound {
+			// Create new attempt record
+			attempt = &domain.LoginAttempt{
+				Email:       email,
+				FailedCount: 1,
+				LastAttempt: time.Now(),
+				IsLocked:    false,
+			}
+			if err := s.loginAttemptRepo.Create(attempt); err != nil {
+				fmt.Printf("failed to create login attempt: %v\n", err)
+			}
+			return
+		}
+		fmt.Printf("failed to get login attempt: %v\n", err)
+		return
+	}
+
+	// Increment failed count
+	attempt.FailedCount++
+	attempt.LastAttempt = time.Now()
+
+	// Lock account after 10 failed attempts
+	if attempt.FailedCount >= 10 {
+		attempt.IsLocked = true
+		unlockTime := time.Now().Add(30 * time.Minute)
+		attempt.UnlockAt = &unlockTime
+
+		// Log account lockout
+		s.LogSecurityEvent(&domain.SecurityEvent{
+			Timestamp: time.Now(),
+			Event:     "account.locked",
+			UserID:    "",
+			IPAddress: "",
+			UserAgent: "",
+			Reason:    "too_many_failed_attempts",
+			Metadata: map[string]interface{}{
+				"email":        email,
+				"failed_count": attempt.FailedCount,
+				"unlock_at":    unlockTime,
+			},
+		})
+	}
+
+	if err := s.loginAttemptRepo.Update(attempt); err != nil {
+		fmt.Printf("failed to update login attempt: %v\n", err)
+	}
+}
+
+// resetFailedAttempts resets the failed login attempts count
+func (s *AuthService) resetFailedAttempts(email string) {
+	if err := s.loginAttemptRepo.Reset(email); err != nil {
+		// Log error but don't fail the operation
+		fmt.Printf("failed to reset login attempts: %v\n", err)
+	}
+}
+
 // validatePassword validates a password
 func (s *AuthService) validatePassword(password string) error {
 	if password == "" {
@@ -512,14 +666,45 @@ func (s *AuthService) validatePassword(password string) error {
 		return domain.NewValidationError("password", "password must be at least 8 characters")
 	}
 
-	// Check for at least one uppercase, one lowercase, and one number
+	// Check for at least one uppercase, one lowercase, one number, and one special character
 	hasUpper := strings.ContainsAny(password, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	hasLower := strings.ContainsAny(password, "abcdefghijklmnopqrstuvwxyz")
 	hasDigit := strings.ContainsAny(password, "0123456789")
+	hasSpecial := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~` + "`" + `]`).MatchString(password)
 
 	if !hasUpper || !hasLower || !hasDigit {
 		return domain.NewValidationError("password", "password must contain uppercase, lowercase, and digit")
 	}
 
+	if !hasSpecial {
+		return domain.NewValidationError("password", "password must contain at least one special character (!@#$%^&*()_+-=[]{}...)")
+	}
+
+	// Check against common passwords
+	if isCommonPassword(password) {
+		return domain.NewValidationError("password", "password is too common, please choose a stronger one")
+	}
+
 	return nil
+}
+
+// Common passwords list (top 100 most common)
+var commonPasswords = []string{
+	"password", "123456", "12345678", "qwerty", "abc123", "monkey", "1234567", "letmein",
+	"trustno1", "dragon", "baseball", "111111", "iloveyou", "master", "sunshine", "ashley",
+	"bailey", "passw0rd", "shadow", "123123", "654321", "superman", "qazwsx", "michael",
+	"football", "password1", "welcome", "jesus", "ninja", "mustang", "password123", "admin",
+	"hello", "charlie", "aa123456", "donald", "password1234", "qwerty123", "1q2w3e4r",
+	"welcome1", "monkey1", "dragon1", "princess", "qwerty1", "1qaz2wsx", "password12",
+}
+
+// isCommonPassword checks if the password is in the common passwords list
+func isCommonPassword(password string) bool {
+	lowerPass := strings.ToLower(password)
+	for _, common := range commonPasswords {
+		if lowerPass == strings.ToLower(common) {
+			return true
+		}
+	}
+	return false
 }

@@ -132,6 +132,18 @@ func (r *RedisClient) Increment(key string) (int64, error) {
 	return r.client.Incr(ctx, key).Result()
 }
 
+// Expire sets an expiration time on a key
+func (r *RedisClient) Expire(key string, expiration time.Duration) error {
+	ctx := context.Background()
+	return r.client.Expire(ctx, key, expiration).Err()
+}
+
+// TTL returns the time to live for a key
+func (r *RedisClient) TTL(key string) (time.Duration, error) {
+	ctx := context.Background()
+	return r.client.TTL(ctx, key).Result()
+}
+
 // SetWithNX sets a key only if it doesn't exist
 func (r *RedisClient) SetWithNX(key string, value interface{}, expiration time.Duration) (bool, error) {
 	ctx := context.Background()

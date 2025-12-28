@@ -779,7 +779,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Authenticates a user and returns JWT tokens with session information\nIncludes access token, refresh token, session ID, and token metadata",
+                "description": "Authenticates a user and returns JWT tokens with session information.\nIncludes access token, refresh token, session ID, and token metadata.\n\n**Security Features:**\n- Password hashing: bcrypt with cost factor 12\n- Timing attack prevention: Constant-time operations\n- Rate limiting: 5 attempts per IP per 15 minutes\n- Email rate limiting: 10 attempts per email per hour\n- Account lockout: 10 failed attempts = 30 minute lockout\n- Session hijacking protection: User-Agent validation\n- Security event logging: All failed login attempts logged\n- HTTPS enforcement: Production environment only\n\n**Error Codes:**\n- ` + "`" + `INVALID_CREDENTIALS` + "`" + `: Invalid email or password\n- ` + "`" + `ACCOUNT_LOCKED` + "`" + `: Account temporarily locked due to multiple failed attempts\n- ` + "`" + `TOO_MANY_ATTEMPTS` + "`" + `: Rate limit exceeded (IP or email)\n- ` + "`" + `VALIDATION_ERROR` + "`" + `: Invalid input format",
                 "consumes": [
                     "application/json"
                 ],
@@ -815,9 +815,21 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
+                        "description": "Invalid credentials or account locked",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too many login attempts (rate limit exceeded)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        },
+                        "headers": {
+                            "Retry-After": {
+                                "type": "integer",
+                                "description": "Number of seconds to wait before retrying"
+                            }
                         }
                     },
                     "500": {
@@ -919,7 +931,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "Creates a new guest user account",
+                "description": "Creates a new guest user account.\n\n**Password Requirements:**\n- Minimum 8 characters\n- At least one special character (!@#$%^\u0026*(),.?\":{}|\u003c\u003e)\n- Cannot be one of 47 common passwords (e.g., 'password', '12345678', 'qwerty')\n- Passwords are hashed with bcrypt (cost factor 12)\n\n**Security Features:**\n- Email uniqueness validation (generic error to prevent enumeration)\n- Rate limiting inherited from IP-based middleware\n- HTTPS enforcement in production\n\n**Error Codes:**\n- ` + "`" + `WEAK_PASSWORD` + "`" + `: Password does not meet strength requirements\n- ` + "`" + `COMMON_PASSWORD` + "`" + `: Password is in the common passwords blacklist\n- ` + "`" + `EMAIL_EXISTS` + "`" + `: Email already registered (generic message)\n- ` + "`" + `VALIDATION_ERROR` + "`" + `: Invalid input format",
                 "consumes": [
                     "application/json"
                 ],
@@ -950,7 +962,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request",
+                        "description": "Invalid request or password does not meet requirements",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -2406,12 +2418,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "2.1",
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Radio Backend API",
-	Description:      "API para streaming de radio con autenticación JWT, analytics y soporte multiidioma (i18n). Idiomas soportados: Español (es), Inglés (en), Francés (fr), Alemán (de). Use el parámetro 'lang' o el header 'Accept-Language' para especificar el idioma deseado.",
+	Description:      "Radio streaming API with JWT authentication, analytics and multi-language support (i18n).\n\n**Security Features (v2.1):**\n- 🔐 Timing attack prevention (constant-time operations)\n- 🔒 HTTPS enforcement (production)\n- 🚫 Account lockout (10 attempts = 30 min lockout)\n- 📧 Email rate limiting (10 attempts/hour per email)\n- 🔑 Password strength enforcement (special chars + 47 common passwords blocked)\n- 🛡️ Session hijacking protection (User-Agent validation)\n- 📝 Security event logging (failed attempts with metadata)\n- ⚡ Rate limiting (5 attempts/15min per IP)\n- 🔐 JWT with RS256 + token revocation\n\n**Internationalization:**\nSupported languages: Spanish (es), English (en), French (fr), German (de).\nUse the 'lang' parameter or 'Accept-Language' header to specify the desired language.\n\n**Security Score:** 100/100 (audited Dec 2025)",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

@@ -37,6 +37,10 @@ var (
 	ErrInvalidStationID    = &DomainError{Code: "INVALID_STATION_ID", Message: "invalid station id"}
 	ErrInvalidTitle        = &DomainError{Code: "INVALID_TITLE", Message: "title is required and must be less than 200 characters"}
 	ErrInvalidDescription  = &DomainError{Code: "INVALID_DESCRIPTION", Message: "description is required"}
+
+	// Account lockout errors
+	ErrAccountLocked = &DomainError{Code: "ACCOUNT_LOCKED", Message: "account is locked due to too many failed login attempts"}
+	ErrNotFound      = &DomainError{Code: "NOT_FOUND", Message: "record not found"}
 )
 
 // NewValidationError creates a new validation error

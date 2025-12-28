@@ -15,13 +15,15 @@ import (
 type AuthMiddleware struct {
 	tokenValidator domain.TokenValidator
 	tokenBlacklist domain.TokenBlacklist
+	sessionRepo    domain.SessionRepository
 }
 
 // NewAuthMiddleware creates a new auth middleware
-func NewAuthMiddleware(tokenValidator domain.TokenValidator, tokenBlacklist domain.TokenBlacklist) *AuthMiddleware {
+func NewAuthMiddleware(tokenValidator domain.TokenValidator, tokenBlacklist domain.TokenBlacklist, sessionRepo domain.SessionRepository) *AuthMiddleware {
 	return &AuthMiddleware{
 		tokenValidator: tokenValidator,
 		tokenBlacklist: tokenBlacklist,
+		sessionRepo:    sessionRepo,
 	}
 }
 
@@ -120,6 +122,24 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 			return
 		}
 
+		// Validate session hijacking (User-Agent)
+		if err := m.validateSessionSecurity(claims.SessionID, c.Request.UserAgent()); err != nil {
+			logger.Warn("Session validation failed", 
+				"session_id", claims.SessionID,
+				"user_id", claims.UserID,
+				"error", err.Error())
+			c.JSON(401, gin.H{"error": "session validation failed"})
+			c.Abort()
+			return
+		}
+
+		// Update session last activity
+		go func() {
+			if err := m.sessionRepo.UpdateLastActivity(claims.SessionID, time.Now()); err != nil {
+				logger.Error("Failed to update session activity", "error", err)
+			}
+		}()
+
 		// Set user context
 		c.Set("user_id", claims.UserID)
 		c.Set("user_type", claims.UserType)
@@ -207,6 +227,26 @@ func GetUserID(c *gin.Context) *string {
 	}
 
 	return &id
+}
+
+// validateSessionSecurity validates session security by checking User-Agent
+func (m *AuthMiddleware) validateSessionSecurity(sessionID string, currentUserAgent string) error {
+	session, err := m.sessionRepo.FindByID(sessionID)
+	if err != nil {
+		return err
+	}
+
+	// Validate User-Agent hasn't changed (session hijacking detection)
+	if session.UserAgent != currentUserAgent {
+		return domain.NewValidationError("session", "user agent mismatch - possible session hijacking")
+	}
+
+	// Optional: You can add IP validation here as well
+	// if !sameIPRange(session.IPAddress, currentIP, 24) {
+	//     return domain.NewValidationError("session", "IP address changed significantly")
+	// }
+
+	return nil
 }
 
 // LoggingMiddleware logs HTTP requests
