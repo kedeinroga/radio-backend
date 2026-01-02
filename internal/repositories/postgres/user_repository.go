@@ -3,12 +3,9 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"radio-backend/internal/domain"
 	"radio-backend/internal/infrastructure/database"
-
-	"github.com/google/uuid"
 )
 
 // UserRepository implements domain.UserRepository using PostgreSQL
@@ -23,24 +20,19 @@ func NewUserRepository(db *database.Connection) *UserRepository {
 
 // Create creates a new user
 func (r *UserRepository) Create(user *domain.User) error {
-	user.ID = uuid.New().String()
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
-
+	// La DB genera el UUID automáticamente, solo necesitamos el email, password y tipo
 	query := `
-		INSERT INTO users (id, email, password_hash, user_type, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO users (email, password_hash, user_type)
+		VALUES ($1, $2, $3)
+		RETURNING id::text, created_at, updated_at
 	`
 
-	_, err := r.db.DB.Exec(
+	err := r.db.DB.QueryRow(
 		query,
-		user.ID,
 		user.Email,
 		user.PasswordHash,
-		user.UserType,
-		user.CreatedAt,
-		user.UpdatedAt,
-	)
+		string(user.UserType),
+	).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 
 	if err != nil {
 		return fmt.Errorf("failed to create user: %w", err)
@@ -52,9 +44,9 @@ func (r *UserRepository) Create(user *domain.User) error {
 // FindByID finds a user by ID
 func (r *UserRepository) FindByID(id string) (*domain.User, error) {
 	query := `
-		SELECT id, email, password_hash, user_type, created_at, updated_at
+		SELECT id::text, email, password_hash, user_type::text, created_at, updated_at
 		FROM users
-		WHERE id = $1
+		WHERE id = $1::uuid
 	`
 
 	user := &domain.User{}
@@ -81,7 +73,7 @@ func (r *UserRepository) FindByID(id string) (*domain.User, error) {
 // FindByEmail finds a user by email
 func (r *UserRepository) FindByEmail(email string) (*domain.User, error) {
 	query := `
-		SELECT id, email, password_hash, user_type, created_at, updated_at
+		SELECT id::text, email, password_hash, user_type::text, created_at, updated_at
 		FROM users
 		WHERE email = $1
 	`
@@ -101,7 +93,7 @@ func (r *UserRepository) FindByEmail(email string) (*domain.User, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to find user by email: %w", err)
+		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
 	return user, nil
@@ -109,20 +101,18 @@ func (r *UserRepository) FindByEmail(email string) (*domain.User, error) {
 
 // Update updates a user
 func (r *UserRepository) Update(user *domain.User) error {
-	user.UpdatedAt = time.Now()
-
+	// El trigger updated_at lo actualiza automáticamente
 	query := `
 		UPDATE users
-		SET email = $1, password_hash = $2, user_type = $3, updated_at = $4
-		WHERE id = $5
+		SET email = $1, password_hash = $2, user_type = $3::user_type_enum
+		WHERE id = $4::uuid
 	`
 
 	result, err := r.db.DB.Exec(
 		query,
 		user.Email,
 		user.PasswordHash,
-		user.UserType,
-		user.UpdatedAt,
+		string(user.UserType),
 		user.ID,
 	)
 
@@ -144,7 +134,7 @@ func (r *UserRepository) Update(user *domain.User) error {
 
 // Delete deletes a user
 func (r *UserRepository) Delete(id string) error {
-	query := `DELETE FROM users WHERE id = $1`
+	query := `DELETE FROM users WHERE id = $1::uuid`
 
 	result, err := r.db.DB.Exec(query, id)
 	if err != nil {

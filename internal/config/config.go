@@ -144,7 +144,7 @@ func Load() (*Config, error) {
 			PublicKeyPath:     getEnv("JWT_PUBLIC_KEY_PATH", "./keys/jwt-public.pem"),
 		},
 		External: ExternalConfig{
-			RadioBrowserAPIURL: getEnv("RADIO_BROWSER_API_URL", "https://de1.api.radio-browser.info"),
+			RadioBrowserAPIURL: getEnv("RADIO_BROWSER_API_URL", "https://all.api.radio-browser.info"),
 		},
 		Logging: LoggingConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),

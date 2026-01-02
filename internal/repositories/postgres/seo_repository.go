@@ -23,7 +23,7 @@ func NewSEORepository(db *sql.DB) *SEORepository {
 func (r *SEORepository) GetPopularTags(limit int) ([]domain.PopularTag, error) {
 	query := `
 		SELECT tag, slug, station_count, active_count
-		FROM top_tags_for_seo
+		FROM mv_top_tags_seo
 		ORDER BY station_count DESC, active_count DESC
 		LIMIT $1
 	`
@@ -58,7 +58,7 @@ func (r *SEORepository) GetPopularTags(limit int) ([]domain.PopularTag, error) {
 func (r *SEORepository) GetPopularCountries(limit int) ([]domain.PopularCountry, error) {
 	query := `
 		SELECT country_name, slug, station_count
-		FROM top_countries_for_seo
+		FROM mv_top_countries_seo
 		ORDER BY station_count DESC
 		LIMIT $1
 	`
@@ -182,11 +182,11 @@ func (r *SEORepository) UpdateTagStats() error {
 	logger.Info("cleaned up empty tags", "deleted_rows", deletedRows)
 
 	// 3. Refresh materialized view
-	refreshQuery := `REFRESH MATERIALIZED VIEW CONCURRENTLY top_tags_for_seo`
+	refreshQuery := `REFRESH MATERIALIZED VIEW CONCURRENTLY mv_top_tags_seo`
 	if _, err := tx.Exec(refreshQuery); err != nil {
 		// Si falla el CONCURRENTLY (primera vez), intentar sin él
 		logger.Warn("concurrent refresh failed, trying without CONCURRENTLY", "error", err)
-		refreshQuery = `REFRESH MATERIALIZED VIEW top_tags_for_seo`
+		refreshQuery = `REFRESH MATERIALIZED VIEW mv_top_tags_seo`
 		if _, err := tx.Exec(refreshQuery); err != nil {
 			logger.Error("failed to refresh materialized view", "error", err)
 			return fmt.Errorf("failed to refresh materialized view: %w", err)
@@ -267,10 +267,10 @@ func (r *SEORepository) UpdateCountryStats() error {
 	logger.Info("cleaned up empty countries", "deleted_rows", deletedRows)
 
 	// 3. Refresh materialized view
-	refreshQuery := `REFRESH MATERIALIZED VIEW CONCURRENTLY top_countries_for_seo`
+	refreshQuery := `REFRESH MATERIALIZED VIEW CONCURRENTLY mv_top_countries_seo`
 	if _, err := tx.Exec(refreshQuery); err != nil {
 		logger.Warn("concurrent refresh failed, trying without CONCURRENTLY", "error", err)
-		refreshQuery = `REFRESH MATERIALIZED VIEW top_countries_for_seo`
+		refreshQuery = `REFRESH MATERIALIZED VIEW mv_top_countries_seo`
 		if _, err := tx.Exec(refreshQuery); err != nil {
 			logger.Error("failed to refresh materialized view", "error", err)
 			return fmt.Errorf("failed to refresh materialized view: %w", err)
