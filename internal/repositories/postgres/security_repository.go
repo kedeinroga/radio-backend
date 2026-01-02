@@ -168,18 +168,14 @@ func (r *SecurityRepository) GetLogs(filter *domain.SecurityLogFilter) (*domain.
 	if filter.Search != "" {
 		searchPattern := "%" + strings.ToLower(filter.Search) + "%"
 		searchCondition := fmt.Sprintf(`(
-			LOWER(event_type) LIKE $%d OR
-			LOWER(COALESCE(ip_address, '')) LIKE $%d OR
-			LOWER(COALESCE(reason, '')) LIKE $%d OR
-			EXISTS (
-				SELECT 1 FROM users
-				WHERE users.id = security_events.user_id
-				AND LOWER(users.email) LIKE $%d
-			)
-		)`, argIndex, argIndex, argIndex, argIndex)
+			LOWER(se.event_type) LIKE $%d OR
+			LOWER(COALESCE(se.ip_address, '')) LIKE $%d OR
+			LOWER(COALESCE(se.reason, '')) LIKE $%d OR
+			LOWER(COALESCE(u.email, '')) LIKE $%d
+		)`, argIndex, argIndex+1, argIndex+2, argIndex+3)
 		conditions = append(conditions, searchCondition)
-		args = append(args, searchPattern)
-		argIndex++
+		args = append(args, searchPattern, searchPattern, searchPattern, searchPattern)
+		argIndex += 4
 	}
 
 	if filter.StartDate != nil {
@@ -202,7 +198,8 @@ func (r *SecurityRepository) GetLogs(filter *domain.SecurityLogFilter) (*domain.
 	// Get total count
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*)
-		FROM security_events
+		FROM security_events se
+		LEFT JOIN users u ON se.user_id = u.id
 		%s
 	`, whereClause)
 
