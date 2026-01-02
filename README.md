@@ -142,6 +142,13 @@ The server will start on `http://localhost:8080`
 - `GET /api/v1/analytics/searches/trending` - Trending searches
 - `GET /api/v1/analytics/users/active` - Active users count
 
+### Admin Security (Admin Only) 🔐 NEW
+
+- `GET /api/v1/admin/security/metrics?period=7d` - **NEW** Security metrics and trends
+- `GET /api/v1/admin/security/logs` - **NEW** Security event logs with filtering
+
+📖 **[Security Admin Endpoints Documentation →](docs/SECURITY_ADMIN_ENDPOINTS.md)**
+
 ### SEO (Public)
 
 - `GET /api/v1/seo/sitemap-data` - Data for generating dynamic sitemap

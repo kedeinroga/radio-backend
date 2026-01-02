@@ -130,6 +130,7 @@ func main() {
 	sessionRepo := postgres.NewSessionRepository(db.DB)             // NUEVO: Session repo
 	securityEventRepo := postgres.NewSecurityEventRepository(db.DB) // NUEVO: Security event repo
 	loginAttemptRepo := postgres.NewLoginAttemptRepository(db.DB)   // NUEVO: Login attempt repo
+	securityRepo := postgres.NewSecurityRepository(db.DB)           // NUEVO: Security repo
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
 	// Initialize cache components
@@ -139,6 +140,7 @@ func main() {
 	slugService := services.NewSlugService()                                                                     // NUEVO: Servicio de slugs
 	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)                      // NUEVO: Servicio de traducciones
 	seoService := services.NewSEOService(seoRepo, seoCache, translationService, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
+	securityService := services.NewSecurityService(securityRepo)                                                 // NUEVO: Servicio de seguridad
 	authService := services.NewAuthService(
 		userRepo,
 		sessionRepo,       // NUEVO: Session repository
@@ -182,6 +184,7 @@ func main() {
 	favoriteHandler := handlers.NewFavoriteHandler(favoriteService)
 	seoHandler := handlers.NewSEOHandler(seoService)                         // NUEVO: Handler SEO
 	translationHandler := handlers.NewTranslationHandler(translationService) // NUEVO: Handler de traducciones
+	securityHandler := handlers.NewSecurityHandler(securityService)          // NUEVO: Handler de seguridad
 
 	// Setup router
 	router := server.NewRouter(
@@ -197,6 +200,7 @@ func main() {
 		favoriteHandler,
 		seoHandler,         // NUEVO: Inyectar SEO handler
 		translationHandler, // NUEVO: Inyectar Translation handler
+		securityHandler,    // NUEVO: Inyectar Security handler
 	)
 	engine := router.Setup()
 

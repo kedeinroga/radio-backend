@@ -30,6 +30,7 @@ type Router struct {
 	favoriteHandler    *handlers.FavoriteHandler
 	seoHandler         *handlers.SEOHandler         // NUEVO: Handler SEO
 	translationHandler *handlers.TranslationHandler // NUEVO: Handler de traducciones
+	securityHandler    *handlers.SecurityHandler    // NUEVO: Handler de seguridad
 }
 
 // NewRouter creates a new router
@@ -46,6 +47,7 @@ func NewRouter(
 	favoriteHandler *handlers.FavoriteHandler,
 	seoHandler *handlers.SEOHandler, // NUEVO: Handler SEO
 	translationHandler *handlers.TranslationHandler, // NUEVO: Handler de traducciones
+	securityHandler *handlers.SecurityHandler, // NUEVO: Handler de seguridad
 ) *Router {
 	return &Router{
 		engine:              gin.New(),
@@ -61,6 +63,7 @@ func NewRouter(
 		favoriteHandler:     favoriteHandler,
 		seoHandler:          seoHandler,         // NUEVO
 		translationHandler:  translationHandler, // NUEVO
+		securityHandler:     securityHandler,    // NUEVO
 	}
 }
 
@@ -159,6 +162,14 @@ func (r *Router) Setup() *gin.Engine {
 		translations := v1.Group("/translations")
 		{
 			translations.GET("/:stationId/languages", r.translationHandler.GetAvailableLanguages)
+		}
+
+		// Admin Security routes
+		adminSecurity := v1.Group("/admin/security")
+		adminSecurity.Use(r.authMiddleware.Required(), r.authMiddleware.AdminOnly())
+		{
+			adminSecurity.GET("/metrics", r.securityHandler.GetMetrics)
+			adminSecurity.GET("/logs", r.securityHandler.GetLogs)
 		}
 	}
 

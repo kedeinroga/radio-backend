@@ -151,6 +151,90 @@ definitions:
         example: 1
         type: integer
     type: object
+  internal_handlers.SecurityLogResponse:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      event_type:
+        example: login_failed
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      ip_address:
+        example: 192.168.1.1
+        type: string
+      metadata:
+        additionalProperties: true
+        type: object
+      reason:
+        example: Invalid credentials
+        type: string
+      session_id:
+        example: session-789
+        type: string
+      timestamp:
+        example: "2024-01-15T14:30:00Z"
+        type: string
+      token_id:
+        example: token-456
+        type: string
+      user_agent:
+        example: Mozilla/5.0...
+        type: string
+      user_id:
+        example: user-123
+        type: string
+    type: object
+  internal_handlers.SecurityLogsResponse:
+    properties:
+      limit:
+        example: 50
+        type: integer
+      logs:
+        items:
+          $ref: '#/definitions/internal_handlers.SecurityLogResponse'
+        type: array
+      page:
+        example: 1
+        type: integer
+      total:
+        example: 1523
+        type: integer
+    type: object
+  internal_handlers.SecurityMetricsResponse:
+    properties:
+      active_sessions:
+        example: 342
+        type: integer
+      failed_attempts_today:
+        example: 12
+        type: integer
+      failed_attempts_week:
+        example: 85
+        type: integer
+      total_logins_today:
+        example: 150
+        type: integer
+      total_logins_week:
+        example: 1240
+        type: integer
+      trends:
+        $ref: '#/definitions/internal_handlers.SecurityTrendsResponse'
+      unique_locations_week:
+        example: 23
+        type: integer
+    type: object
+  internal_handlers.SecurityTrendsResponse:
+    properties:
+      failed_attempts_trend:
+        example: -8.3
+        type: number
+      logins_trend:
+        example: 12.5
+        type: number
+    type: object
   internal_handlers.SessionInfo:
     properties:
       created_at:
@@ -1009,6 +1093,116 @@ paths:
       summary: Active guest users
       tags:
       - Analytics
+  /api/v1/admin/security/logs:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated security logs with optional filtering by event type
+        and search query
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 50
+        description: Items per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Filter by event type
+        enum:
+        - login_success
+        - login_failed
+        - token.issued
+        - token.validated
+        - token.revoked
+        - session.created
+        - session.revoked
+        - session.suspicious
+        - password.reset
+        - password.changed
+        in: query
+        name: event_type
+        type: string
+      - description: Search in event type, IP address, reason, or email
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SecurityLogsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get security logs
+      tags:
+      - Admin Security
+  /api/v1/admin/security/metrics:
+    get:
+      consumes:
+      - application/json
+      description: Get security metrics including logins, failed attempts, active
+        sessions, and trends
+      parameters:
+      - default: 7d
+        description: Time period (7d or 30d)
+        enum:
+        - 7d
+        - 30d
+        in: query
+        name: period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SecurityMetricsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get security metrics
+      tags:
+      - Admin Security
   /auth/login:
     post:
       consumes:

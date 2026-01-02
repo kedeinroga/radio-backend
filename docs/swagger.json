@@ -771,6 +771,166 @@
                 }
             }
         },
+        "/api/v1/admin/security/logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get paginated security logs with optional filtering by event type and search query",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get security logs",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "login_success",
+                            "login_failed",
+                            "token.issued",
+                            "token.validated",
+                            "token.revoked",
+                            "session.created",
+                            "session.revoked",
+                            "session.suspicious",
+                            "password.reset",
+                            "password.changed"
+                        ],
+                        "type": "string",
+                        "description": "Filter by event type",
+                        "name": "event_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search in event type, IP address, reason, or email",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SecurityLogsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/security/metrics": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get security metrics including logins, failed attempts, active sessions, and trends",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get security metrics",
+                "parameters": [
+                    {
+                        "enum": [
+                            "7d",
+                            "30d"
+                        ],
+                        "type": "string",
+                        "default": "7d",
+                        "description": "Time period (7d or 30d)",
+                        "name": "period",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SecurityMetricsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates a user and returns JWT tokens with session information.\nIncludes access token, refresh token, session ID, and token metadata.\n\n**Security Features:**\n- Password hashing: bcrypt with cost factor 12\n- Timing attack prevention: Constant-time operations\n- Rate limiting: 5 attempts per IP per 15 minutes\n- Email rate limiting: 10 attempts per email per hour\n- Account lockout: 10 failed attempts = 30 minute lockout\n- Session hijacking protection: User-Agent validation\n- Security event logging: All failed login attempts logged\n- HTTPS enforcement: Production environment only\n\n**Error Codes:**\n- `INVALID_CREDENTIALS`: Invalid email or password\n- `ACCOUNT_LOCKED`: Account temporarily locked due to multiple failed attempts\n- `TOO_MANY_ATTEMPTS`: Rate limit exceeded (IP or email)\n- `VALIDATION_ERROR`: Invalid input format",
@@ -1971,6 +2131,123 @@
                 "revoked_count": {
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "internal_handlers.SecurityLogResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "event_type": {
+                    "type": "string",
+                    "example": "login_failed"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "ip_address": {
+                    "type": "string",
+                    "example": "192.168.1.1"
+                },
+                "metadata": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Invalid credentials"
+                },
+                "session_id": {
+                    "type": "string",
+                    "example": "session-789"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2024-01-15T14:30:00Z"
+                },
+                "token_id": {
+                    "type": "string",
+                    "example": "token-456"
+                },
+                "user_agent": {
+                    "type": "string",
+                    "example": "Mozilla/5.0..."
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "user-123"
+                }
+            }
+        },
+        "internal_handlers.SecurityLogsResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "logs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.SecurityLogResponse"
+                    }
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 1523
+                }
+            }
+        },
+        "internal_handlers.SecurityMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "active_sessions": {
+                    "type": "integer",
+                    "example": 342
+                },
+                "failed_attempts_today": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "failed_attempts_week": {
+                    "type": "integer",
+                    "example": 85
+                },
+                "total_logins_today": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "total_logins_week": {
+                    "type": "integer",
+                    "example": 1240
+                },
+                "trends": {
+                    "$ref": "#/definitions/internal_handlers.SecurityTrendsResponse"
+                },
+                "unique_locations_week": {
+                    "type": "integer",
+                    "example": 23
+                }
+            }
+        },
+        "internal_handlers.SecurityTrendsResponse": {
+            "type": "object",
+            "properties": {
+                "failed_attempts_trend": {
+                    "type": "number",
+                    "example": -8.3
+                },
+                "logins_trend": {
+                    "type": "number",
+                    "example": 12.5
                 }
             }
         },
