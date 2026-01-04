@@ -17,6 +17,473 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
+        "/admin/maintenance/check-partitions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Verifies that partitions exist for future months to prevent insertion failures.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Check future partitions",
+                "parameters": [
+                    {
+                        "maximum": 12,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 3,
+                        "description": "Number of months ahead to check",
+                        "name": "months_ahead",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Check results\" example({\"success\":true,\"data\":{\"results\":[{\"table_name\":\"station_plays\",\"partition_name\":\"station_plays_2026_02\",\"partitions_exist\":true}],\"has_missing\":false}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/maintenance/cleanup-partitions": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes partitions older than specified retention period to free up disk space.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Cleanup old partitions",
+                "parameters": [
+                    {
+                        "maximum": 36,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 12,
+                        "description": "Number of months to retain",
+                        "name": "retention_months",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cleanup results\" example({\"success\":true,\"data\":{\"results\":[{\"table_name\":\"station_plays\",\"partition_name\":\"station_plays_2024_01\",\"dropped\":true,\"message\":\"Partition dropped successfully\"}],\"total_dropped\":3}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/maintenance/full": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Executes a complete maintenance routine including view refresh, partition check, and status report.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Perform full maintenance",
+                "responses": {
+                    "200": {
+                        "description": "Full maintenance results",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/maintenance/partition-status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns detailed status of all partitions including size, row count, and date ranges.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Get partition status",
+                "responses": {
+                    "200": {
+                        "description": "Partition status\" example({\"success\":true,\"data\":{\"partitions\":[{\"partition_name\":\"station_plays_2026_01\",\"table_name\":\"station_plays\",\"row_count\":15420,\"size_mb\":2.5,\"total_size_mb\":3.2}],\"total\":18}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/maintenance/recommendations": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns recommendations for database maintenance operations that should be executed. Shows priority levels and reasons.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Get maintenance recommendations",
+                "responses": {
+                    "200": {
+                        "description": "Maintenance recommendations\" example({\"success\":true,\"data\":[{\"operation\":\"refresh_views\",\"priority\":\"warning\",\"reason\":\"Vista no refrescada en 6+ horas\",\"should_run\":true}]})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error\" example({\"error\":{\"code\":\"maintenance_failed\",\"message\":\"Failed to get recommendations\"}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/maintenance/refresh-stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns statistics about materialized view refreshes including duration, success rate, and last refresh time.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Get refresh statistics",
+                "parameters": [
+                    {
+                        "maximum": 90,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 7,
+                        "description": "Number of days to look back",
+                        "name": "days",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Refresh statistics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/maintenance/refresh-views": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Refreshes materialized views used for SEO and analytics. Can refresh all views or specific types (seo/analytics).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Maintenance"
+                ],
+                "summary": "Refresh materialized views",
+                "parameters": [
+                    {
+                        "enum": [
+                            "all",
+                            "seo",
+                            "analytics"
+                        ],
+                        "type": "string",
+                        "default": "all",
+                        "description": "Type of views to refresh: all, seo, analytics",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Refresh results\" example({\"success\":true,\"data\":{\"results\":[{\"view_name\":\"mv_top_tags_seo\",\"duration_ms\":245,\"rows_affected\":150,\"status\":\"SUCCESS\"}],\"total\":3}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/monitoring/alerts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns list of active system alerts based on health checks\nAlerts include partition issues, stale materialized views, and other problems",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get system alerts",
+                "responses": {
+                    "200": {
+                        "description": "Alerts retrieved successfully",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "alerts": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/radio-backend_internal_domain.Alert"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get alerts",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/monitoring/health": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns comprehensive system health metrics including database, Redis, partitions, and materialized views\nThis endpoint provides detailed health information for monitoring and alerting",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Monitoring"
+                ],
+                "summary": "Get health metrics",
+                "responses": {
+                    "200": {
+                        "description": "Health metrics retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.HealthMetrics"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get health metrics",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/admin/seo/refresh-stats": {
             "post": {
                 "security": [
@@ -988,6 +1455,52 @@
                     },
                     "500": {
                         "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Logs out the current user by blacklisting their JWT token\nThe token will be invalidated and cannot be used again\nThe user must login again to get a new token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User logout",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.LogoutResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or missing token",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to logout",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -2453,6 +2966,31 @@
                 }
             }
         },
+        "radio-backend_internal_domain.Alert": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "category": {
+                    "description": "database, redis, api, partitions, views, performance",
+                    "type": "string"
+                },
+                "level": {
+                    "description": "info, warning, critical",
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "resolved": {
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "radio-backend_internal_domain.CreateTranslationRequest": {
             "type": "object",
             "required": [
@@ -2483,6 +3021,85 @@
                 }
             }
         },
+        "radio-backend_internal_domain.DatabaseHealth": {
+            "type": "object",
+            "properties": {
+                "connections": {
+                    "type": "integer"
+                },
+                "max_connections": {
+                    "type": "integer"
+                },
+                "ping": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "description": "up, down",
+                    "type": "string"
+                },
+                "usage_percent": {
+                    "type": "number"
+                }
+            }
+        },
+        "radio-backend_internal_domain.ExternalAPIHealth": {
+            "type": "object",
+            "properties": {
+                "avg_response_time_ms": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "circuit_breaker": {
+                    "description": "closed, open, half-open",
+                    "type": "string"
+                },
+                "error_count": {
+                    "type": "integer"
+                },
+                "last_error": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "up, down, degraded",
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.HealthMetrics": {
+            "type": "object",
+            "properties": {
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.Alert"
+                    }
+                },
+                "database": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.DatabaseHealth"
+                },
+                "external_api": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.ExternalAPIHealth"
+                },
+                "materialized_views": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.MaterializedViewHealth"
+                },
+                "partitions": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.PartitionHealth"
+                },
+                "performance_metrics": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.PerformanceMetrics"
+                },
+                "redis": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.RedisHealth"
+                },
+                "status": {
+                    "description": "healthy, degraded, unhealthy",
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "radio-backend_internal_domain.HreflangTag": {
             "type": "object",
             "properties": {
@@ -2493,6 +3110,88 @@
                 "url": {
                     "type": "string",
                     "example": "https://radioapp.com/stations/rock-fm-100-1?lang=es"
+                }
+            }
+        },
+        "radio-backend_internal_domain.LogoutResponse": {
+            "type": "object",
+            "properties": {
+                "blacklisted_at": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                },
+                "token_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.MaterializedViewHealth": {
+            "type": "object",
+            "properties": {
+                "avg_refresh_duration_ms": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "failed_refreshes": {
+                    "type": "integer"
+                },
+                "last_refresh": {
+                    "type": "string"
+                },
+                "stale_views": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "description": "healthy, stale, critical",
+                    "type": "string"
+                },
+                "total_views": {
+                    "type": "integer"
+                }
+            }
+        },
+        "radio-backend_internal_domain.PartitionHealth": {
+            "type": "object",
+            "properties": {
+                "last_check": {
+                    "type": "string"
+                },
+                "missing_future_partitions": {
+                    "type": "integer"
+                },
+                "old_partitions_count": {
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "healthy, warning, critical",
+                    "type": "string"
+                },
+                "total_partitions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "radio-backend_internal_domain.PerformanceMetrics": {
+            "type": "object",
+            "properties": {
+                "avg_response_time_ms": {
+                    "type": "number"
+                },
+                "cache_hit_rate_percent": {
+                    "type": "number"
+                },
+                "error_rate_percent": {
+                    "type": "number"
+                },
+                "requests_per_second": {
+                    "type": "number"
                 }
             }
         },
@@ -2537,6 +3236,24 @@
                 "station_count": {
                     "type": "integer",
                     "example": 150
+                }
+            }
+        },
+        "radio-backend_internal_domain.RedisHealth": {
+            "type": "object",
+            "properties": {
+                "memory_mb": {
+                    "type": "integer"
+                },
+                "ping": {
+                    "type": "boolean"
+                },
+                "status": {
+                    "description": "up, down",
+                    "type": "string"
+                },
+                "usage_percent": {
+                    "type": "number"
                 }
             }
         },
@@ -2675,6 +3392,30 @@
                     "maxLength": 200
                 }
             }
+        },
+        "time.Duration": {
+            "type": "integer",
+            "format": "int64",
+            "enum": [
+                -9223372036854775808,
+                9223372036854775807,
+                1,
+                1000,
+                1000000,
+                1000000000,
+                60000000000,
+                3600000000000
+            ],
+            "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
+                "Nanosecond",
+                "Microsecond",
+                "Millisecond",
+                "Second",
+                "Minute",
+                "Hour"
+            ]
         }
     },
     "securityDefinitions": {

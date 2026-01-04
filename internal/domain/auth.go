@@ -66,6 +66,35 @@ type RevokeTokenRequest struct {
 	RevokeAll bool
 }
 
+// LogoutRequest represents a logout request
+type LogoutRequest struct {
+	TokenID   string // JTI from the current token
+	UserID    string // User performing logout
+	IPAddress string
+	UserAgent string
+	Reason    string // "user_logout", "admin_revoke", "security_concern"
+}
+
+// LogoutResponse represents a logout response
+type LogoutResponse struct {
+	Success       bool      `json:"success"`
+	Message       string    `json:"message"`
+	TokenID       string    `json:"token_id,omitempty"`
+	BlacklistedAt time.Time `json:"blacklisted_at,omitempty"`
+}
+
+// TokenBlacklistEntry represents a blacklisted token
+type TokenBlacklistEntry struct {
+	ID            int64     `json:"id"`
+	TokenJTI      string    `json:"token_jti"`
+	UserID        string    `json:"user_id"` // Changed from int64 to string (UUID)
+	BlacklistedAt time.Time `json:"blacklisted_at"`
+	ExpiresAt     time.Time `json:"expires_at"`
+	Reason        string    `json:"reason"`
+	IPAddress     string    `json:"ip_address,omitempty"`
+	UserAgent     string    `json:"user_agent,omitempty"`
+}
+
 // SecurityEvent represents a security-related event
 type SecurityEvent struct {
 	Timestamp time.Time
@@ -96,6 +125,11 @@ type TokenBlacklist interface {
 	RevokeAllUserTokens(userID string) error
 	RevokeSession(sessionID string) error
 	IsSessionRevoked(sessionID string) (bool, error)
+	// New methods for logout functionality
+	BlacklistToken(entry *TokenBlacklistEntry) error
+	IsTokenBlacklisted(tokenJTI string) (bool, error)
+	GetUserBlacklistedTokens(userID string) ([]*TokenBlacklistEntry, error) // Changed from int64 to string
+	CleanupExpiredTokens() (int64, error)
 }
 
 // SessionRepository defines the interface for session management
@@ -140,6 +174,8 @@ type AuthService interface {
 	GetUserSessions(userID string) ([]*Session, error)
 	DeleteSession(sessionID string, userID string) error
 	LogSecurityEvent(event *SecurityEvent) error
+	// New logout method
+	Logout(request *LogoutRequest) (*LogoutResponse, error)
 }
 
 // PasswordHasher defines the interface for password hashing operations

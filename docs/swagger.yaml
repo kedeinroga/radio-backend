@@ -378,6 +378,23 @@ definitions:
         example: true
         type: boolean
     type: object
+  radio-backend_internal_domain.Alert:
+    properties:
+      action:
+        type: string
+      category:
+        description: database, redis, api, partitions, views, performance
+        type: string
+      level:
+        description: info, warning, critical
+        type: string
+      message:
+        type: string
+      resolved:
+        type: boolean
+      timestamp:
+        type: string
+    type: object
   radio-backend_internal_domain.CreateTranslationRequest:
     properties:
       description:
@@ -399,6 +416,59 @@ definitions:
     - station_id
     - title
     type: object
+  radio-backend_internal_domain.DatabaseHealth:
+    properties:
+      connections:
+        type: integer
+      max_connections:
+        type: integer
+      ping:
+        type: boolean
+      status:
+        description: up, down
+        type: string
+      usage_percent:
+        type: number
+    type: object
+  radio-backend_internal_domain.ExternalAPIHealth:
+    properties:
+      avg_response_time_ms:
+        $ref: '#/definitions/time.Duration'
+      circuit_breaker:
+        description: closed, open, half-open
+        type: string
+      error_count:
+        type: integer
+      last_error:
+        type: string
+      status:
+        description: up, down, degraded
+        type: string
+    type: object
+  radio-backend_internal_domain.HealthMetrics:
+    properties:
+      alerts:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.Alert'
+        type: array
+      database:
+        $ref: '#/definitions/radio-backend_internal_domain.DatabaseHealth'
+      external_api:
+        $ref: '#/definitions/radio-backend_internal_domain.ExternalAPIHealth'
+      materialized_views:
+        $ref: '#/definitions/radio-backend_internal_domain.MaterializedViewHealth'
+      partitions:
+        $ref: '#/definitions/radio-backend_internal_domain.PartitionHealth'
+      performance_metrics:
+        $ref: '#/definitions/radio-backend_internal_domain.PerformanceMetrics'
+      redis:
+        $ref: '#/definitions/radio-backend_internal_domain.RedisHealth'
+      status:
+        description: healthy, degraded, unhealthy
+        type: string
+      timestamp:
+        type: string
+    type: object
   radio-backend_internal_domain.HreflangTag:
     properties:
       lang:
@@ -407,6 +477,60 @@ definitions:
       url:
         example: https://radioapp.com/stations/rock-fm-100-1?lang=es
         type: string
+    type: object
+  radio-backend_internal_domain.LogoutResponse:
+    properties:
+      blacklisted_at:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+      token_id:
+        type: string
+    type: object
+  radio-backend_internal_domain.MaterializedViewHealth:
+    properties:
+      avg_refresh_duration_ms:
+        $ref: '#/definitions/time.Duration'
+      failed_refreshes:
+        type: integer
+      last_refresh:
+        type: string
+      stale_views:
+        items:
+          type: string
+        type: array
+      status:
+        description: healthy, stale, critical
+        type: string
+      total_views:
+        type: integer
+    type: object
+  radio-backend_internal_domain.PartitionHealth:
+    properties:
+      last_check:
+        type: string
+      missing_future_partitions:
+        type: integer
+      old_partitions_count:
+        type: integer
+      status:
+        description: healthy, warning, critical
+        type: string
+      total_partitions:
+        type: integer
+    type: object
+  radio-backend_internal_domain.PerformanceMetrics:
+    properties:
+      avg_response_time_ms:
+        type: number
+      cache_hit_rate_percent:
+        type: number
+      error_rate_percent:
+        type: number
+      requests_per_second:
+        type: number
     type: object
   radio-backend_internal_domain.PopularCountry:
     properties:
@@ -439,6 +563,18 @@ definitions:
       station_count:
         example: 150
         type: integer
+    type: object
+  radio-backend_internal_domain.RedisHealth:
+    properties:
+      memory_mb:
+        type: integer
+      ping:
+        type: boolean
+      status:
+        description: up, down
+        type: string
+      usage_percent:
+        type: number
     type: object
   radio-backend_internal_domain.SEOMetadata:
     properties:
@@ -536,6 +672,27 @@ definitions:
     - description
     - title
     type: object
+  time.Duration:
+    enum:
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    format: int64
+    type: integer
+    x-enum-varnames:
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
 host: localhost:8080
 info:
   contact:
@@ -560,6 +717,330 @@ info:
   title: Radio Backend API
   version: "2.1"
 paths:
+  /admin/maintenance/check-partitions:
+    get:
+      consumes:
+      - application/json
+      description: Verifies that partitions exist for future months to prevent insertion
+        failures.
+      parameters:
+      - default: 3
+        description: Number of months ahead to check
+        in: query
+        maximum: 12
+        minimum: 1
+        name: months_ahead
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Check results" example({"success":true,"data":{"results":[{"table_name":"station_plays","partition_name":"station_plays_2026_02","partitions_exist":true}],"has_missing":false}})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Check future partitions
+      tags:
+      - Maintenance
+  /admin/maintenance/cleanup-partitions:
+    post:
+      consumes:
+      - application/json
+      description: Removes partitions older than specified retention period to free
+        up disk space.
+      parameters:
+      - default: 12
+        description: Number of months to retain
+        in: query
+        maximum: 36
+        minimum: 1
+        name: retention_months
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cleanup results" example({"success":true,"data":{"results":[{"table_name":"station_plays","partition_name":"station_plays_2024_01","dropped":true,"message":"Partition
+            dropped successfully"}],"total_dropped":3}})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cleanup old partitions
+      tags:
+      - Maintenance
+  /admin/maintenance/full:
+    post:
+      consumes:
+      - application/json
+      description: Executes a complete maintenance routine including view refresh,
+        partition check, and status report.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Full maintenance results
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Perform full maintenance
+      tags:
+      - Maintenance
+  /admin/maintenance/partition-status:
+    get:
+      consumes:
+      - application/json
+      description: Returns detailed status of all partitions including size, row count,
+        and date ranges.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Partition status" example({"success":true,"data":{"partitions":[{"partition_name":"station_plays_2026_01","table_name":"station_plays","row_count":15420,"size_mb":2.5,"total_size_mb":3.2}],"total":18}})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get partition status
+      tags:
+      - Maintenance
+  /admin/maintenance/recommendations:
+    get:
+      consumes:
+      - application/json
+      description: Returns recommendations for database maintenance operations that
+        should be executed. Shows priority levels and reasons.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Maintenance recommendations" example({"success":true,"data":[{"operation":"refresh_views","priority":"warning","reason":"Vista
+            no refrescada en 6+ horas","should_run":true}]})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid
+            or expired token"}})
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin
+            access required"}})
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error" example({"error":{"code":"maintenance_failed","message":"Failed
+            to get recommendations"}})
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get maintenance recommendations
+      tags:
+      - Maintenance
+  /admin/maintenance/refresh-stats:
+    get:
+      consumes:
+      - application/json
+      description: Returns statistics about materialized view refreshes including
+        duration, success rate, and last refresh time.
+      parameters:
+      - default: 7
+        description: Number of days to look back
+        in: query
+        maximum: 90
+        minimum: 1
+        name: days
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refresh statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get refresh statistics
+      tags:
+      - Maintenance
+  /admin/maintenance/refresh-views:
+    post:
+      consumes:
+      - application/json
+      description: Refreshes materialized views used for SEO and analytics. Can refresh
+        all views or specific types (seo/analytics).
+      parameters:
+      - default: all
+        description: 'Type of views to refresh: all, seo, analytics'
+        enum:
+        - all
+        - seo
+        - analytics
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Refresh results" example({"success":true,"data":{"results":[{"view_name":"mv_top_tags_seo","duration_ms":245,"rows_affected":150,"status":"SUCCESS"}],"total":3}})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Refresh materialized views
+      tags:
+      - Maintenance
+  /admin/monitoring/alerts:
+    get:
+      description: |-
+        Returns list of active system alerts based on health checks
+        Alerts include partition issues, stale materialized views, and other problems
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Alerts retrieved successfully
+          schema:
+            properties:
+              alerts:
+                items:
+                  $ref: '#/definitions/radio-backend_internal_domain.Alert'
+                type: array
+            type: object
+        "500":
+          description: Failed to get alerts
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get system alerts
+      tags:
+      - Monitoring
+  /admin/monitoring/health:
+    get:
+      description: |-
+        Returns comprehensive system health metrics including database, Redis, partitions, and materialized views
+        This endpoint provides detailed health information for monitoring and alerting
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Health metrics retrieved successfully
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.HealthMetrics'
+        "500":
+          description: Failed to get health metrics
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get health metrics
+      tags:
+      - Monitoring
   /admin/seo/refresh-stats:
     post:
       description: Updates tag and country statistics from the database. Administrative
@@ -1261,6 +1742,38 @@ paths:
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: User login
+      tags:
+      - Authentication
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Logs out the current user by blacklisting their JWT token
+        The token will be invalidated and cannot be used again
+        The user must login again to get a new token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged out
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.LogoutResponse'
+        "400":
+          description: Invalid request or missing token
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: User not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Failed to logout
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: User logout
       tags:
       - Authentication
   /auth/me:

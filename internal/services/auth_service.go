@@ -708,3 +708,123 @@ func isCommonPassword(password string) bool {
 	}
 	return false
 }
+
+// Logout logs out a user by blacklisting their current token
+func (s *AuthService) Logout(request *domain.LogoutRequest) (*domain.LogoutResponse, error) {
+	// Validate request
+	if request.TokenID == "" {
+		return nil, domain.NewValidationError("token_id", "token ID is required")
+	}
+	if request.UserID == "" {
+		return nil, domain.NewValidationError("user_id", "user ID is required")
+	}
+
+	// Check if token is already blacklisted
+	isBlacklisted, err := s.tokenBlacklist.IsTokenBlacklisted(request.TokenID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check token blacklist: %w", err)
+	}
+
+	if isBlacklisted {
+		return &domain.LogoutResponse{
+			Success: true,
+			Message: "Token was already logged out",
+			TokenID: request.TokenID,
+		}, nil
+	}
+
+	// Validate the token to get expiration time
+	claims, err := s.tokenValidator.ValidateToken(request.TokenID)
+	if err != nil {
+		// Token might be invalid/expired, but we still blacklist it
+		// Use a default expiration time
+		expiresAt := time.Now().Add(24 * time.Hour)
+
+		entry := &domain.TokenBlacklistEntry{
+			TokenJTI:      request.TokenID,
+			UserID:        request.UserID, // UUID string, no conversion needed
+			BlacklistedAt: time.Now(),
+			ExpiresAt:     expiresAt,
+			Reason:        getReasonOrDefault(request.Reason, "user_logout"),
+			IPAddress:     request.IPAddress,
+			UserAgent:     request.UserAgent,
+		}
+
+		if err := s.tokenBlacklist.BlacklistToken(entry); err != nil {
+			return nil, fmt.Errorf("failed to blacklist token: %w", err)
+		}
+
+		return &domain.LogoutResponse{
+			Success:       true,
+			Message:       "Successfully logged out (token was invalid/expired)",
+			TokenID:       request.TokenID,
+			BlacklistedAt: entry.BlacklistedAt,
+		}, nil
+	}
+
+	// Create blacklist entry
+	entry := &domain.TokenBlacklistEntry{
+		TokenJTI:      request.TokenID,
+		UserID:        request.UserID, // UUID string, no conversion needed
+		BlacklistedAt: time.Now(),
+		ExpiresAt:     claims.ExpiresAt,
+		Reason:        getReasonOrDefault(request.Reason, "user_logout"),
+		IPAddress:     request.IPAddress,
+		UserAgent:     request.UserAgent,
+	}
+
+	// Blacklist the token
+	if err := s.tokenBlacklist.BlacklistToken(entry); err != nil {
+		return nil, fmt.Errorf("failed to blacklist token: %w", err)
+	}
+
+	// Deactivate the session if SessionID exists in claims
+	if claims.SessionID != "" {
+		if err := s.sessionRepo.Delete(claims.SessionID); err != nil {
+			// Log the error but don't fail the logout
+			s.logSecurityEvent(&domain.SecurityEvent{
+				Timestamp: time.Now(),
+				Event:     "session.delete.failed",
+				UserID:    request.UserID,
+				TokenID:   request.TokenID,
+				IPAddress: request.IPAddress,
+				UserAgent: request.UserAgent,
+				Reason:    fmt.Sprintf("failed to delete session: %v", err),
+			})
+		}
+	}
+
+	// Log security event
+	s.logSecurityEvent(&domain.SecurityEvent{
+		Timestamp: time.Now(),
+		Event:     "token.blacklisted",
+		UserID:    request.UserID,
+		TokenID:   request.TokenID,
+		IPAddress: request.IPAddress,
+		UserAgent: request.UserAgent,
+		Reason:    request.Reason,
+	})
+
+	return &domain.LogoutResponse{
+		Success:       true,
+		Message:       "Successfully logged out",
+		TokenID:       request.TokenID,
+		BlacklistedAt: entry.BlacklistedAt,
+	}, nil
+}
+
+// getReasonOrDefault returns the reason or a default value
+func getReasonOrDefault(reason, defaultReason string) string {
+	if reason == "" {
+		return defaultReason
+	}
+	return reason
+}
+
+// logSecurityEvent is a helper to log security events without returning errors
+func (s *AuthService) logSecurityEvent(event *domain.SecurityEvent) {
+	if err := s.securityEventRepo.Create(event); err != nil {
+		// Log to application logs but don't fail the operation
+		fmt.Printf("Failed to log security event: %v\n", err)
+	}
+}

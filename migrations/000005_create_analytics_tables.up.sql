@@ -39,10 +39,10 @@ CREATE TABLE station_plays_2026_06 PARTITION OF station_plays
 
 -- Índices en tabla padre (se propagan a particiones)
 CREATE INDEX idx_station_plays_station_created ON station_plays(station_id, created_at DESC);
-CREATE INDEX idx_station_plays_user_created ON station_plays(user_id, created_at DESC) 
+CREATE INDEX idx_station_plays_user_created ON station_plays(user_id, created_at DESC)
     WHERE user_id IS NOT NULL;
 CREATE INDEX idx_station_plays_created ON station_plays(created_at DESC);
-CREATE INDEX idx_station_plays_country ON station_plays(country_code, created_at DESC) 
+CREATE INDEX idx_station_plays_country ON station_plays(country_code, created_at DESC)
     WHERE country_code IS NOT NULL;
 
 -- ============================================
@@ -83,10 +83,10 @@ CREATE TABLE request_logs_2026_06 PARTITION OF request_logs
     FOR VALUES FROM ('2026-06-01') TO ('2026-07-01');
 
 -- Índices
-CREATE INDEX idx_request_logs_user_created ON request_logs(user_id, created_at DESC) 
+CREATE INDEX idx_request_logs_user_created ON request_logs(user_id, created_at DESC)
     WHERE user_id IS NOT NULL;
 CREATE INDEX idx_request_logs_path_created ON request_logs(path, created_at DESC);
-CREATE INDEX idx_request_logs_status_created ON request_logs(status_code, created_at DESC) 
+CREATE INDEX idx_request_logs_status_created ON request_logs(status_code, created_at DESC)
     WHERE status_code >= 400;
 CREATE INDEX idx_request_logs_created ON request_logs(created_at DESC);
 
@@ -125,7 +125,7 @@ CREATE TABLE search_queries_2026_06 PARTITION OF search_queries
 
 -- Índices
 CREATE INDEX idx_search_queries_normalized ON search_queries(query_normalized, created_at DESC);
-CREATE INDEX idx_search_queries_user_created ON search_queries(user_id, created_at DESC) 
+CREATE INDEX idx_search_queries_user_created ON search_queries(user_id, created_at DESC)
     WHERE user_id IS NOT NULL;
 CREATE INDEX idx_search_queries_created ON search_queries(created_at DESC);
 
@@ -151,7 +151,7 @@ CREATE INDEX idx_station_play_stats_station ON station_play_stats(station_id, st
 
 -- Vista materializada para últimos 7 días
 CREATE MATERIALIZED VIEW mv_station_stats_7d AS
-SELECT 
+SELECT
     station_id,
     SUM(total_plays) as plays_7d,
     SUM(total_duration_ms) as duration_7d,

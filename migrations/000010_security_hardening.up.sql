@@ -12,9 +12,9 @@ BEGIN
     IF NEW.user_type = 'admin' AND OLD.user_type != 'admin' THEN
         -- Log intento de escalación
         INSERT INTO security_events (event_type, user_id, reason, metadata)
-        VALUES ('privilege_escalation_attempt', NEW.id, 'Unauthorized admin escalation', 
+        VALUES ('privilege_escalation_attempt', NEW.id, 'Unauthorized admin escalation',
                 jsonb_build_object('old_type', OLD.user_type, 'new_type', NEW.user_type));
-        
+
         RAISE EXCEPTION 'Cannot escalate to admin without authorization';
     END IF;
     RETURN NEW;
@@ -86,11 +86,11 @@ BEGIN
     IF NEW.created_at < NOW() - INTERVAL '3 months' THEN
         RAISE EXCEPTION 'Cannot insert data older than 3 months';
     END IF;
-    
+
     IF NEW.created_at > NOW() + INTERVAL '6 months' THEN
         RAISE EXCEPTION 'Cannot insert data more than 6 months in future';
     END IF;
-    
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -132,18 +132,18 @@ CREATE TABLE brute_force_attempts (
     blocked_until TIMESTAMPTZ
 );
 
-CREATE INDEX idx_brute_force_blocked ON brute_force_attempts(is_blocked, blocked_until) 
+CREATE INDEX idx_brute_force_blocked ON brute_force_attempts(is_blocked, blocked_until)
     WHERE is_blocked = TRUE;
 
 -- ============================================
 -- 7. VIEW SEGURA PARA ADMINS (SIN PASSWORD_HASH)
 -- ============================================
 CREATE VIEW users_safe AS
-SELECT 
-    id, 
-    email, 
-    user_type, 
-    created_at, 
+SELECT
+    id,
+    email,
+    user_type,
+    created_at,
     updated_at
 FROM users;
 
@@ -163,7 +163,7 @@ CREATE INDEX idx_rate_limit_window ON rate_limit_tracking(window_start);
 CREATE OR REPLACE FUNCTION cleanup_rate_limits()
 RETURNS void AS $$
 BEGIN
-    DELETE FROM rate_limit_tracking 
+    DELETE FROM rate_limit_tracking
     WHERE window_start < NOW() - INTERVAL '10 minutes';
 END;
 $$ LANGUAGE plpgsql;
@@ -171,20 +171,20 @@ $$ LANGUAGE plpgsql;
 -- ============================================
 -- COMENTARIOS DE DOCUMENTACIÓN
 -- ============================================
-COMMENT ON TRIGGER prevent_user_type_escalation ON users IS 
+COMMENT ON TRIGGER prevent_user_type_escalation ON users IS
     'Prevents unauthorized privilege escalation to admin role';
 
-COMMENT ON TRIGGER audit_user_role_changes ON users IS 
+COMMENT ON TRIGGER audit_user_role_changes ON users IS
     'Audits all user role changes to security_events table';
 
-COMMENT ON FUNCTION prevent_partition_overflow() IS 
+COMMENT ON FUNCTION prevent_partition_overflow() IS
     'Prevents DoS via inserts in non-existent partitions';
 
-COMMENT ON CONSTRAINT check_name_safe ON stations IS 
+COMMENT ON CONSTRAINT check_name_safe ON stations IS
     'Prevents XSS attacks via station names';
 
-COMMENT ON TABLE brute_force_attempts IS 
+COMMENT ON TABLE brute_force_attempts IS
     'Tracks brute force login attempts by IP address';
 
-COMMENT ON VIEW users_safe IS 
+COMMENT ON VIEW users_safe IS
     'Safe view of users without password_hash for admin queries';

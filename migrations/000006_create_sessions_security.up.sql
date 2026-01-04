@@ -13,14 +13,14 @@ CREATE TABLE sessions (
     token_id VARCHAR(64) NOT NULL,
     ip_address INET,
     user_agent TEXT,
-    
+
     -- Device info desnormalizado
     browser VARCHAR(100),
     os VARCHAR(100),
     device_type VARCHAR(20),
     country CHAR(2),
     city VARCHAR(100),
-    
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_activity TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
@@ -28,11 +28,11 @@ CREATE TABLE sessions (
 );
 
 -- Índices optimizados con parciales
-CREATE INDEX idx_sessions_user_active ON sessions(user_id, is_active, last_activity DESC) 
+CREATE INDEX idx_sessions_user_active ON sessions(user_id, is_active, last_activity DESC)
     WHERE is_active = true;
 CREATE INDEX idx_sessions_session_id ON sessions(session_id);
 CREATE INDEX idx_sessions_token_id ON sessions(token_id);
-CREATE INDEX idx_sessions_expires ON sessions(expires_at) 
+CREATE INDEX idx_sessions_expires ON sessions(expires_at)
     WHERE is_active = true;
 
 -- ============================================
@@ -55,10 +55,10 @@ CREATE TABLE security_events (
 
 -- Índices
 CREATE INDEX idx_security_events_timestamp ON security_events(timestamp DESC);
-CREATE INDEX idx_security_events_user ON security_events(user_id, timestamp DESC) 
+CREATE INDEX idx_security_events_user ON security_events(user_id, timestamp DESC)
     WHERE user_id IS NOT NULL;
 CREATE INDEX idx_security_events_type ON security_events(event_type, timestamp DESC);
-CREATE INDEX idx_security_events_ip ON security_events(ip_address, timestamp DESC) 
+CREATE INDEX idx_security_events_ip ON security_events(ip_address, timestamp DESC)
     WHERE ip_address IS NOT NULL;
 
 -- ============================================
@@ -75,7 +75,7 @@ CREATE TABLE login_attempts (
 );
 
 -- Índices
-CREATE INDEX idx_login_attempts_locked ON login_attempts(is_locked, unlock_at) 
+CREATE INDEX idx_login_attempts_locked ON login_attempts(is_locked, unlock_at)
     WHERE is_locked = TRUE;
 CREATE INDEX idx_login_attempts_last ON login_attempts(last_attempt DESC);
 
@@ -87,13 +87,13 @@ CREATE INDEX idx_login_attempts_last ON login_attempts(last_attempt DESC);
 CREATE OR REPLACE FUNCTION cleanup_expired_sessions()
 RETURNS void AS $$
 BEGIN
-    UPDATE sessions 
-    SET is_active = false 
-    WHERE is_active = true 
+    UPDATE sessions
+    SET is_active = false
+    WHERE is_active = true
       AND expires_at < NOW();
-      
-    DELETE FROM sessions 
-    WHERE is_active = false 
+
+    DELETE FROM sessions
+    WHERE is_active = false
       AND expires_at < NOW() - INTERVAL '30 days';
 END;
 $$ LANGUAGE plpgsql;
@@ -102,12 +102,12 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION unlock_expired_accounts()
 RETURNS void AS $$
 BEGIN
-    UPDATE login_attempts 
-    SET is_locked = FALSE, 
+    UPDATE login_attempts
+    SET is_locked = FALSE,
         failed_count = 0,
         unlock_at = NULL
-    WHERE is_locked = TRUE 
-      AND unlock_at IS NOT NULL 
+    WHERE is_locked = TRUE
+      AND unlock_at IS NOT NULL
       AND unlock_at <= NOW();
 END;
 $$ LANGUAGE plpgsql;

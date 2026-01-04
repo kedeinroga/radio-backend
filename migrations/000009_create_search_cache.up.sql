@@ -21,7 +21,7 @@ CREATE INDEX idx_search_cache_expires ON station_search_cache(expires_at);
 CREATE OR REPLACE FUNCTION cleanup_expired_search_cache()
 RETURNS void AS $$
 BEGIN
-    DELETE FROM station_search_cache 
+    DELETE FROM station_search_cache
     WHERE expires_at < NOW() - INTERVAL '1 hour';
 END;
 $$ LANGUAGE plpgsql;

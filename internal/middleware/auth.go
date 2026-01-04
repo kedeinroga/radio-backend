@@ -106,7 +106,21 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 			return
 		}
 
-		// Check if token is revoked
+		// Check if token is blacklisted (logged out)
+		blacklisted, err := m.tokenBlacklist.IsTokenBlacklisted(claims.TokenID)
+		if err != nil {
+			logger.Error("Failed to check token blacklist", "error", err)
+			c.JSON(500, gin.H{"error": "internal server error"})
+			c.Abort()
+			return
+		}
+		if blacklisted {
+			c.JSON(401, gin.H{"error": "token has been logged out"})
+			c.Abort()
+			return
+		}
+
+		// Check if token is revoked (legacy check)
 		revoked, err := m.tokenBlacklist.IsTokenRevoked(claims.TokenID)
 		if err != nil || revoked {
 			c.JSON(401, gin.H{"error": "token revoked"})
@@ -227,6 +241,21 @@ func GetUserID(c *gin.Context) *string {
 	}
 
 	return &id
+}
+
+// GetTokenID returns the token ID (JTI) from context
+func GetTokenID(c *gin.Context) *string {
+	tokenID, exists := c.Get("token_id")
+	if !exists {
+		return nil
+	}
+
+	jti, ok := tokenID.(string)
+	if !ok {
+		return nil
+	}
+
+	return &jti
 }
 
 // validateSessionSecurity validates session security by checking User-Agent

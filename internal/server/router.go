@@ -31,6 +31,8 @@ type Router struct {
 	seoHandler         *handlers.SEOHandler         // NUEVO: Handler SEO
 	translationHandler *handlers.TranslationHandler // NUEVO: Handler de traducciones
 	securityHandler    *handlers.SecurityHandler    // NUEVO: Handler de seguridad
+	maintenanceHandler *handlers.MaintenanceHandler // NUEVO: Handler de mantenimiento
+	monitoringHandler  *handlers.MonitoringHandler  // NUEVO: Handler de monitoring
 }
 
 // NewRouter creates a new router
@@ -48,6 +50,8 @@ func NewRouter(
 	seoHandler *handlers.SEOHandler, // NUEVO: Handler SEO
 	translationHandler *handlers.TranslationHandler, // NUEVO: Handler de traducciones
 	securityHandler *handlers.SecurityHandler, // NUEVO: Handler de seguridad
+	maintenanceHandler *handlers.MaintenanceHandler, // NUEVO: Handler de mantenimiento
+	monitoringHandler *handlers.MonitoringHandler, // NUEVO: Handler de monitoring
 ) *Router {
 	return &Router{
 		engine:              gin.New(),
@@ -64,6 +68,8 @@ func NewRouter(
 		seoHandler:          seoHandler,         // NUEVO
 		translationHandler:  translationHandler, // NUEVO
 		securityHandler:     securityHandler,    // NUEVO
+		maintenanceHandler:  maintenanceHandler, // NUEVO
+		monitoringHandler:   monitoringHandler,  // NUEVO
 	}
 }
 
@@ -98,6 +104,7 @@ func (r *Router) Setup() *gin.Engine {
 			auth.POST("/refresh", r.authHandler.RefreshToken)
 			auth.POST("/validate", r.authHandler.ValidateToken)                          // NUEVO: Validate token
 			auth.POST("/revoke", r.authMiddleware.Required(), r.authHandler.RevokeToken) // NUEVO: Revoke tokens
+			auth.POST("/logout", r.authMiddleware.Required(), r.authHandler.Logout)      // NUEVO: Logout endpoint
 			auth.GET("/me", r.authMiddleware.Required(), r.authHandler.Me)
 			auth.GET("/sessions", r.authMiddleware.Required(), r.authHandler.GetSessions)                 // NUEVO: List sessions
 			auth.DELETE("/sessions/:sessionId", r.authMiddleware.Required(), r.authHandler.DeleteSession) // NUEVO: Delete session
@@ -170,6 +177,27 @@ func (r *Router) Setup() *gin.Engine {
 		{
 			adminSecurity.GET("/metrics", r.securityHandler.GetMetrics)
 			adminSecurity.GET("/logs", r.securityHandler.GetLogs)
+		}
+
+		// Admin Maintenance routes
+		adminMaintenance := v1.Group("/admin/maintenance")
+		adminMaintenance.Use(r.authMiddleware.Required(), r.authMiddleware.AdminOnly())
+		{
+			adminMaintenance.GET("/recommendations", r.maintenanceHandler.GetRecommendations)
+			adminMaintenance.POST("/refresh-views", r.maintenanceHandler.RefreshViews)
+			adminMaintenance.GET("/refresh-stats", r.maintenanceHandler.GetRefreshStatistics)
+			adminMaintenance.POST("/cleanup-partitions", r.maintenanceHandler.CleanupPartitions)
+			adminMaintenance.GET("/check-partitions", r.maintenanceHandler.CheckPartitions)
+			adminMaintenance.GET("/partition-status", r.maintenanceHandler.GetPartitionStatus)
+			adminMaintenance.POST("/full", r.maintenanceHandler.PerformFullMaintenance)
+		}
+
+		// Admin Monitoring routes
+		adminMonitoring := v1.Group("/admin/monitoring")
+		adminMonitoring.Use(r.authMiddleware.Required(), r.authMiddleware.AdminOnly())
+		{
+			adminMonitoring.GET("/health", r.monitoringHandler.GetHealthMetrics)
+			adminMonitoring.GET("/alerts", r.monitoringHandler.GetAlerts)
 		}
 	}
 

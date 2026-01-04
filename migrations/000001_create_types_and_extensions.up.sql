@@ -8,6 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- Full-text search trigram
 
 -- Tipos ENUM para validación a nivel de BD
+DROP TYPE IF EXISTS user_type_enum CASCADE;
 CREATE TYPE user_type_enum AS ENUM ('guest', 'premium', 'admin');
 
 -- Función reutilizable para auto-update del campo updated_at

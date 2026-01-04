@@ -596,3 +596,61 @@ func (h *AuthHandler) DeleteSession(c *gin.Context) {
 		"message": "Session terminated successfully",
 	})
 }
+
+// Logout logs out the current user by blacklisting their token
+// @Summary User logout
+// @Description Logs out the current user by blacklisting their JWT token
+// @Description The token will be invalidated and cannot be used again
+// @Description The user must login again to get a new token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} domain.LogoutResponse "Successfully logged out"
+// @Failure 400 {object} ErrorResponse "Invalid request or missing token"
+// @Failure 401 {object} ErrorResponse "User not authenticated"
+// @Failure 500 {object} ErrorResponse "Failed to logout"
+// @Router /auth/logout [post]
+func (h *AuthHandler) Logout(c *gin.Context) {
+	// Get user ID from context (set by auth middleware)
+	userID := middleware.GetUserID(c)
+	if userID == nil {
+		RespondWithError(c, http.StatusUnauthorized, "unauthorized", "User not authenticated")
+		return
+	}
+
+	// Get token JTI from context (set by auth middleware)
+	tokenID := middleware.GetTokenID(c)
+	if tokenID == nil || *tokenID == "" {
+		RespondWithError(c, http.StatusBadRequest, "invalid_token", "Token ID not found")
+		return
+	}
+
+	// Get IP address and user agent
+	ipAddress := c.ClientIP()
+	userAgent := c.GetHeader("User-Agent")
+
+	// Create logout request
+	logoutReq := &domain.LogoutRequest{
+		TokenID:   *tokenID,
+		UserID:    *userID,
+		IPAddress: ipAddress,
+		UserAgent: userAgent,
+		Reason:    "user_logout",
+	}
+
+	// Perform logout
+	response, err := h.authService.Logout(logoutReq)
+	if err != nil {
+		// Check if it's a validation error
+		if domainErr, ok := err.(*domain.DomainError); ok {
+			RespondWithError(c, http.StatusBadRequest, domainErr.Code, domainErr.Message)
+			return
+		}
+
+		RespondWithError(c, http.StatusInternalServerError, "logout_failed", "Failed to logout")
+		return
+	}
+
+	RespondWithSuccess(c, http.StatusOK, response)
+}

@@ -131,6 +131,7 @@ func main() {
 	securityEventRepo := postgres.NewSecurityEventRepository(db.DB) // NUEVO: Security event repo
 	loginAttemptRepo := postgres.NewLoginAttemptRepository(db.DB)   // NUEVO: Login attempt repo
 	securityRepo := postgres.NewSecurityRepository(db.DB)           // NUEVO: Security repo
+	maintenanceRepo := postgres.NewMaintenanceRepository(db.DB)     // NUEVO: Maintenance repo
 	radioBrowserRepo := radiobrowser.NewRepository(cfg.External.RadioBrowserAPIURL)
 
 	// Initialize cache components
@@ -141,6 +142,9 @@ func main() {
 	translationService := services.NewTranslationService(translationRepo, stationCacheRepo)                      // NUEVO: Servicio de traducciones
 	seoService := services.NewSEOService(seoRepo, seoCache, translationService, slugService, cfg.Server.BaseURL) // NUEVO: Servicio SEO
 	securityService := services.NewSecurityService(securityRepo)                                                 // NUEVO: Servicio de seguridad
+	maintenanceService := services.NewMaintenanceService(maintenanceRepo)                                        // NUEVO: Servicio de mantenimiento
+	monitoringService := services.NewMonitoringService(maintenanceService)                                       // NUEVO: Servicio de monitoring
+	tokenBlacklistRepo := postgres.NewTokenBlacklistRepository(db.DB)                                            // NUEVO: Token blacklist repository (PostgreSQL)
 	authService := services.NewAuthService(
 		userRepo,
 		sessionRepo,       // NUEVO: Session repository
@@ -149,7 +153,7 @@ func main() {
 		passwordHasher,
 		tokenManager,
 		tokenManager,
-		redisClient, // NUEVO: Token blacklist (Redis)
+		tokenBlacklistRepo, // NUEVO: Token blacklist (PostgreSQL)
 	)
 	analyticsService := services.NewAnalyticsService(analyticsRepo, redisClient)
 	stationService := services.NewStationService(
@@ -164,7 +168,7 @@ func main() {
 	favoriteService := services.NewFavoriteService(favoriteRepo, stationCacheRepo, stationService)
 
 	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(tokenManager, redisClient, sessionRepo) // Pass sessionRepo for validation
+	authMiddleware := middleware.NewAuthMiddleware(tokenManager, tokenBlacklistRepo, sessionRepo) // Pass tokenBlacklistRepo for validation
 	analyticsMiddleware := middleware.NewAnalyticsMiddleware(analyticsService)
 	corsMiddleware := middleware.CORSMiddleware(
 		cfg.CORS.AllowedOrigins,
@@ -185,6 +189,8 @@ func main() {
 	seoHandler := handlers.NewSEOHandler(seoService)                         // NUEVO: Handler SEO
 	translationHandler := handlers.NewTranslationHandler(translationService) // NUEVO: Handler de traducciones
 	securityHandler := handlers.NewSecurityHandler(securityService)          // NUEVO: Handler de seguridad
+	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService) // NUEVO: Handler de mantenimiento
+	monitoringHandler := handlers.NewMonitoringHandler(monitoringService)    // NUEVO: Handler de monitoring
 
 	// Setup router
 	router := server.NewRouter(
@@ -201,6 +207,8 @@ func main() {
 		seoHandler,         // NUEVO: Inyectar SEO handler
 		translationHandler, // NUEVO: Inyectar Translation handler
 		securityHandler,    // NUEVO: Inyectar Security handler
+		maintenanceHandler, // NUEVO: Inyectar Maintenance handler
+		monitoringHandler,  // NUEVO: Inyectar Monitoring handler
 	)
 	engine := router.Setup()
 

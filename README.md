@@ -123,6 +123,7 @@ The server will start on `http://localhost:8080`
 - `POST /api/v1/auth/register` - Register new user
 - `POST /api/v1/auth/login` - Login user (returns enhanced response with session info)
 - `POST /api/v1/auth/refresh` - Refresh access token (returns enhanced response)
+- `POST /api/v1/auth/logout` - **NEW** Logout user (blacklists JWT token)
 - `GET /api/v1/auth/me` - Get current user (requires auth)
 - `POST /api/v1/auth/validate` - **NEW** Validate token and get claims
 - `POST /api/v1/auth/revoke` - **NEW** Revoke tokens (by token_id, session_id, or all)
@@ -148,6 +149,23 @@ The server will start on `http://localhost:8080`
 - `GET /api/v1/admin/security/logs` - **NEW** Security event logs with filtering
 
 📖 **[Security Admin Endpoints Documentation →](docs/SECURITY_ADMIN_ENDPOINTS.md)**
+
+### Admin Maintenance (Admin Only) 🔧 NEW
+
+- `GET /api/v1/admin/maintenance/recommendations` - **NEW** Get intelligent maintenance recommendations
+- `POST /api/v1/admin/maintenance/refresh-views?type=all|seo|analytics` - **NEW** Refresh materialized views
+- `GET /api/v1/admin/maintenance/refresh-stats?days=7` - **NEW** View refresh statistics
+- `POST /api/v1/admin/maintenance/cleanup-partitions?retention_months=12` - **NEW** Clean up old partitions
+- `GET /api/v1/admin/maintenance/check-partitions?months_ahead=3` - **NEW** Verify future partitions exist
+- `GET /api/v1/admin/maintenance/partition-status` - **NEW** Get partition sizes and row counts
+- `POST /api/v1/admin/maintenance/full` - **NEW** Execute complete maintenance routine
+
+📖 **[Complete Maintenance Guide →](docs/MAINTENANCE.md)**
+
+### Admin Monitoring (Admin Only) 📊 NEW
+
+- `GET /api/v1/admin/monitoring/health` - **NEW** Get comprehensive system health metrics
+- `GET /api/v1/admin/monitoring/alerts` - **NEW** Get active system alerts and warnings
 
 ### SEO (Public)
 
