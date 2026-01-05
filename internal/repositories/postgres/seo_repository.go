@@ -218,25 +218,26 @@ func (r *SEORepository) UpdateCountryStats() error {
 	query := `
 		WITH country_data AS (
 			SELECT
+				country_code,
 				TRIM(country) as country_name,
 				COUNT(*) as station_count
 			FROM stations
-			WHERE country IS NOT NULL
-			AND country != ''
+			WHERE country_code IS NOT NULL
+			AND country_code != ''
 			AND is_active = true
-			AND LENGTH(TRIM(country)) > 0
-			GROUP BY TRIM(country)
+			GROUP BY country_code, TRIM(country)
 		)
-		INSERT INTO seo_country_stats (country_name, slug, station_count, last_updated)
+		INSERT INTO seo_country_stats (country_code, country_name, slug, station_count, last_updated)
 		SELECT
+			country_code,
 			country_name,
 			LEFT(LOWER(REGEXP_REPLACE(country_name, '[^a-z0-9]+', '-', 'g')), 100) as slug,
 			station_count,
 			NOW()
 		FROM country_data
-		WHERE LENGTH(country_name) > 0
-		ON CONFLICT (country_name)
+		ON CONFLICT (country_code)
 		DO UPDATE SET
+			country_name = EXCLUDED.country_name,
 			slug = EXCLUDED.slug,
 			station_count = EXCLUDED.station_count,
 			last_updated = EXCLUDED.last_updated
