@@ -12,18 +12,20 @@ import (
 
 // Config holds all application configuration
 type Config struct {
-	Server    ServerConfig
-	Database  DatabaseConfig
-	Redis     RedisConfig
-	JWT       JWTConfig
-	External  ExternalConfig
-	Logging   LoggingConfig
-	Analytics AnalyticsConfig
-	Security  SecurityConfig
-	CORS      CORSConfig
-	Cache     CacheConfig
-	Features  FeatureFlags
-	Vault     VaultConfig
+	Server      ServerConfig
+	Database    DatabaseConfig
+	Redis       RedisConfig
+	JWT         JWTConfig
+	External    ExternalConfig
+	Logging     LoggingConfig
+	Analytics   AnalyticsConfig
+	Security    SecurityConfig
+	CORS        CORSConfig
+	Cache       CacheConfig
+	Features    FeatureFlags
+	Vault       VaultConfig
+	Advertising AdvertisingConfig
+	Stripe      StripeConfig
 }
 
 // ServerConfig holds server configuration
@@ -113,6 +115,30 @@ type VaultConfig struct {
 	SecretPath string
 }
 
+// AdvertisingConfig holds advertising configuration
+type AdvertisingConfig struct {
+	ImpressionTokenSecret string
+	ImpressionTokenMaxAge time.Duration
+	CacheTTL              time.Duration
+	FrequencyCapHourly    int
+	FrequencyCapDaily     int
+	FraudScoreThreshold   float64
+	RateLimitRequests     int
+	RateLimitWindow       time.Duration
+}
+
+// StripeConfig holds Stripe payment configuration
+type StripeConfig struct {
+	SecretKey         string
+	PublishableKey    string
+	WebhookSecret     string
+	PriceIDMonthly    string
+	PriceIDYearly     string
+	SuccessURL        string
+	CancelURL         string
+	CustomerPortalURL string
+}
+
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
 	// Load .env file if it exists (ignore error in production)
@@ -181,6 +207,26 @@ func Load() (*Config, error) {
 			Addr:       getEnv("VAULT_ADDR", ""),
 			Token:      getEnv("VAULT_TOKEN", ""),
 			SecretPath: getEnv("VAULT_SECRET_PATH", "secret/radio-backend"),
+		},
+		Advertising: AdvertisingConfig{
+			ImpressionTokenSecret: getEnv("AD_IMPRESSION_TOKEN_SECRET", ""),
+			ImpressionTokenMaxAge: getDurationEnv("AD_IMPRESSION_TOKEN_MAX_AGE", 5*time.Minute),
+			CacheTTL:              getDurationEnv("AD_CACHE_TTL", 10*time.Minute),
+			FrequencyCapHourly:    getIntEnv("AD_FREQUENCY_CAP_HOURLY", 6),
+			FrequencyCapDaily:     getIntEnv("AD_FREQUENCY_CAP_DAILY", 30),
+			FraudScoreThreshold:   getFloat64Env("AD_FRAUD_SCORE_THRESHOLD", 0.7),
+			RateLimitRequests:     getIntEnv("AD_RATE_LIMIT_REQUESTS", 50),
+			RateLimitWindow:       getDurationEnv("AD_RATE_LIMIT_WINDOW", 1*time.Minute),
+		},
+		Stripe: StripeConfig{
+			SecretKey:         getEnv("STRIPE_SECRET_KEY", ""),
+			PublishableKey:    getEnv("STRIPE_PUBLISHABLE_KEY", ""),
+			WebhookSecret:     getEnv("STRIPE_WEBHOOK_SECRET", ""),
+			PriceIDMonthly:    getEnv("STRIPE_PRICE_ID_MONTHLY", ""),
+			PriceIDYearly:     getEnv("STRIPE_PRICE_ID_YEARLY", ""),
+			SuccessURL:        getEnv("STRIPE_SUCCESS_URL", "http://localhost:3000/premium/success"),
+			CancelURL:         getEnv("STRIPE_CANCEL_URL", "http://localhost:3000/premium/cancel"),
+			CustomerPortalURL: getEnv("STRIPE_CUSTOMER_PORTAL_URL", "https://billing.stripe.com/p/login/test_"),
 		},
 	}
 
@@ -257,6 +303,15 @@ func getDurationEnv(key string, defaultValue time.Duration) time.Duration {
 func getSliceEnv(key string, defaultValue []string) []string {
 	if value := os.Getenv(key); value != "" {
 		return strings.Split(value, ",")
+	}
+	return defaultValue
+}
+
+func getFloat64Env(key string, defaultValue float64) float64 {
+	if value := os.Getenv(key); value != "" {
+		if floatValue, err := strconv.ParseFloat(value, 64); err == nil {
+			return floatValue
+		}
 	}
 	return defaultValue
 }

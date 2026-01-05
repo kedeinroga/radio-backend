@@ -1398,6 +1398,1655 @@
                 }
             }
         },
+        "/api/v1/ads": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new advertisement within a campaign. Supports multiple ad formats (banner, interstitial, audio, native) and ad types (image, video, audio, html). Includes targeting options for countries, genres, languages, and devices. Pricing can be CPM (cost per mille impressions) or CPC (cost per click).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "Create a new advertisement",
+                "parameters": [
+                    {
+                        "description": "Advertisement data",
+                        "name": "advertisement",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.CreateAdvertisementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Advertisement created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or campaign_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ads/eligible": {
+            "get": {
+                "description": "**KEY ENDPOINT FOR FRONTEND**: Returns advertisements that match the user's profile and targeting criteria. Considers geographic location, language, device type, genre preferences, frequency capping, and premium status. Premium users receive empty array. Uses smart caching and fraud detection.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "Get eligible advertisements for user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID) - optional for guest users",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User's country code (e.g., 'US', 'MX', 'ES')",
+                        "name": "country",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Current station genre/tag (e.g., 'rock', 'jazz')",
+                        "name": "genre",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User's preferred language code (e.g., 'en', 'es', 'fr')",
+                        "name": "language",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Device type: 'mobile', 'tablet', 'desktop', 'smart_speaker'",
+                        "name": "device",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Whether user has premium subscription (default: false)",
+                        "name": "is_premium",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of ads to return (default: 5, max: 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of eligible advertisements (empty for premium users)",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ads/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves detailed information about a specific advertisement including current statistics (impressions, clicks, spend, CTR).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "Get advertisement details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Advertisement details",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Advertisement not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing advertisement. All fields are optional - only provided fields will be updated. Cannot update if campaign is paused or budget is exhausted.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "Update advertisement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "advertisement",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.UpdateAdvertisementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated advertisement",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format or request body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Advertisement not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently deletes an advertisement. This action cannot be undone. All associated statistics will be preserved but the ad will no longer be served.",
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "Delete advertisement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Advertisement deleted successfully (no content)"
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Advertisement not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/ads/{id}/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves comprehensive performance statistics for a specific advertisement including impressions, clicks, CTR (click-through rate), total spend, and remaining budget. Useful for campaign performance monitoring.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "Get advertisement statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Advertisement statistics with impressions, clicks, CTR, spend, and budget info",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Advertisement not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/advertisers/{advertiser_id}/campaigns": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all advertising campaigns belonging to a specific advertiser. Useful for advertiser dashboard to see all their campaigns.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "List campaigns by advertiser",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertiser ID (UUID)",
+                        "name": "advertiser_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of campaigns",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertiser ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new advertising campaign for an advertiser. Campaign starts in 'draft' status and must be explicitly activated. Budget is specified in cents (USD). Validates that end_date is after start_date and budget is at least $10.00.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Create advertising campaign",
+                "parameters": [
+                    {
+                        "description": "Campaign data",
+                        "name": "campaign",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.CreateCampaignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Campaign created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or advertiser_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns/active": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all campaigns with 'active' status that are currently running and serving ads.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "List active campaigns",
+                "responses": {
+                    "200": {
+                        "description": "List of active campaigns",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns/{campaign_id}/ads": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all advertisements belonging to a specific campaign. Useful for campaign managers to see all their ads in one place.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Advertisements"
+                ],
+                "summary": "List advertisements by campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "campaign_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of advertisements",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid campaign ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves detailed information about a specific campaign including budget utilization, spend tracking, and current status.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Get campaign details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign details",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid campaign ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Campaign not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing campaign. All fields are optional - only provided fields will be updated. Budget can only be increased, not decreased. Cannot update if campaign is completed.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Update campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to update",
+                        "name": "campaign",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.UpdateCampaignRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated campaign",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format or request body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Campaign not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Permanently deletes a campaign and all its associated advertisements. This action cannot be undone. All statistics will be preserved but ads will no longer be served.",
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Delete campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Campaign deleted successfully (no content)"
+                    },
+                    "400": {
+                        "description": "Invalid campaign ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Campaign not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns/{id}/pause": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Pauses an active advertising campaign. All ads in the campaign will stop being served immediately. Campaign can be resumed later.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Pause campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign paused successfully",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid campaign ID or campaign cannot be paused",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Campaign not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns/{id}/resume": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Resumes a paused advertising campaign. All ads in the campaign will start being served again if they meet targeting criteria and budget is available.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Resume campaign",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign resumed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/radio-backend_internal_domain.AdCampaign"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid campaign ID or campaign cannot be resumed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Campaign not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/campaigns/{id}/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves comprehensive performance statistics for a campaign including total impressions, clicks, average CTR, total spend, number of active ads, and top performing ad.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Campaigns"
+                ],
+                "summary": "Get campaign statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Campaign ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Campaign statistics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid campaign ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Campaign not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/premium/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "premium"
+                ],
+                "summary": "Cancel subscription",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/premium/checkout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "premium"
+                ],
+                "summary": "Create checkout session",
+                "parameters": [
+                    {
+                        "description": "Checkout request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.CreateCheckoutSessionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.CreateCheckoutSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/premium/portal": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "premium"
+                ],
+                "summary": "Get customer portal URL",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.CustomerPortalResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/premium/status": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "premium"
+                ],
+                "summary": "Get premium status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.PremiumStatusResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{user_id}/ad-profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves the user's advertising profile including premium status, ad interaction statistics, and preferences.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Ad Profile"
+                ],
+                "summary": "Get user advertising profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User advertising profile",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Profile not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates user's advertising preferences such as preferred genres for better ad targeting.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Ad Profile"
+                ],
+                "summary": "Update user ad preferences",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Profile updates",
+                        "name": "profile",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated profile",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{user_id}/ad-profile/activate-premium": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Activates premium subscription for a user after successful Stripe payment. Call this endpoint from your Stripe webhook handler.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Ad Profile"
+                ],
+                "summary": "Activate premium subscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Premium subscription details from Stripe",
+                        "name": "premium",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ActivatePremiumRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile with premium activated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{user_id}/ad-profile/can-show-ad": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Checks if a user is eligible to see advertisements based on premium status and frequency capping rules. Returns eligibility status and reason if blocked.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Ad Profile"
+                ],
+                "summary": "Check if user can see ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Eligibility check result with can_show_ad boolean, reason string, and next_eligible_at timestamp",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{user_id}/ad-profile/deactivate-premium": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deactivates premium subscription for a user (e.g., after cancellation or expiration). User will start seeing ads again.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Ad Profile"
+                ],
+                "summary": "Deactivate premium subscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success message",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{user_id}/ad-profile/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves statistics about user's ad interactions including total impressions, clicks, and CTR.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User Ad Profile"
+                ],
+                "summary": "Get user ad interaction statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User ad statistics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - JWT token required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Authenticates a user and returns JWT tokens with session information.\nIncludes access token, refresh token, session ID, and token metadata.\n\n**Security Features:**\n- Password hashing: bcrypt with cost factor 12\n- Timing attack prevention: Constant-time operations\n- Rate limiting: 5 attempts per IP per 15 minutes\n- Email rate limiting: 10 attempts per email per hour\n- Account lockout: 10 failed attempts = 30 minute lockout\n- Session hijacking protection: User-Agent validation\n- Security event logging: All failed login attempts logged\n- HTTPS enforcement: Production environment only\n\n**Error Codes:**\n- `INVALID_CREDENTIALS`: Invalid email or password\n- `ACCOUNT_LOCKED`: Account temporarily locked due to multiple failed attempts\n- `TOO_MANY_ATTEMPTS`: Rate limit exceeded (IP or email)\n- `VALIDATION_ERROR`: Invalid input format",
@@ -2382,6 +4031,292 @@
                 }
             }
         },
+        "/stream/heartbeat": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Actualiza el timestamp de última actividad de una sesión",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Streaming"
+                ],
+                "summary": "Enviar heartbeat de sesión",
+                "parameters": [
+                    {
+                        "description": "Session ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.HeartbeatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stream/proxy": {
+            "get": {
+                "description": "Hace proxy del stream de audio de una estación validando el token de sesión",
+                "produces": [
+                    "audio/mpeg"
+                ],
+                "tags": [
+                    "Streaming"
+                ],
+                "summary": "Proxy de stream de audio",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token JWT de la sesión",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido o expirado",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Estación no encontrada",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "502": {
+                        "description": "Error al conectar con el stream",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stream/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna todas las sesiones de streaming activas del usuario autenticado",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Streaming"
+                ],
+                "summary": "Obtener sesiones activas del usuario",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ActiveSessionsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stream/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Crea una nueva sesión de streaming y retorna un token para acceder al proxy",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Streaming"
+                ],
+                "summary": "Iniciar sesión de streaming",
+                "parameters": [
+                    {
+                        "description": "Datos de la sesión",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StartSessionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StartSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stream/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retorna información sobre streams actualmente activos (solo admin)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Streaming"
+                ],
+                "summary": "Obtener estadísticas de streams activos",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StreamStatsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/stream/stop": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Finaliza una sesión de streaming y valida impresiones de anuncios si aplica",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Streaming"
+                ],
+                "summary": "Detener sesión de streaming",
+                "parameters": [
+                    {
+                        "description": "Session ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.StopSessionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/translations/{stationId}/languages": {
             "get": {
                 "description": "Gets the list of languages for which translations exist for a station. Useful for showing a language selector in the frontend. Returns language codes: es, en, fr, de",
@@ -2425,9 +4360,109 @@
                     }
                 }
             }
+        },
+        "/webhooks/stripe": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "premium"
+                ],
+                "summary": "Handle Stripe webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Stripe webhook signature",
+                        "name": "Stripe-Signature",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "gin.H": {
+            "type": "object",
+            "additionalProperties": {}
+        },
+        "internal_handlers.ActivatePremiumRequest": {
+            "type": "object",
+            "required": [
+                "expires_at",
+                "stripe_customer_id",
+                "stripe_subscription_id"
+            ],
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "stripe_customer_id": {
+                    "type": "string"
+                },
+                "stripe_subscription_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.ActiveSessionInfo": {
+            "type": "object",
+            "properties": {
+                "ad_id": {
+                    "type": "string"
+                },
+                "bytes_streamed": {
+                    "type": "integer"
+                },
+                "last_heartbeat": {
+                    "type": "string"
+                },
+                "listening_duration": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.ActiveSessionsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "sessions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.ActiveSessionInfo"
+                    }
+                }
+            }
+        },
         "internal_handlers.AddFavoriteRequest": {
             "type": "object",
             "required": [
@@ -2435,6 +4470,177 @@
             ],
             "properties": {
                 "station_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.CreateAdvertisementRequest": {
+            "type": "object",
+            "required": [
+                "ad_format",
+                "ad_type",
+                "advertiser_name",
+                "campaign_id",
+                "click_url",
+                "end_date",
+                "media_url",
+                "start_date",
+                "title",
+                "total_budget_cents"
+            ],
+            "properties": {
+                "ad_format": {
+                    "type": "string",
+                    "enum": [
+                        "banner",
+                        "interstitial",
+                        "audio",
+                        "native"
+                    ]
+                },
+                "ad_type": {
+                    "type": "string",
+                    "enum": [
+                        "image",
+                        "video",
+                        "audio",
+                        "html"
+                    ]
+                },
+                "advertiser_name": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "campaign_id": {
+                    "type": "string"
+                },
+                "click_url": {
+                    "type": "string"
+                },
+                "cpc_rate_cents": {
+                    "type": "integer"
+                },
+                "cpm_rate_cents": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "max_impressions_per_day": {
+                    "type": "integer"
+                },
+                "max_impressions_per_user": {
+                    "type": "integer"
+                },
+                "media_url": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "target_countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3
+                },
+                "total_budget_cents": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "internal_handlers.CreateCampaignRequest": {
+            "type": "object",
+            "required": [
+                "advertiser_id",
+                "end_date",
+                "name",
+                "start_date",
+                "total_budget_cents"
+            ],
+            "properties": {
+                "advertiser_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "total_budget_cents": {
+                    "type": "integer",
+                    "minimum": 1000
+                }
+            }
+        },
+        "internal_handlers.CreateCheckoutSessionRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "plan"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "plan": {
+                    "description": "\"monthly\" or \"yearly\"",
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.CreateCheckoutSessionResponse": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string"
+                },
+                "session_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.CustomerPortalResponse": {
+            "type": "object",
+            "properties": {
+                "portal_url": {
                     "type": "string"
                 }
             }
@@ -2500,6 +4706,17 @@
                 }
             }
         },
+        "internal_handlers.HeartbeatRequest": {
+            "type": "object",
+            "required": [
+                "session_id"
+            ],
+            "properties": {
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handlers.Location": {
             "type": "object",
             "properties": {
@@ -2562,6 +4779,20 @@
                 "token_type": {
                     "type": "string",
                     "example": "Bearer"
+                }
+            }
+        },
+        "internal_handlers.PremiumStatusResponse": {
+            "type": "object",
+            "properties": {
+                "is_premium": {
+                    "type": "boolean"
+                },
+                "premium_expires_at": {
+                    "type": "string"
+                },
+                "stripe_customer_id": {
+                    "type": "string"
                 }
             }
         },
@@ -2836,6 +5067,35 @@
                 }
             }
         },
+        "internal_handlers.StartSessionRequest": {
+            "type": "object",
+            "required": [
+                "station_id"
+            ],
+            "properties": {
+                "ad_id": {
+                    "description": "Opcional",
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.StartSessionResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "stream_url": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handlers.StationDTO": {
             "type": "object",
             "properties": {
@@ -2913,12 +5173,130 @@
                 }
             }
         },
+        "internal_handlers.StopSessionRequest": {
+            "type": "object",
+            "required": [
+                "session_id"
+            ],
+            "properties": {
+                "session_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.StreamStatsResponse": {
+            "type": "object",
+            "properties": {
+                "active_streams": {
+                    "type": "integer"
+                },
+                "streams": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_services.StreamInfo"
+                    }
+                }
+            }
+        },
         "internal_handlers.SuccessResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string",
                     "example": "Operation completed successfully"
+                }
+            }
+        },
+        "internal_handlers.UpdateAdvertisementRequest": {
+            "type": "object",
+            "properties": {
+                "click_url": {
+                    "type": "string"
+                },
+                "cpc_rate_cents": {
+                    "type": "integer"
+                },
+                "cpm_rate_cents": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "max_impressions_per_day": {
+                    "type": "integer"
+                },
+                "max_impressions_per_user": {
+                    "type": "integer"
+                },
+                "media_url": {
+                    "type": "string"
+                },
+                "target_countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3
+                },
+                "total_budget_cents": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "internal_handlers.UpdateCampaignRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "minLength": 3
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "total_budget_cents": {
+                    "type": "integer",
+                    "minimum": 1000
+                }
+            }
+        },
+        "internal_handlers.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "preferred_genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2966,6 +5344,207 @@
                 }
             }
         },
+        "radio-backend_internal_domain.AdCampaign": {
+            "type": "object",
+            "properties": {
+                "advertiser_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "daily_budget_cents": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "spent_cents": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.CampaignStatus"
+                },
+                "total_budget_cents": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.AdFormat": {
+            "type": "string",
+            "enum": [
+                "banner",
+                "interstitial",
+                "audio",
+                "native"
+            ],
+            "x-enum-varnames": [
+                "AdFormatBanner",
+                "AdFormatInterstitial",
+                "AdFormatAudio",
+                "AdFormatNative"
+            ]
+        },
+        "radio-backend_internal_domain.AdStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "active",
+                "paused",
+                "completed",
+                "expired"
+            ],
+            "x-enum-varnames": [
+                "AdStatusDraft",
+                "AdStatusActive",
+                "AdStatusPaused",
+                "AdStatusCompleted",
+                "AdStatusExpired"
+            ]
+        },
+        "radio-backend_internal_domain.AdType": {
+            "type": "string",
+            "enum": [
+                "image",
+                "video",
+                "audio",
+                "html"
+            ],
+            "x-enum-varnames": [
+                "AdTypeImage",
+                "AdTypeVideo",
+                "AdTypeAudio",
+                "AdTypeHTML"
+            ]
+        },
+        "radio-backend_internal_domain.Advertisement": {
+            "type": "object",
+            "properties": {
+                "ad_format": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.AdFormat"
+                },
+                "ad_type": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.AdType"
+                },
+                "advertiser_name": {
+                    "type": "string"
+                },
+                "campaign_id": {
+                    "type": "string"
+                },
+                "click_url": {
+                    "type": "string"
+                },
+                "clicks_count": {
+                    "type": "integer"
+                },
+                "companion_banner_url": {
+                    "type": "string"
+                },
+                "cpc_rate_cents": {
+                    "type": "integer"
+                },
+                "cpm_rate_cents": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "daily_budget_cents": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration_seconds": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "impressions_count": {
+                    "type": "integer"
+                },
+                "max_impressions_per_day": {
+                    "type": "integer"
+                },
+                "max_impressions_per_user": {
+                    "type": "integer"
+                },
+                "media_url": {
+                    "type": "string"
+                },
+                "priority": {
+                    "type": "integer"
+                },
+                "spend_cents": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.AdStatus"
+                },
+                "target_countries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_devices": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "target_languages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "total_budget_cents": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
         "radio-backend_internal_domain.Alert": {
             "type": "object",
             "properties": {
@@ -2990,6 +5569,23 @@
                     "type": "string"
                 }
             }
+        },
+        "radio-backend_internal_domain.CampaignStatus": {
+            "type": "string",
+            "enum": [
+                "draft",
+                "active",
+                "paused",
+                "completed",
+                "expired"
+            ],
+            "x-enum-varnames": [
+                "CampaignStatusDraft",
+                "CampaignStatusActive",
+                "CampaignStatusPaused",
+                "CampaignStatusCompleted",
+                "CampaignStatusExpired"
+            ]
         },
         "radio-backend_internal_domain.CreateTranslationRequest": {
             "type": "object",
@@ -3390,6 +5986,28 @@
                 "title": {
                     "type": "string",
                     "maxLength": 200
+                }
+            }
+        },
+        "radio-backend_internal_services.StreamInfo": {
+            "type": "object",
+            "properties": {
+                "bitrateKbps": {
+                    "type": "number",
+                    "format": "float64"
+                },
+                "bytesStreamed": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "duration": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "lastUpdate": {
+                    "type": "string"
+                },
+                "sessionID": {
+                    "type": "string"
                 }
             }
         },

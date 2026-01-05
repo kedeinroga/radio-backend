@@ -44,6 +44,11 @@ func (r *RedisClient) Close() error {
 	return r.client.Close()
 }
 
+// GetClient returns the underlying redis.Client for advanced usage
+func (r *RedisClient) GetClient() *redis.Client {
+	return r.client
+}
+
 // IncrementStationPlay increments the play count for a station
 func (r *RedisClient) IncrementStationPlay(stationID string) error {
 	ctx := context.Background()

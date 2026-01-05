@@ -1,11 +1,175 @@
 basePath: /api/v1
 definitions:
+  gin.H:
+    additionalProperties: {}
+    type: object
+  internal_handlers.ActivatePremiumRequest:
+    properties:
+      expires_at:
+        type: string
+      stripe_customer_id:
+        type: string
+      stripe_subscription_id:
+        type: string
+    required:
+    - expires_at
+    - stripe_customer_id
+    - stripe_subscription_id
+    type: object
+  internal_handlers.ActiveSessionInfo:
+    properties:
+      ad_id:
+        type: string
+      bytes_streamed:
+        type: integer
+      last_heartbeat:
+        type: string
+      listening_duration:
+        type: string
+      session_id:
+        type: string
+      started_at:
+        type: string
+      station_id:
+        type: string
+    type: object
+  internal_handlers.ActiveSessionsResponse:
+    properties:
+      count:
+        type: integer
+      sessions:
+        items:
+          $ref: '#/definitions/internal_handlers.ActiveSessionInfo'
+        type: array
+    type: object
   internal_handlers.AddFavoriteRequest:
     properties:
       station_id:
         type: string
     required:
     - station_id
+    type: object
+  internal_handlers.CreateAdvertisementRequest:
+    properties:
+      ad_format:
+        enum:
+        - banner
+        - interstitial
+        - audio
+        - native
+        type: string
+      ad_type:
+        enum:
+        - image
+        - video
+        - audio
+        - html
+        type: string
+      advertiser_name:
+        maxLength: 100
+        minLength: 2
+        type: string
+      campaign_id:
+        type: string
+      click_url:
+        type: string
+      cpc_rate_cents:
+        type: integer
+      cpm_rate_cents:
+        type: integer
+      description:
+        type: string
+      end_date:
+        type: string
+      max_impressions_per_day:
+        type: integer
+      max_impressions_per_user:
+        type: integer
+      media_url:
+        type: string
+      start_date:
+        type: string
+      target_countries:
+        items:
+          type: string
+        type: array
+      target_devices:
+        items:
+          type: string
+        type: array
+      target_genres:
+        items:
+          type: string
+        type: array
+      target_languages:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 200
+        minLength: 3
+        type: string
+      total_budget_cents:
+        minimum: 1
+        type: integer
+    required:
+    - ad_format
+    - ad_type
+    - advertiser_name
+    - campaign_id
+    - click_url
+    - end_date
+    - media_url
+    - start_date
+    - title
+    - total_budget_cents
+    type: object
+  internal_handlers.CreateCampaignRequest:
+    properties:
+      advertiser_id:
+        type: string
+      description:
+        type: string
+      end_date:
+        type: string
+      name:
+        maxLength: 200
+        minLength: 3
+        type: string
+      start_date:
+        type: string
+      total_budget_cents:
+        minimum: 1000
+        type: integer
+    required:
+    - advertiser_id
+    - end_date
+    - name
+    - start_date
+    - total_budget_cents
+    type: object
+  internal_handlers.CreateCheckoutSessionRequest:
+    properties:
+      email:
+        type: string
+      plan:
+        description: '"monthly" or "yearly"'
+        type: string
+    required:
+    - email
+    - plan
+    type: object
+  internal_handlers.CreateCheckoutSessionResponse:
+    properties:
+      session_id:
+        type: string
+      session_url:
+        type: string
+    type: object
+  internal_handlers.CustomerPortalResponse:
+    properties:
+      portal_url:
+        type: string
     type: object
   internal_handlers.DeviceInfo:
     properties:
@@ -48,6 +212,13 @@ definitions:
       total_sessions:
         example: 3
         type: integer
+    type: object
+  internal_handlers.HeartbeatRequest:
+    properties:
+      session_id:
+        type: string
+    required:
+    - session_id
     type: object
   internal_handlers.Location:
     properties:
@@ -93,6 +264,15 @@ definitions:
         type: string
       token_type:
         example: Bearer
+        type: string
+    type: object
+  internal_handlers.PremiumStatusResponse:
+    properties:
+      is_premium:
+        type: boolean
+      premium_expires_at:
+        type: string
+      stripe_customer_id:
         type: string
     type: object
   internal_handlers.RefreshRequest:
@@ -287,6 +467,25 @@ definitions:
         example: Mozilla/5.0...
         type: string
     type: object
+  internal_handlers.StartSessionRequest:
+    properties:
+      ad_id:
+        description: Opcional
+        type: string
+      station_id:
+        type: string
+    required:
+    - station_id
+    type: object
+  internal_handlers.StartSessionResponse:
+    properties:
+      expires_at:
+        type: string
+      session_id:
+        type: string
+      stream_url:
+        type: string
+    type: object
   internal_handlers.StationDTO:
     properties:
       country:
@@ -341,11 +540,90 @@ definitions:
         additionalProperties: true
         type: object
     type: object
+  internal_handlers.StopSessionRequest:
+    properties:
+      session_id:
+        type: string
+    required:
+    - session_id
+    type: object
+  internal_handlers.StreamStatsResponse:
+    properties:
+      active_streams:
+        type: integer
+      streams:
+        items:
+          $ref: '#/definitions/radio-backend_internal_services.StreamInfo'
+        type: array
+    type: object
   internal_handlers.SuccessResponse:
     properties:
       message:
         example: Operation completed successfully
         type: string
+    type: object
+  internal_handlers.UpdateAdvertisementRequest:
+    properties:
+      click_url:
+        type: string
+      cpc_rate_cents:
+        type: integer
+      cpm_rate_cents:
+        type: integer
+      description:
+        type: string
+      max_impressions_per_day:
+        type: integer
+      max_impressions_per_user:
+        type: integer
+      media_url:
+        type: string
+      target_countries:
+        items:
+          type: string
+        type: array
+      target_devices:
+        items:
+          type: string
+        type: array
+      target_genres:
+        items:
+          type: string
+        type: array
+      target_languages:
+        items:
+          type: string
+        type: array
+      title:
+        maxLength: 200
+        minLength: 3
+        type: string
+      total_budget_cents:
+        minimum: 1
+        type: integer
+    type: object
+  internal_handlers.UpdateCampaignRequest:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      name:
+        maxLength: 200
+        minLength: 3
+        type: string
+      start_date:
+        type: string
+      total_budget_cents:
+        minimum: 1000
+        type: integer
+    type: object
+  internal_handlers.UpdateProfileRequest:
+    properties:
+      preferred_genres:
+        items:
+          type: string
+        type: array
     type: object
   internal_handlers.ValidateTokenRequest:
     properties:
@@ -378,6 +656,146 @@ definitions:
         example: true
         type: boolean
     type: object
+  radio-backend_internal_domain.AdCampaign:
+    properties:
+      advertiser_id:
+        type: string
+      created_at:
+        type: string
+      daily_budget_cents:
+        type: integer
+      description:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      spent_cents:
+        type: integer
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/radio-backend_internal_domain.CampaignStatus'
+      total_budget_cents:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  radio-backend_internal_domain.AdFormat:
+    enum:
+    - banner
+    - interstitial
+    - audio
+    - native
+    type: string
+    x-enum-varnames:
+    - AdFormatBanner
+    - AdFormatInterstitial
+    - AdFormatAudio
+    - AdFormatNative
+  radio-backend_internal_domain.AdStatus:
+    enum:
+    - draft
+    - active
+    - paused
+    - completed
+    - expired
+    type: string
+    x-enum-varnames:
+    - AdStatusDraft
+    - AdStatusActive
+    - AdStatusPaused
+    - AdStatusCompleted
+    - AdStatusExpired
+  radio-backend_internal_domain.AdType:
+    enum:
+    - image
+    - video
+    - audio
+    - html
+    type: string
+    x-enum-varnames:
+    - AdTypeImage
+    - AdTypeVideo
+    - AdTypeAudio
+    - AdTypeHTML
+  radio-backend_internal_domain.Advertisement:
+    properties:
+      ad_format:
+        $ref: '#/definitions/radio-backend_internal_domain.AdFormat'
+      ad_type:
+        $ref: '#/definitions/radio-backend_internal_domain.AdType'
+      advertiser_name:
+        type: string
+      campaign_id:
+        type: string
+      click_url:
+        type: string
+      clicks_count:
+        type: integer
+      companion_banner_url:
+        type: string
+      cpc_rate_cents:
+        type: integer
+      cpm_rate_cents:
+        type: integer
+      created_at:
+        type: string
+      daily_budget_cents:
+        type: integer
+      description:
+        type: string
+      duration_seconds:
+        type: integer
+      end_date:
+        type: string
+      height:
+        type: integer
+      id:
+        type: string
+      impressions_count:
+        type: integer
+      max_impressions_per_day:
+        type: integer
+      max_impressions_per_user:
+        type: integer
+      media_url:
+        type: string
+      priority:
+        type: integer
+      spend_cents:
+        type: integer
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/radio-backend_internal_domain.AdStatus'
+      target_countries:
+        items:
+          type: string
+        type: array
+      target_devices:
+        items:
+          type: string
+        type: array
+      target_genres:
+        items:
+          type: string
+        type: array
+      target_languages:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      total_budget_cents:
+        type: integer
+      updated_at:
+        type: string
+      width:
+        type: integer
+    type: object
   radio-backend_internal_domain.Alert:
     properties:
       action:
@@ -395,6 +813,20 @@ definitions:
       timestamp:
         type: string
     type: object
+  radio-backend_internal_domain.CampaignStatus:
+    enum:
+    - draft
+    - active
+    - paused
+    - completed
+    - expired
+    type: string
+    x-enum-varnames:
+    - CampaignStatusDraft
+    - CampaignStatusActive
+    - CampaignStatusPaused
+    - CampaignStatusCompleted
+    - CampaignStatusExpired
   radio-backend_internal_domain.CreateTranslationRequest:
     properties:
       description:
@@ -671,6 +1103,21 @@ definitions:
     required:
     - description
     - title
+    type: object
+  radio-backend_internal_services.StreamInfo:
+    properties:
+      bitrateKbps:
+        format: float64
+        type: number
+      bytesStreamed:
+        format: int64
+        type: integer
+      duration:
+        $ref: '#/definitions/time.Duration'
+      lastUpdate:
+        type: string
+      sessionID:
+        type: string
     type: object
   time.Duration:
     enum:
@@ -1684,6 +2131,1103 @@ paths:
       summary: Get security metrics
       tags:
       - Admin Security
+  /api/v1/ads:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new advertisement within a campaign. Supports multiple
+        ad formats (banner, interstitial, audio, native) and ad types (image, video,
+        audio, html). Includes targeting options for countries, genres, languages,
+        and devices. Pricing can be CPM (cost per mille impressions) or CPC (cost
+        per click).
+      parameters:
+      - description: Advertisement data
+        in: body
+        name: advertisement
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateAdvertisementRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Advertisement created successfully
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
+        "400":
+          description: Invalid request body or campaign_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new advertisement
+      tags:
+      - Advertisements
+  /api/v1/ads/{id}:
+    delete:
+      description: Permanently deletes an advertisement. This action cannot be undone.
+        All associated statistics will be preserved but the ad will no longer be served.
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Advertisement deleted successfully (no content)
+        "400":
+          description: Invalid advertisement ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Advertisement not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete advertisement
+      tags:
+      - Advertisements
+    get:
+      description: Retrieves detailed information about a specific advertisement including
+        current statistics (impressions, clicks, spend, CTR).
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Advertisement details
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
+        "400":
+          description: Invalid advertisement ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Advertisement not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get advertisement details
+      tags:
+      - Advertisements
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing advertisement. All fields are optional - only
+        provided fields will be updated. Cannot update if campaign is paused or budget
+        is exhausted.
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: advertisement
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.UpdateAdvertisementRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated advertisement
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
+        "400":
+          description: Invalid ID format or request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Advertisement not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update advertisement
+      tags:
+      - Advertisements
+  /api/v1/ads/{id}/stats:
+    get:
+      description: Retrieves comprehensive performance statistics for a specific advertisement
+        including impressions, clicks, CTR (click-through rate), total spend, and
+        remaining budget. Useful for campaign performance monitoring.
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Advertisement statistics with impressions, clicks, CTR, spend,
+            and budget info
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid advertisement ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Advertisement not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get advertisement statistics
+      tags:
+      - Advertisements
+  /api/v1/ads/eligible:
+    get:
+      description: '**KEY ENDPOINT FOR FRONTEND**: Returns advertisements that match
+        the user''s profile and targeting criteria. Considers geographic location,
+        language, device type, genre preferences, frequency capping, and premium status.
+        Premium users receive empty array. Uses smart caching and fraud detection.'
+      parameters:
+      - description: User ID (UUID) - optional for guest users
+        in: query
+        name: user_id
+        type: string
+      - description: User's country code (e.g., 'US', 'MX', 'ES')
+        in: query
+        name: country
+        type: string
+      - description: Current station genre/tag (e.g., 'rock', 'jazz')
+        in: query
+        name: genre
+        type: string
+      - description: User's preferred language code (e.g., 'en', 'es', 'fr')
+        in: query
+        name: language
+        type: string
+      - description: 'Device type: ''mobile'', ''tablet'', ''desktop'', ''smart_speaker'''
+        in: query
+        name: device
+        type: string
+      - description: 'Whether user has premium subscription (default: false)'
+        in: query
+        name: is_premium
+        type: boolean
+      - description: 'Maximum number of ads to return (default: 5, max: 10)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of eligible advertisements (empty for premium users)
+          schema:
+            items:
+              $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
+            type: array
+        "400":
+          description: Invalid query parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get eligible advertisements for user
+      tags:
+      - Advertisements
+  /api/v1/advertisers/{advertiser_id}/campaigns:
+    get:
+      description: Retrieves all advertising campaigns belonging to a specific advertiser.
+        Useful for advertiser dashboard to see all their campaigns.
+      parameters:
+      - description: Advertiser ID (UUID)
+        in: path
+        name: advertiser_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of campaigns
+          schema:
+            items:
+              $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+            type: array
+        "400":
+          description: Invalid advertiser ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List campaigns by advertiser
+      tags:
+      - Ad Campaigns
+  /api/v1/campaigns:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new advertising campaign for an advertiser. Campaign
+        starts in 'draft' status and must be explicitly activated. Budget is specified
+        in cents (USD). Validates that end_date is after start_date and budget is
+        at least $10.00.
+      parameters:
+      - description: Campaign data
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Campaign created successfully
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+        "400":
+          description: Invalid request body or advertiser_id
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create advertising campaign
+      tags:
+      - Ad Campaigns
+  /api/v1/campaigns/{campaign_id}/ads:
+    get:
+      description: Retrieves all advertisements belonging to a specific campaign.
+        Useful for campaign managers to see all their ads in one place.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: campaign_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of advertisements
+          schema:
+            items:
+              $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
+            type: array
+        "400":
+          description: Invalid campaign ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List advertisements by campaign
+      tags:
+      - Advertisements
+  /api/v1/campaigns/{id}:
+    delete:
+      description: Permanently deletes a campaign and all its associated advertisements.
+        This action cannot be undone. All statistics will be preserved but ads will
+        no longer be served.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Campaign deleted successfully (no content)
+        "400":
+          description: Invalid campaign ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Campaign not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete campaign
+      tags:
+      - Ad Campaigns
+    get:
+      description: Retrieves detailed information about a specific campaign including
+        budget utilization, spend tracking, and current status.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Campaign details
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+        "400":
+          description: Invalid campaign ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Campaign not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get campaign details
+      tags:
+      - Ad Campaigns
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing campaign. All fields are optional - only provided
+        fields will be updated. Budget can only be increased, not decreased. Cannot
+        update if campaign is completed.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: campaign
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.UpdateCampaignRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated campaign
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+        "400":
+          description: Invalid ID format or request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Campaign not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update campaign
+      tags:
+      - Ad Campaigns
+  /api/v1/campaigns/{id}/pause:
+    post:
+      description: Pauses an active advertising campaign. All ads in the campaign
+        will stop being served immediately. Campaign can be resumed later.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Campaign paused successfully
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+        "400":
+          description: Invalid campaign ID or campaign cannot be paused
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Campaign not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Pause campaign
+      tags:
+      - Ad Campaigns
+  /api/v1/campaigns/{id}/resume:
+    post:
+      description: Resumes a paused advertising campaign. All ads in the campaign
+        will start being served again if they meet targeting criteria and budget is
+        available.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Campaign resumed successfully
+          schema:
+            $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+        "400":
+          description: Invalid campaign ID or campaign cannot be resumed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Campaign not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Resume campaign
+      tags:
+      - Ad Campaigns
+  /api/v1/campaigns/{id}/stats:
+    get:
+      description: Retrieves comprehensive performance statistics for a campaign including
+        total impressions, clicks, average CTR, total spend, number of active ads,
+        and top performing ad.
+      parameters:
+      - description: Campaign ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Campaign statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid campaign ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Campaign not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get campaign statistics
+      tags:
+      - Ad Campaigns
+  /api/v1/campaigns/active:
+    get:
+      description: Retrieves all campaigns with 'active' status that are currently
+        running and serving ads.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of active campaigns
+          schema:
+            items:
+              $ref: '#/definitions/radio-backend_internal_domain.AdCampaign'
+            type: array
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List active campaigns
+      tags:
+      - Ad Campaigns
+  /api/v1/premium/cancel:
+    post:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Cancel subscription
+      tags:
+      - premium
+  /api/v1/premium/checkout:
+    post:
+      parameters:
+      - description: Checkout request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.CreateCheckoutSessionRequest'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.CreateCheckoutSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Create checkout session
+      tags:
+      - premium
+  /api/v1/premium/portal:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.CustomerPortalResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Get customer portal URL
+      tags:
+      - premium
+  /api/v1/premium/status:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.PremiumStatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/gin.H'
+      security:
+      - BearerAuth: []
+      summary: Get premium status
+      tags:
+      - premium
+  /api/v1/users/{user_id}/ad-profile:
+    get:
+      description: Retrieves the user's advertising profile including premium status,
+        ad interaction statistics, and preferences.
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User advertising profile
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Profile not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user advertising profile
+      tags:
+      - User Ad Profile
+    put:
+      consumes:
+      - application/json
+      description: Updates user's advertising preferences such as preferred genres
+        for better ad targeting.
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Profile updates
+        in: body
+        name: profile
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated profile
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update user ad preferences
+      tags:
+      - User Ad Profile
+  /api/v1/users/{user_id}/ad-profile/activate-premium:
+    post:
+      consumes:
+      - application/json
+      description: Activates premium subscription for a user after successful Stripe
+        payment. Call this endpoint from your Stripe webhook handler.
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: Premium subscription details from Stripe
+        in: body
+        name: premium
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.ActivatePremiumRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile with premium activated
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Activate premium subscription
+      tags:
+      - User Ad Profile
+  /api/v1/users/{user_id}/ad-profile/can-show-ad:
+    get:
+      description: Checks if a user is eligible to see advertisements based on premium
+        status and frequency capping rules. Returns eligibility status and reason
+        if blocked.
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Eligibility check result with can_show_ad boolean, reason string,
+            and next_eligible_at timestamp
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Check if user can see ads
+      tags:
+      - User Ad Profile
+  /api/v1/users/{user_id}/ad-profile/deactivate-premium:
+    post:
+      description: Deactivates premium subscription for a user (e.g., after cancellation
+        or expiration). User will start seeing ads again.
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Deactivate premium subscription
+      tags:
+      - User Ad Profile
+  /api/v1/users/{user_id}/ad-profile/stats:
+    get:
+      description: Retrieves statistics about user's ad interactions including total
+        impressions, clicks, and CTR.
+      parameters:
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User ad statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID format
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized - JWT token required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user ad interaction statistics
+      tags:
+      - User Ad Profile
   /auth/login:
     post:
       consumes:
@@ -2391,6 +3935,190 @@ paths:
       summary: Search stations
       tags:
       - Stations
+  /stream/heartbeat:
+    post:
+      consumes:
+      - application/json
+      description: Actualiza el timestamp de última actividad de una sesión
+      parameters:
+      - description: Session ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.HeartbeatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Enviar heartbeat de sesión
+      tags:
+      - Streaming
+  /stream/proxy:
+    get:
+      description: Hace proxy del stream de audio de una estación validando el token
+        de sesión
+      parameters:
+      - description: Token JWT de la sesión
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - audio/mpeg
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Token inválido o expirado
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Estación no encontrada
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "502":
+          description: Error al conectar con el stream
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      summary: Proxy de stream de audio
+      tags:
+      - Streaming
+  /stream/sessions:
+    get:
+      description: Retorna todas las sesiones de streaming activas del usuario autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.ActiveSessionsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener sesiones activas del usuario
+      tags:
+      - Streaming
+  /stream/start:
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva sesión de streaming y retorna un token para acceder
+        al proxy
+      parameters:
+      - description: Datos de la sesión
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.StartSessionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.StartSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Iniciar sesión de streaming
+      tags:
+      - Streaming
+  /stream/stats:
+    get:
+      description: Retorna información sobre streams actualmente activos (solo admin)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.StreamStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener estadísticas de streams activos
+      tags:
+      - Streaming
+  /stream/stop:
+    post:
+      consumes:
+      - application/json
+      description: Finaliza una sesión de streaming y valida impresiones de anuncios
+        si aplica
+      parameters:
+      - description: Session ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.StopSessionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Detener sesión de streaming
+      tags:
+      - Streaming
   /translations/{stationId}/languages:
     get:
       description: 'Gets the list of languages for which translations exist for a
@@ -2423,6 +4151,30 @@ paths:
       summary: Get available languages for a station
       tags:
       - Translations
+  /webhooks/stripe:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Stripe webhook signature
+        in: header
+        name: Stripe-Signature
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/gin.H'
+      summary: Handle Stripe webhook
+      tags:
+      - premium
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

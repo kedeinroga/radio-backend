@@ -40,6 +40,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -212,6 +213,96 @@ func main() {
 	)
 	engine := router.Setup()
 
+	// ============================================
+	// NUEVO: Initialize Advertising System (Phase 4)
+	// ============================================
+	// Get raw redis client for advertising system
+	adLogger := slog.Default()
+	if err := InitializeAdvertisingSystem(engine, db, redisClient.GetClient(), adLogger); err != nil {
+		logger.Error("Failed to initialize advertising system", "error", err)
+		log.Printf("Warning: Advertising system could not be initialized: %v", err)
+		// No fatal - permitir que el servidor continúe sin publicidad
+	}
+
+	// ============================================
+	// NUEVO: Initialize Premium Subscription System (Phase 5)
+	// ============================================
+	if err := InitializePremiumSystem(
+		engine,
+		db,
+		authMiddleware,
+		adLogger,
+		cfg.Stripe.SecretKey,
+		cfg.Stripe.WebhookSecret,
+		cfg.Stripe.PriceIDMonthly,
+		cfg.Stripe.PriceIDYearly,
+		cfg.Stripe.SuccessURL,
+		cfg.Stripe.CancelURL,
+	); err != nil {
+		logger.Error("Failed to initialize premium system", "error", err)
+		log.Printf("Warning: Premium subscription system could not be initialized: %v", err)
+		// No fatal - permitir que el servidor continúe sin premium
+	}
+
+	// ============================================
+	// NUEVO: Initialize Streaming System (Phase 6)
+	// ============================================
+	// El sistema de streaming requiere:
+	// - stationRepo (radioBrowserRepo implementa StationRepository)
+	// - adRepo, impressionRepo (del advertising system)
+	// - JWT secret para tokens de stream
+
+	// Crear repositorios de publicidad (necesarios para streaming)
+	adRepo := postgres.NewAdvertisementRepository(db)
+	impressionRepo := postgres.NewAdImpressionRepository(db)
+
+	// Inicializar streaming system
+	var streamSessionService *services.StreamSessionService
+	if err := InitializeStreamingSystem(
+		engine,
+		db,
+		radioBrowserRepo, // StationRepository
+		adRepo,
+		impressionRepo,
+		authMiddleware,
+		adLogger,
+		[]byte(cfg.JWT.Secret), // JWT secret para stream tokens
+	); err != nil {
+		adLogger.Error("Failed to initialize streaming system", "error", err)
+		log.Printf("Warning: Streaming system could not be initialized: %v", err)
+		// No fatal - permitir que el servidor continúe sin streaming
+	} else {
+		// Obtener StreamSessionService para el job system
+		streamSessionRepo := postgres.NewStreamSessionRepository(db)
+		streamSessionService = services.NewStreamSessionService(
+			streamSessionRepo,
+			radioBrowserRepo,
+			adRepo,
+			impressionRepo,
+			[]byte(cfg.JWT.Secret),
+			5*time.Minute,
+			adLogger,
+		)
+	}
+
+	// Inicializar Job System (Background Jobs)
+	var jobScheduler interface{ Stop() }
+	if streamSessionService != nil {
+		scheduler, err := InitializeJobSystem(db, streamSessionService, adLogger)
+		if err != nil {
+			adLogger.Error("Failed to initialize job system", "error", err)
+			log.Printf("Warning: Job system could not be initialized: %v", err)
+		} else {
+			jobScheduler = scheduler
+			scheduler.Start()
+
+			// Registrar rutas de administración de jobs
+			RegisterJobRoutes(engine, scheduler)
+
+			adLogger.Info("Job system initialized and started successfully")
+		}
+	}
+
 	// Create HTTP server
 	addr := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
@@ -239,6 +330,13 @@ func main() {
 	<-quit
 
 	logger.Info("Shutting down server...")
+
+	// Detener el job scheduler primero (si existe)
+	if jobScheduler != nil {
+		logger.Info("Stopping job scheduler...")
+		jobScheduler.Stop()
+		logger.Info("Job scheduler stopped")
+	}
 
 	// Graceful shutdown with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

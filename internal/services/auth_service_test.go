@@ -183,6 +183,29 @@ func (m *MockTokenBlacklist) IsSessionRevoked(sessionID string) (bool, error) {
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockTokenBlacklist) BlacklistToken(entry *domain.TokenBlacklistEntry) error {
+	args := m.Called(entry)
+	return args.Error(0)
+}
+
+func (m *MockTokenBlacklist) IsTokenBlacklisted(tokenJTI string) (bool, error) {
+	args := m.Called(tokenJTI)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockTokenBlacklist) GetUserBlacklistedTokens(userID string) ([]*domain.TokenBlacklistEntry, error) {
+	args := m.Called(userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*domain.TokenBlacklistEntry), args.Error(1)
+}
+
+func (m *MockTokenBlacklist) CleanupExpiredTokens() (int64, error) {
+	args := m.Called()
+	return args.Get(0).(int64), args.Error(1)
+}
+
 // MockLoginAttemptRepository is a mock implementation of domain.LoginAttemptRepository
 type MockLoginAttemptRepository struct {
 	mock.Mock

@@ -31,7 +31,7 @@ build: ## Build the application
 
 run: swagger-generate ## Run the application
 	@echo "${GREEN}Running ${BINARY_NAME}...${NC}"
-	@go run $(MAIN_PATH)/main.go
+	@go run $(MAIN_PATH)/*.go
 
 dev: ## Run with live reload (requires air)
 	@echo "${GREEN}Starting development server with live reload...${NC}"
@@ -43,11 +43,37 @@ test: ## Run unit tests with coverage
 	@go tool cover -html=$(COVERAGE_FILE) -o coverage.html
 	@echo "${GREEN}Coverage report generated: coverage.html${NC}"
 
+test-quick: ## Run tests without coverage (faster)
+	@echo "${GREEN}Running quick tests...${NC}"
+	@go test ./...
+
+test-coverage: test ## Show test coverage in terminal
+	@echo "${GREEN}Test coverage summary:${NC}"
+	@go tool cover -func=$(COVERAGE_FILE)
+
+test-coverage-html: test ## Open coverage report in browser
+	@echo "${GREEN}Opening coverage report...${NC}"
+	@open coverage.html || xdg-open coverage.html
+
+test-unit: ## Run only unit tests
+	@echo "${GREEN}Running unit tests...${NC}"
+	@go test -v -race ./internal/domain/... ./internal/services/...
+
 test-integration: ## Run integration tests
 	@echo "${GREEN}Running integration tests...${NC}"
-	@go test -v -tags=integration ./test/integration/...
+	@go test -v -tags=integration ./tests/integration/...
 
-test-coverage: test ## Show test coverage
+test-e2e: ## Run E2E tests
+	@echo "${GREEN}Running E2E tests...${NC}"
+	@go test -v -tags=e2e ./tests/e2e/...
+
+test-all: test-unit test-integration test-e2e ## Run all test suites
+	@echo "${GREEN}All tests completed!${NC}"
+
+test-clean: ## Clean test artifacts
+	@echo "${GREEN}Cleaning test artifacts...${NC}"
+	@rm -f $(COVERAGE_FILE) coverage.html
+	@echo "${GREEN}Test artifacts cleaned${NC}"
 	@go tool cover -func=$(COVERAGE_FILE)
 
 lint: ## Run linters
