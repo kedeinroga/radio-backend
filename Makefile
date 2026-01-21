@@ -171,3 +171,127 @@ install-tools: ## Install development tools
 	@echo "${GREEN}Tools installed${NC}"
 
 all: clean deps fmt lint test build ## Run all checks and build
+
+# =============================================================================
+# Cloud Run / GCP Deployment
+# =============================================================================
+
+.PHONY: cloudrun-setup cloudrun-secrets cloudrun-deploy cloudrun-build cloudrun-logs cloudrun-describe
+
+# Cloud Run variables
+PROJECT_ID ?= $(shell gcloud config get-value project)
+REGION ?= us-central1
+SERVICE_NAME ?= radio-backend
+IMAGE_TAG ?= gcr.io/$(PROJECT_ID)/$(SERVICE_NAME)
+
+cloudrun-setup: ## Setup Cloud Run prerequisites (APIs, service account)
+	@echo "${GREEN}Setting up Cloud Run prerequisites...${NC}"
+	@gcloud services enable cloudbuild.googleapis.com run.googleapis.com containerregistry.googleapis.com secretmanager.googleapis.com --project=$(PROJECT_ID)
+	@gcloud iam service-accounts create $(SERVICE_NAME)-sa --display-name="Radio Backend Service Account" --project=$(PROJECT_ID) || true
+	@echo "${GREEN}Cloud Run setup complete${NC}"
+
+cloudrun-secrets: ## Setup secrets in Secret Manager
+	@echo "${GREEN}Setting up secrets...${NC}"
+	@chmod +x scripts/setup-secrets.sh
+	@./scripts/setup-secrets.sh $(PROJECT_ID)
+
+cloudrun-build: ## Build and push Docker image to GCR
+	@echo "${GREEN}Building and pushing image to GCR...${NC}"
+	@gcloud builds submit --tag $(IMAGE_TAG):$(shell git rev-parse --short HEAD) --project=$(PROJECT_ID)
+	@gcloud container images add-tag $(IMAGE_TAG):$(shell git rev-parse --short HEAD) $(IMAGE_TAG):latest --quiet
+	@echo "${GREEN}Image built and pushed: $(IMAGE_TAG):latest${NC}"
+
+cloudrun-deploy: ## Deploy to Cloud Run
+	@echo "${GREEN}Deploying to Cloud Run...${NC}"
+	@chmod +x scripts/deploy-cloudrun.sh
+	@./scripts/deploy-cloudrun.sh production $(PROJECT_ID) $(REGION)
+
+cloudrun-deploy-staging: ## Deploy to Cloud Run (staging)
+	@echo "${GREEN}Deploying to Cloud Run (staging)...${NC}"
+	@chmod +x scripts/deploy-cloudrun.sh
+	@./scripts/deploy-cloudrun.sh staging $(PROJECT_ID) $(REGION)
+
+cloudrun-logs: ## View Cloud Run logs
+	@echo "${GREEN}Fetching Cloud Run logs...${NC}"
+	@gcloud run services logs read $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID) --limit 100
+
+cloudrun-logs-tail: ## Tail Cloud Run logs in real-time
+	@echo "${GREEN}Tailing Cloud Run logs...${NC}"
+	@gcloud run services logs tail $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID)
+
+cloudrun-describe: ## Describe Cloud Run service
+	@gcloud run services describe $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID)
+
+cloudrun-url: ## Get Cloud Run service URL
+	@gcloud run services describe $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID) --format='value(status.url)'
+
+cloudrun-delete: ## Delete Cloud Run service
+	@echo "${YELLOW}Deleting Cloud Run service...${NC}"
+	@gcloud run services delete $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID)
+
+cloudrun-all: cloudrun-setup cloudrun-secrets cloudrun-build cloudrun-deploy ## Complete Cloud Run setup and deployment
+
+# Local Docker testing (multi-stage)
+docker-build-prod: ## Build production Docker image locally
+	@echo "${GREEN}Building production Docker image...${NC}"
+	@docker build -t $(BINARY_NAME):latest -t $(BINARY_NAME):$(shell git rev-parse --short HEAD) .
+	@echo "${GREEN}Image size:${NC}"
+	@docker images $(BINARY_NAME):latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
+
+docker-test: docker-build-prod ## Test Docker image locally
+	@echo "${GREEN}Testing Docker image...${NC}"
+	@docker run --rm -p 8080:8080 \
+		-e PORT=8080 \
+		-e ENV=development \
+		-e DB_HOST=host.docker.internal \
+		$(BINARY_NAME):latest
+
+docker-inspect: ## Inspect Docker image layers
+	@docker history $(BINARY_NAME):latest
+
+docker-scan: docker-build-prod ## Scan Docker image for vulnerabilities
+	@echo "${GREEN}Scanning image for vulnerabilities...${NC}"
+	@docker scan $(BINARY_NAME):latest || echo "${YELLOW}Docker scan not available${NC}"
+
+# =============================================================================
+# Docker Compose (Full Stack)
+# =============================================================================
+
+.PHONY: docker-up docker-down docker-logs docker-restart docker-clean docker-migrate docker-status
+
+docker-up: ## Start all services with docker-compose (app, postgres, redis)
+	@echo "${GREEN}Starting services with docker-compose...${NC}"
+	@./docker.sh up
+
+docker-down: ## Stop all docker-compose services
+	@./docker.sh down
+
+docker-logs: ## View application logs
+	@./docker.sh logs
+
+docker-logs-all: ## View all services logs
+	@./docker.sh logs-all
+
+docker-restart: ## Restart the application container
+	@./docker.sh restart
+
+docker-clean: ## Remove all containers and volumes
+	@./docker.sh clean
+
+docker-migrate: ## Run database migrations
+	@./docker.sh migrate
+
+docker-status: ## Show status of all services
+	@./docker.sh status
+
+docker-shell: ## Open shell in app container
+	@./docker.sh shell
+
+docker-db: ## Open PostgreSQL shell
+	@./docker.sh db-shell
+
+docker-redis: ## Open Redis CLI
+	@./docker.sh redis-cli
+
+docker-health: ## Run health checks on all services
+	@./docker.sh test

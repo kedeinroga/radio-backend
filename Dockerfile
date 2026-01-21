@@ -1,57 +1,78 @@
-# Build stage
-FROM golang:1.21-alpine AS builder
+# ============================================
+# Stage 1: Dependencies (cached layer)
+# ============================================
+FROM golang:1.24-alpine AS dependencies
+
+WORKDIR /app
+
+# Copy go mod files first for better layer caching
+COPY go.mod go.sum ./
+
+# Download dependencies (this layer is cached if go.mod/go.sum don't change)
+RUN go mod download && go mod verify
+
+# ============================================
+# Stage 2: Build
+# ============================================
+FROM golang:1.24-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git make
+RUN apk add --no-cache git make ca-certificates tzdata
 
-# Set working directory
 WORKDIR /app
+
+# Copy dependencies from previous stage
+COPY --from=dependencies /go/pkg /go/pkg
 
 # Copy go mod files
 COPY go.mod go.sum ./
 
-# Download dependencies
-RUN go mod download
-
 # Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o radio-backend ./cmd/server
+# Generate Swagger documentation
+RUN go install github.com/swaggo/swag/cmd/swag@latest && \
+    swag init -g cmd/server/main.go -o docs --parseDependency --parseInternal
 
-# Runtime stage
-FROM alpine:latest
+# Build the application with optimizations for Cloud Run
+# - CGO_ENABLED=0: Static binary (no C dependencies)
+# - -ldflags="-s -w": Strip debug info and symbol table (reduce size)
+# - -trimpath: Remove file system paths from binary
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-s -w -X main.Version=$(git describe --tags --always --dirty 2>/dev/null || echo 'dev')" \
+    -trimpath \
+    -o radio-backend \
+    ./cmd/server
 
-# Install ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates
+# ============================================
+# Stage 3: Runtime (minimal production image)
+# ============================================
+FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 
-# Create non-root user
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser
+# Copy timezone data and CA certificates from builder
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
+# Set working directory
 WORKDIR /app
 
 # Copy binary from builder
 COPY --from=builder /app/radio-backend .
 
-# Copy migrations
+# Copy necessary runtime files
 COPY --from=builder /app/migrations ./migrations
-
-# Copy locales
 COPY --from=builder /app/locales ./locales
 
-# Create keys directory
-RUN mkdir -p keys && chown -R appuser:appuser /app
+# Create keys directory structure (if needed at runtime)
+# Note: In Cloud Run, JWT keys should ideally come from Secret Manager
+USER nonroot:nonroot
 
-# Switch to non-root user
-USER appuser
+# Cloud Run expects applications to listen on $PORT (defaults to 8080)
+# Make sure your app reads PORT env var
+ENV PORT=8080
 
-# Expose port
+# Expose port (documentation only, Cloud Run ignores this)
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
-
 # Run the application
-CMD ["./radio-backend"]
+ENTRYPOINT ["/app/radio-backend"]

@@ -2,6 +2,35 @@
 
 A production-ready radio streaming proxy backend built with Go, following Clean Architecture principles.
 
+## 🚀 Quick Start
+
+### Local Development with Docker
+```bash
+# Start all services (PostgreSQL + Redis + App)
+./docker.sh up
+
+# The app will be available at http://localhost:8080
+```
+
+📖 **[Complete Docker Guide →](docs/DOCKER_GUIDE.md)**
+
+### Production Deployment (Supabase + Upstash + Cloud Run)
+```bash
+# 1. Setup infrastructure (one-time)
+./scripts/setup-github-actions.sh
+
+# 2. Configure secrets (Supabase + Upstash)
+./scripts/setup-secrets.sh
+
+# 3. Deploy!
+git push origin main  # Auto-deploys via GitHub Actions
+```
+
+📖 **[Production Setup Guide →](docs/PRODUCTION_SETUP.md)**  
+📖 **[Cloud Run Deployment →](docs/CLOUDRUN_DEPLOYMENT.md)**  
+📖 **[GitHub Actions Setup →](docs/GITHUB_ACTIONS_SETUP.md)**  
+📖 **[Quick Start (15 min) →](docs/QUICKSTART_GITHUB_ACTIONS.md)**
+
 ## 🆕 What's New in v2.0
 
 ### Authentication & Session Management
@@ -74,9 +103,30 @@ A production-ready radio streaming proxy backend built with Go, following Clean 
 
 ## Quick Start
 
+### Option 1: Docker (Recommended) 🐳
+
+El método más rápido para empezar. Incluye PostgreSQL, Redis y la aplicación.
+
+```bash
+# 1. Generar JWT keys
+make generate-keys
+
+# 2. Levantar todos los servicios
+make docker-up
+
+# 3. Verificar
+make docker-health
+```
+
+**¡Listo!** → http://localhost:8080
+
+📖 **[Guía completa de Docker →](docs/DOCKER_GUIDE.md)**
+
+### Option 2: Local Development
+
 ### Prerequisites
 
-- Go 1.21+
+- Go 1.24+
 - PostgreSQL 15+
 - Redis 7+
 - Make (optional)
@@ -239,17 +289,75 @@ make migrate-create NAME=add_new_table
 
 ## Docker
 
-### Build image
+### Local Development
+
+Build and test the Docker image locally:
 
 ```bash
-make docker-build
+# Build production image
+make docker-build-prod
+
+# Test locally
+make docker-test
+
+# Inspect image layers
+make docker-inspect
 ```
 
-### Run container
+### Cloud Run Deployment
+
+This project is optimized for Google Cloud Run with a multi-stage Dockerfile.
+
+#### Quick Deploy with GitHub Actions (Recommended)
+
+1. **Setup GCP and GitHub Secrets**
+   ```bash
+   # Run the automated setup script
+   chmod +x scripts/setup-github-actions.sh
+   ./scripts/setup-github-actions.sh YOUR_PROJECT_ID YOUR_GITHUB_ORG YOUR_REPO_NAME
+   ```
+
+2. **Setup Secrets in Secret Manager**
+   ```bash
+   ./scripts/setup-secrets.sh YOUR_PROJECT_ID
+   ```
+
+3. **Deploy**
+   ```bash
+   # Deploy to staging
+   git push origin staging
+
+   # Deploy to production
+   git push origin main
+
+   # Or create a release tag
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+#### Manual Deploy
 
 ```bash
-make docker-run
+# Setup and deploy everything
+make cloudrun-all
+
+# Or step by step:
+make cloudrun-setup          # Setup GCP prerequisites
+make cloudrun-secrets        # Configure secrets
+make cloudrun-build          # Build and push image
+make cloudrun-deploy         # Deploy to Cloud Run
+
+# View logs
+make cloudrun-logs
+make cloudrun-logs-tail      # Real-time logs
+
+# Get service URL
+make cloudrun-url
 ```
+
+📖 **[Complete Deployment Guide →](docs/CLOUDRUN_DEPLOYMENT.md)**  
+📖 **[GitHub Actions Setup →](docs/GITHUB_ACTIONS_SETUP.md)**
+
 
 ## Configuration
 

@@ -1,0 +1,129 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: radio-postgres
+    environment:
+      POSTGRES_DB: radio_db
+      POSTGRES_USER: radio_user
+      POSTGRES_PASSWORD: radio_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U radio_user -d radio_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - radio-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: radio-redis
+    command: redis-server --appendonly yes --requirepass redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - radio-network
+
+  # Radio Backend Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: radio-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Server
+      PORT: 8080
+      ENV: development
+      LOG_LEVEL: debug
+
+      # Database - URL format
+      DATABASE_URL: postgres://radio_user:radio_password@postgres:5432/radio_db?sslmode=disable
+
+      # Individual DB settings (if needed by some parts of the app)
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: radio_db
+      DB_USER: radio_user
+      DB_PASSWORD: radio_password
+      DB_SSL_MODE: disable
+      DB_MAX_CONNECTIONS: 25
+      DB_MAX_IDLE_CONNECTIONS: 5
+      DB_CONNECTION_MAX_LIFETIME: 5m
+
+      # Redis
+      REDIS_URL: redis://:redis_password@redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_password
+      REDIS_DB: 0
+      REDIS_MAX_RETRIES: 3
+      REDIS_POOL_SIZE: 10
+
+      # JWT (using mounted keys)
+      JWT_PRIVATE_KEY: /app/keys/jwt-private.pem
+      JWT_PUBLIC_KEY: /app/keys/jwt-public.pem
+      JWT_EXPIRATION_HOURS: 24
+      JWT_REFRESH_EXPIRATION_HOURS: 168
+
+      # External API
+      RADIO_BROWSER_API_URL: https://de1.api.radio-browser.info
+      RADIO_BROWSER_TIMEOUT: 10s
+
+      # Rate Limiting
+      RATE_LIMIT_ENABLED: true
+      RATE_LIMIT_REQUESTS_PER_MINUTE: 60
+      RATE_LIMIT_BURST: 10
+
+      # CORS
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      CORS_ALLOWED_METHODS: GET,POST,PUT,DELETE,OPTIONS
+      CORS_ALLOWED_HEADERS: Content-Type,Authorization
+      CORS_ALLOW_CREDENTIALS: true
+
+      # Features
+      FEATURE_ANALYTICS_ENABLED: true
+      FEATURE_CACHE_ENABLED: true
+      FEATURE_TRANSLATIONS_ENABLED: true
+    volumes:
+      - ./keys:/app/keys:ro
+      - ./locales:/app/locales:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - radio-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  radio-network:
+    driver: bridge

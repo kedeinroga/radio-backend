@@ -1,17 +1,66 @@
+# Git
 .git
 .gitignore
-.env
-.env.*
-*.md
-!README.md
+.gitattributes
 .github
+
+# Documentation
+*.md
+docs/
+instructions.md
+
+# IDE & Editor
 .vscode
 .idea
-*.log
-tmp/
-bin/
-coverage.out
-coverage.html
-.golangci.yml
 .editorconfig
+*.swp
+*.swo
+*~
+
+# Test files
+*_test.go
+tests/
+coverage.html
+coverage.out
+*.test
+
+# Build artifacts
+bin/
+server
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Dependencies (will be downloaded in container)
+vendor/
+
+# Environment files (sensitive data)
+.env
+.env.*
+*.local
+
+# Keys (should use Secret Manager in Cloud Run)
+keys/*.pem
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+
+# Development tools
 Makefile
+.golangci.yml
+
+# Scripts (not needed in runtime)
+scripts/
+
