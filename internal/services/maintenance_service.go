@@ -68,7 +68,7 @@ func (s *MaintenanceService) GetPartitionStatus() ([]domain.PartitionStatusResul
 // PerformFullMaintenance ejecuta un mantenimiento completo
 func (s *MaintenanceService) PerformFullMaintenance() (map[string]interface{}, error) {
 	result := make(map[string]interface{})
-	
+
 	// 1. Refresh de vistas
 	refreshResults, err := s.RefreshAllViews()
 	if err != nil {
@@ -76,14 +76,14 @@ func (s *MaintenanceService) PerformFullMaintenance() (map[string]interface{}, e
 	} else {
 		result["refresh_views"] = refreshResults
 	}
-	
+
 	// 2. Verificar particiones futuras
 	checkResults, err := s.CheckFuturePartitions(3)
 	if err != nil {
 		result["check_partitions_error"] = err.Error()
 	} else {
 		result["check_partitions"] = checkResults
-		
+
 		// Verificar si hay problemas
 		hasMissing := false
 		for _, r := range checkResults {
@@ -94,7 +94,7 @@ func (s *MaintenanceService) PerformFullMaintenance() (map[string]interface{}, e
 		}
 		result["partitions_missing"] = hasMissing
 	}
-	
+
 	// 3. Estado de particiones
 	statusResults, err := s.GetPartitionStatus()
 	if err != nil {
@@ -102,6 +102,6 @@ func (s *MaintenanceService) PerformFullMaintenance() (map[string]interface{}, e
 	} else {
 		result["partition_status"] = statusResults
 	}
-	
+
 	return result, nil
 }

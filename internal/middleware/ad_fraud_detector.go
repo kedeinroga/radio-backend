@@ -83,7 +83,7 @@ func (f *AdFraudDetector) DetectFraud() gin.HandlerFunc {
 // isBotUserAgent checks if the user agent is a known bot
 func (f *AdFraudDetector) isBotUserAgent(userAgent string) bool {
 	userAgentLower := strings.ToLower(userAgent)
-	
+
 	botPatterns := []string{
 		"bot", "crawler", "spider", "scraper",
 		"curl", "wget", "python", "java",

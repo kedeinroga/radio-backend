@@ -201,10 +201,12 @@ cloudrun-build: ## Build and push Docker image to GCR
 	@gcloud container images add-tag $(IMAGE_TAG):$(shell git rev-parse --short HEAD) $(IMAGE_TAG):latest --quiet
 	@echo "${GREEN}Image built and pushed: $(IMAGE_TAG):latest${NC}"
 
-cloudrun-deploy: ## Deploy to Cloud Run
-	@echo "${GREEN}Deploying to Cloud Run...${NC}"
+cloudrun-deploy: ## Deploy to Cloud Run (production)
+	@echo "${GREEN}Deploying to Cloud Run (production)...${NC}"
 	@chmod +x scripts/deploy-cloudrun.sh
 	@./scripts/deploy-cloudrun.sh production $(PROJECT_ID) $(REGION)
+
+cloudrun-deploy-production: cloudrun-deploy ## Deploy to Cloud Run (production) - alias
 
 cloudrun-deploy-staging: ## Deploy to Cloud Run (staging)
 	@echo "${GREEN}Deploying to Cloud Run (staging)...${NC}"

@@ -57,13 +57,13 @@ func TestFraudDetectionSignals_CalculateFraudScore(t *testing.T) {
 		{
 			name: "legitimate traffic",
 			signals: &FraudDetectionSignals{
-				IPAddress:        "192.168.1.1",
-				UserAgent:        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-				TimeToClick:      2 * time.Second,
+				IPAddress:         "192.168.1.1",
+				UserAgent:         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+				TimeToClick:       2 * time.Second,
 				ImpressionsFromIP: 5,
-				ClicksFromIP:     1,
-				ViewableDuration: 2000,
-				IsViewable:       true,
+				ClicksFromIP:      1,
+				ViewableDuration:  2000,
+				IsViewable:        true,
 			},
 			minScore: 0.0,
 			maxScore: 0.2,
@@ -71,13 +71,13 @@ func TestFraudDetectionSignals_CalculateFraudScore(t *testing.T) {
 		{
 			name: "suspicious - fast click",
 			signals: &FraudDetectionSignals{
-				IPAddress:        "192.168.1.1",
-				UserAgent:        "Mozilla/5.0",
-				TimeToClick:      50 * time.Millisecond,
+				IPAddress:         "192.168.1.1",
+				UserAgent:         "Mozilla/5.0",
+				TimeToClick:       50 * time.Millisecond,
 				ImpressionsFromIP: 10,
-				ClicksFromIP:     5,
-				ViewableDuration: 1000,
-				IsViewable:       true,
+				ClicksFromIP:      5,
+				ViewableDuration:  1000,
+				IsViewable:        true,
 			},
 			minScore: 0.3,
 			maxScore: 0.5,
@@ -85,13 +85,13 @@ func TestFraudDetectionSignals_CalculateFraudScore(t *testing.T) {
 		{
 			name: "very suspicious - multiple red flags",
 			signals: &FraudDetectionSignals{
-				IPAddress:        "192.168.1.1",
-				UserAgent:        "",
-				TimeToClick:      20 * time.Millisecond,
+				IPAddress:         "192.168.1.1",
+				UserAgent:         "",
+				TimeToClick:       20 * time.Millisecond,
 				ImpressionsFromIP: 100,
-				ClicksFromIP:     50,
-				ViewableDuration: 100,
-				IsViewable:       false,
+				ClicksFromIP:      50,
+				ViewableDuration:  100,
+				IsViewable:        false,
 			},
 			minScore: 0.8,
 			maxScore: 1.0,
@@ -110,23 +110,23 @@ func TestFraudDetectionSignals_CalculateFraudScore(t *testing.T) {
 func TestFraudDetectionSignals_IsSuspicious(t *testing.T) {
 	// Low fraud score - not suspicious
 	signals := &FraudDetectionSignals{
-		TimeToClick:      2 * time.Second,
+		TimeToClick:       2 * time.Second,
 		ImpressionsFromIP: 5,
-		ClicksFromIP:     1,
-		ViewableDuration: 2000,
-		IsViewable:       true,
-		UserAgent:        "Mozilla/5.0 (legitimate)",
+		ClicksFromIP:      1,
+		ViewableDuration:  2000,
+		IsViewable:        true,
+		UserAgent:         "Mozilla/5.0 (legitimate)",
 	}
 	assert.False(t, signals.IsSuspicious())
 
 	// High fraud score - suspicious
 	signals = &FraudDetectionSignals{
-		TimeToClick:      20 * time.Millisecond,
+		TimeToClick:       20 * time.Millisecond,
 		ImpressionsFromIP: 100,
-		ClicksFromIP:     50,
-		ViewableDuration: 100,
-		IsViewable:       false,
-		UserAgent:        "",
+		ClicksFromIP:      50,
+		ViewableDuration:  100,
+		IsViewable:        false,
+		UserAgent:         "",
 	}
 	assert.True(t, signals.IsSuspicious())
 }

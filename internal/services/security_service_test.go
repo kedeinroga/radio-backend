@@ -45,12 +45,12 @@ func TestSecurityService_GetMetrics(t *testing.T) {
 			setup: func(repo *mockSecurityRepository) {
 				repo.getMetricsFunc = func(period string) (*domain.SecurityMetrics, error) {
 					return &domain.SecurityMetrics{
-						TotalLoginsToday:       100,
-						TotalLoginsWeek:        500,
-						FailedAttemptsToday:    10,
-						FailedAttemptsWeek:     50,
-						ActiveSessions:         25,
-						UniqueLocationsWeek:    15,
+						TotalLoginsToday:    100,
+						TotalLoginsWeek:     500,
+						FailedAttemptsToday: 10,
+						FailedAttemptsWeek:  50,
+						ActiveSessions:      25,
+						UniqueLocationsWeek: 15,
 						Trends: domain.SecurityTrends{
 							LoginsTrend:         12.5,
 							FailedAttemptsTrend: -8.3,

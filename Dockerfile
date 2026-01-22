@@ -53,22 +53,19 @@ FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Set working directory
 WORKDIR /app
 
-# Copy binary from builder
+# Copy the compiled binary from builder
 COPY --from=builder /app/radio-backend .
 
 # Copy necessary runtime files
 COPY --from=builder /app/migrations ./migrations
 COPY --from=builder /app/locales ./locales
 
-# Create keys directory structure (if needed at runtime)
-# Note: In Cloud Run, JWT keys should ideally come from Secret Manager
+# Switch to non-root user (distroless default)
 USER nonroot:nonroot
 
 # Cloud Run expects applications to listen on $PORT (defaults to 8080)
-# Make sure your app reads PORT env var
 ENV PORT=8080
 
 # Expose port (documentation only, Cloud Run ignores this)
