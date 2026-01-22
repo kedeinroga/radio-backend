@@ -105,7 +105,7 @@ jobs:
             --timeout 300 \
             --concurrency 80 \
             --port 8080 \
-            --set-env-vars "ENV=staging,PORT=8080" \
+            --set-env-vars "ENV=staging,SERVER_PORT=8080" \
             --service-account "${{ env.SERVICE_NAME }}-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
             --update-secrets "DATABASE_URL=database-url-staging:latest,REDIS_URL=redis-url-staging:latest,JWT_PRIVATE_KEY=jwt-private-key:latest,JWT_PUBLIC_KEY=jwt-public-key:latest"
 
@@ -188,7 +188,7 @@ jobs:
             --timeout 300 \
             --concurrency 80 \
             --port 8080 \
-            --set-env-vars "ENV=production,PORT=8080" \
+            --set-env-vars "ENV=production,SERVER_PORT=8080" \
             --service-account "${{ env.SERVICE_NAME }}-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
             --update-secrets "DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,JWT_PRIVATE_KEY=jwt-private-key:latest,JWT_PUBLIC_KEY=jwt-public-key:latest"
 
