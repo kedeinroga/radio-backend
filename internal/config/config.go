@@ -58,6 +58,9 @@ type JWTConfig struct {
 	RefreshExpiration time.Duration
 	PrivateKeyPath    string
 	PublicKeyPath     string
+	// Raw PEM content support (from environment variables)
+	PrivateKey string
+	PublicKey  string
 }
 
 // ExternalConfig holds external API configuration
@@ -168,6 +171,8 @@ func Load() (*Config, error) {
 			RefreshExpiration: getDurationEnv("JWT_REFRESH_EXPIRATION", 168*time.Hour),
 			PrivateKeyPath:    getEnv("JWT_PRIVATE_KEY_PATH", "./keys/jwt-private.pem"),
 			PublicKeyPath:     getEnv("JWT_PUBLIC_KEY_PATH", "./keys/jwt-public.pem"),
+			PrivateKey:        getEnv("JWT_PRIVATE_KEY", ""),
+			PublicKey:         getEnv("JWT_PUBLIC_KEY", ""),
 		},
 		External: ExternalConfig{
 			RadioBrowserAPIURL: getEnv("RADIO_BROWSER_API_URL", "https://all.api.radio-browser.info"),
@@ -243,8 +248,8 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("DATABASE_URL is required")
 	}
 
-	if c.JWT.Secret == "" && c.JWT.PrivateKeyPath == "" {
-		return fmt.Errorf("either JWT_SECRET or JWT_PRIVATE_KEY_PATH is required")
+	if c.JWT.Secret == "" && c.JWT.PrivateKeyPath == "" && c.JWT.PrivateKey == "" {
+		return fmt.Errorf("either JWT_SECRET, JWT_PRIVATE_KEY_PATH or JWT_PRIVATE_KEY is required")
 	}
 
 	if c.Server.Env != "development" && c.Server.Env != "production" && c.Server.Env != "staging" {

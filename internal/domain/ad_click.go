@@ -8,17 +8,17 @@ import (
 
 // AdClick representa un click en un anuncio
 type AdClick struct {
-	ID              uuid.UUID  `json:"id" db:"id"`
-	ImpressionID    uuid.UUID  `json:"impression_id" db:"impression_id"`
-	AdvertisementID uuid.UUID  `json:"advertisement_id" db:"advertisement_id"`
-	UserID          *uuid.UUID `json:"user_id,omitempty" db:"user_id"`
-	IPAddress       string     `json:"ip_address" db:"ip_address"`
-	UserAgent       string     `json:"user_agent" db:"user_agent"`
-	Referrer        *string    `json:"referrer,omitempty" db:"referrer"`
-	ClickPosition   *string    `json:"click_position,omitempty" db:"click_position"` // e.g., "top-banner", "mid-roll"
-	Converted       bool       `json:"converted" db:"converted"`
-	ConversionValueCents *int  `json:"conversion_value_cents,omitempty" db:"conversion_value_cents"`
-	CreatedAt       time.Time  `json:"created_at" db:"created_at"`
+	ID                   uuid.UUID  `json:"id" db:"id"`
+	ImpressionID         uuid.UUID  `json:"impression_id" db:"impression_id"`
+	AdvertisementID      uuid.UUID  `json:"advertisement_id" db:"advertisement_id"`
+	UserID               *uuid.UUID `json:"user_id,omitempty" db:"user_id"`
+	IPAddress            string     `json:"ip_address" db:"ip_address"`
+	UserAgent            string     `json:"user_agent" db:"user_agent"`
+	Referrer             *string    `json:"referrer,omitempty" db:"referrer"`
+	ClickPosition        *string    `json:"click_position,omitempty" db:"click_position"` // e.g., "top-banner", "mid-roll"
+	Converted            bool       `json:"converted" db:"converted"`
+	ConversionValueCents *int       `json:"conversion_value_cents,omitempty" db:"conversion_value_cents"`
+	CreatedAt            time.Time  `json:"created_at" db:"created_at"`
 }
 
 // Validate valida los datos del click
@@ -51,23 +51,23 @@ func (c *AdClick) IsSuspicious(impression *AdImpression) bool {
 	if impression == nil {
 		return true
 	}
-	
+
 	// Click muy rápido (< 100ms) es sospechoso
 	timeToClick := c.TimeToClick(impression)
 	if timeToClick < 100*time.Millisecond {
 		return true
 	}
-	
+
 	// IPs diferentes entre impresión y click es sospechoso
 	if c.IPAddress != impression.IPAddress {
 		return true
 	}
-	
+
 	// User agents diferentes es sospechoso
 	if c.UserAgent != impression.UserAgent {
 		return true
 	}
-	
+
 	return false
 }
 

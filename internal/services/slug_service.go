@@ -12,8 +12,8 @@ import (
 
 // SlugService maneja la normalización de URLs a formato SEO-friendly
 type SlugService struct {
-	transformer transform.Transformer
-	regexNonAlnum *regexp.Regexp
+	transformer    transform.Transformer
+	regexNonAlnum  *regexp.Regexp
 	regexMultiDash *regexp.Regexp
 }
 
@@ -74,14 +74,14 @@ func (s *SlugService) Slugify(text string) string {
 // Útil para manejar nombres duplicados
 func (s *SlugService) SlugifyWithID(text, id string) string {
 	baseSlug := s.Slugify(text)
-	
+
 	if id == "" {
 		return baseSlug
 	}
 
 	// Limpiar el ID también
 	cleanID := s.Slugify(id)
-	
+
 	// Si el ID ya está al final del slug, no duplicar
 	if strings.HasSuffix(baseSlug, "-"+cleanID) {
 		return baseSlug

@@ -50,11 +50,24 @@ spec:
 
         # Environment variables
         env:
+        # Server Configuration
         - name: PORT
           value: "8080"
 
-        - name: ENV
+        - name: SERVER_PORT
+          value: "8080"
+
+        - name: SERVER_HOST
+          value: "0.0.0.0"
+
+        - name: SERVER_ENV
           value: "production"
+
+        - name: SERVER_TIMEOUT
+          value: "30s"
+
+        - name: SERVER_BASE_URL
+          value: "https://radio-backend-296736956418.us-central1.run.app"
 
         # Database configuration - Supabase PostgreSQL (Secret Manager)
         - name: DATABASE_URL
@@ -83,8 +96,11 @@ spec:
               name: jwt-public-key
               key: latest
 
-        - name: JWT_EXPIRATION_HOURS
-          value: "24"
+        - name: JWT_EXPIRATION
+          value: "24h"
+
+        - name: JWT_REFRESH_EXPIRATION
+          value: "168h"
 
         # External API
         - name: RADIO_BROWSER_API_URL
@@ -93,6 +109,81 @@ spec:
         # Logging
         - name: LOG_LEVEL
           value: "info"
+
+        - name: LOG_FORMAT
+          value: "json"
+
+        # i18n
+        - name: DEFAULT_LANGUAGE
+          value: "en"
+
+        - name: SUPPORTED_LANGUAGES
+          value: "en,es,fr,de"
+
+        # Analytics
+        - name: ANALYTICS_BATCH_SIZE
+          value: "100"
+
+        - name: ANALYTICS_FLUSH_INTERVAL
+          value: "10s"
+
+        # Security
+        - name: BCRYPT_COST
+          value: "12"
+
+        - name: RATE_LIMIT_REQUESTS
+          value: "100"
+
+        - name: RATE_LIMIT_WINDOW
+          value: "1m"
+
+        # CORS
+        - name: CORS_ALLOWED_ORIGINS
+          value: "https://your-frontend-domain.com"
+
+        - name: CORS_ALLOWED_METHODS
+          value: "GET,POST,PUT,DELETE,OPTIONS"
+
+        - name: CORS_ALLOWED_HEADERS
+          value: "Content-Type,Authorization,X-Language,X-Request-ID"
+
+        # Feature Flags
+        - name: FEATURE_PREMIUM_CONTENT
+          value: "true"
+
+        - name: FEATURE_ANALYTICS
+          value: "true"
+
+        - name: FEATURE_VAULT_INTEGRATION
+          value: "false"
+
+        # Advertising Configuration
+        - name: AD_IMPRESSION_TOKEN_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ad-impression-token-secret
+              key: latest
+
+        - name: AD_IMPRESSION_TOKEN_MAX_AGE
+          value: "5m"
+
+        - name: AD_CACHE_TTL
+          value: "10m"
+
+        - name: AD_FREQUENCY_CAP_HOURLY
+          value: "6"
+
+        - name: AD_FREQUENCY_CAP_DAILY
+          value: "30"
+
+        - name: AD_FRAUD_SCORE_THRESHOLD
+          value: "0.7"
+
+        - name: AD_RATE_LIMIT_REQUESTS
+          value: "50"
+
+        - name: AD_RATE_LIMIT_WINDOW
+          value: "1m"
 
         # Startup and liveness probes
         startupProbe:

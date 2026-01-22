@@ -10,9 +10,9 @@ import (
 
 func TestAdCampaign_Validate(t *testing.T) {
 	tests := []struct {
-		name    string
+		name     string
 		campaign *AdCampaign
-		wantErr error
+		wantErr  error
 	}{
 		{
 			name: "valid campaign",
@@ -117,7 +117,7 @@ func TestAdCampaign_BudgetUtilization(t *testing.T) {
 
 func TestAdCampaign_IsActive(t *testing.T) {
 	now := time.Now()
-	
+
 	campaign := &AdCampaign{
 		Status:    CampaignStatusActive,
 		StartDate: now.Add(-1 * time.Hour),
@@ -139,7 +139,7 @@ func TestAdCampaign_IsActive(t *testing.T) {
 
 func TestAdCampaign_ShouldExpire(t *testing.T) {
 	now := time.Now()
-	
+
 	campaign := &AdCampaign{
 		Status:  CampaignStatusActive,
 		EndDate: now.Add(-1 * time.Hour),

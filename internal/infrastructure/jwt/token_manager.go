@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"radio-backend/internal/domain"
@@ -33,13 +34,13 @@ type Claims struct {
 }
 
 // NewTokenManager creates a new JWT token manager
-func NewTokenManager(privateKeyPath, publicKeyPath string, accessExp, refreshExp time.Duration) (*TokenManager, error) {
-	privateKey, err := loadPrivateKey(privateKeyPath)
+func NewTokenManager(privateKeyInput, publicKeyInput string, accessExp, refreshExp time.Duration) (*TokenManager, error) {
+	privateKey, err := loadPrivateKey(privateKeyInput)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load private key: %w", err)
 	}
 
-	publicKey, err := loadPublicKey(publicKeyPath)
+	publicKey, err := loadPublicKey(publicKeyInput)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load public key: %w", err)
 	}
@@ -152,20 +153,33 @@ func (tm *TokenManager) ValidateToken(tokenString string) (*domain.TokenClaims, 
 }
 
 // loadPrivateKey loads an RSA private key from a file
-func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
-	keyData, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
+// loadPrivateKey accepts either a filesystem path or raw PEM content.
+func loadPrivateKey(input string) (*rsa.PrivateKey, error) {
+	var keyData []byte
+	// Heuristic: if input contains PEM header assume it's raw content
+	if strings.Contains(input, "-----BEGIN") {
+		keyData = []byte(input)
+	} else {
+		var err error
+		keyData, err = os.ReadFile(input)
+		if err != nil {
+			return nil, err
+		}
 	}
-
 	return jwt.ParseRSAPrivateKeyFromPEM(keyData)
 }
 
-// loadPublicKey loads an RSA public key from a file
-func loadPublicKey(path string) (*rsa.PublicKey, error) {
-	keyData, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
+// loadPublicKey accepts either a filesystem path or raw PEM content.
+func loadPublicKey(input string) (*rsa.PublicKey, error) {
+	var keyData []byte
+	if strings.Contains(input, "-----BEGIN") {
+		keyData = []byte(input)
+	} else {
+		var err error
+		keyData, err = os.ReadFile(input)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return jwt.ParseRSAPublicKeyFromPEM(keyData)

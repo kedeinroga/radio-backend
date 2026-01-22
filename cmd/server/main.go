@@ -108,9 +108,20 @@ func main() {
 	// Initialize infrastructure components
 	passwordHasher := cryptoBcrypt.NewPasswordHasher(cfg.Security.BcryptCost)
 
+	// Prefer raw PEM content from environment variables if provided, otherwise use file paths
+	privateKeyInput := cfg.JWT.PrivateKeyPath
+	if cfg.JWT.PrivateKey != "" {
+		privateKeyInput = cfg.JWT.PrivateKey
+	}
+
+	publicKeyInput := cfg.JWT.PublicKeyPath
+	if cfg.JWT.PublicKey != "" {
+		publicKeyInput = cfg.JWT.PublicKey
+	}
+
 	tokenManager, err := jwt.NewTokenManager(
-		cfg.JWT.PrivateKeyPath,
-		cfg.JWT.PublicKeyPath,
+		privateKeyInput,
+		publicKeyInput,
 		cfg.JWT.Expiration,
 		cfg.JWT.RefreshExpiration,
 	)

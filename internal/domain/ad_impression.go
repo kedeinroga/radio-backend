@@ -8,20 +8,20 @@ import (
 
 // AdImpression representa una impresión de anuncio
 type AdImpression struct {
-	ID                    uuid.UUID  `json:"id" db:"id"`
-	AdvertisementID       uuid.UUID  `json:"advertisement_id" db:"advertisement_id"`
-	UserID                *uuid.UUID `json:"user_id,omitempty" db:"user_id"` // NULL para usuarios no autenticados
-	SessionID             string     `json:"session_id" db:"session_id"`
-	StationID             *string    `json:"station_id,omitempty" db:"station_id"`
-	IPAddress             string     `json:"ip_address" db:"ip_address"`
-	UserAgent             string     `json:"user_agent" db:"user_agent"`
-	CountryCode           *string    `json:"country_code,omitempty" db:"country_code"`
-	City                  *string    `json:"city,omitempty" db:"city"`
-	DeviceType            string     `json:"device_type" db:"device_type"` // mobile, tablet, desktop
-	Viewable              bool       `json:"viewable" db:"viewable"`
-	ImpressionDurationMs  *int       `json:"impression_duration_ms,omitempty" db:"impression_duration_ms"`
-	ImpressionToken       string     `json:"impression_token" db:"impression_token"` // HMAC token para validación
-	CreatedAt             time.Time  `json:"created_at" db:"created_at"`
+	ID                   uuid.UUID  `json:"id" db:"id"`
+	AdvertisementID      uuid.UUID  `json:"advertisement_id" db:"advertisement_id"`
+	UserID               *uuid.UUID `json:"user_id,omitempty" db:"user_id"` // NULL para usuarios no autenticados
+	SessionID            string     `json:"session_id" db:"session_id"`
+	StationID            *string    `json:"station_id,omitempty" db:"station_id"`
+	IPAddress            string     `json:"ip_address" db:"ip_address"`
+	UserAgent            string     `json:"user_agent" db:"user_agent"`
+	CountryCode          *string    `json:"country_code,omitempty" db:"country_code"`
+	City                 *string    `json:"city,omitempty" db:"city"`
+	DeviceType           string     `json:"device_type" db:"device_type"` // mobile, tablet, desktop
+	Viewable             bool       `json:"viewable" db:"viewable"`
+	ImpressionDurationMs *int       `json:"impression_duration_ms,omitempty" db:"impression_duration_ms"`
+	ImpressionToken      string     `json:"impression_token" db:"impression_token"` // HMAC token para validación
+	CreatedAt            time.Time  `json:"created_at" db:"created_at"`
 }
 
 // Validate valida los datos de la impresión
