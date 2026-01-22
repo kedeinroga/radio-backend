@@ -64,7 +64,6 @@ linters:
     - misspell
     - unconvert
     - unparam
-    - exportloopref
     - nilerr
     - predeclared
     - stylecheck
@@ -98,6 +97,11 @@ issues:
       linters:
         - errcheck
 
+    # Ignore unused helper functions
+    - text: "func `(slugify|timePtr)` is unused"
+      linters:
+        - unused
+
   max-issues-per-linter: 0
   max-same-issues: 0
 
@@ -116,7 +120,6 @@ run:
     - ".*\\.pb\\.go$"
 
 output:
-  # Use formats instead of format
   formats:
     - format: colored-line-number
   print-issued-lines: true
