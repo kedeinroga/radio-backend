@@ -15,12 +15,11 @@ terraform {
     }
   }
 
-  # Backend configuration for state storage
-  # Uncomment and configure after creating the GCS bucket
-  # backend "gcs" {
-  #   bucket = "radio-485022-terraform-state"
-  #   prefix = "terraform/state"
-  # }
+  # Backend configuration for state storage in GCS
+  backend "gcs" {
+    bucket = "radio-485022-terraform-state"
+    prefix = "production/terraform/state"
+  }
 }
 
 provider "google" {
