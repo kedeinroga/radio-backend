@@ -73,7 +73,7 @@ jobs:
 
       - name: Terraform Init
         id: init
-        run: terraform init -backend-config=environments/staging/backend.tf -reconfigure
+        run: terraform init -reconfigure
 
       - name: Terraform Validate
         id: validate
