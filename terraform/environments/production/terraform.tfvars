@@ -20,8 +20,8 @@ cloudrun_config = {
 }
 
 # Production URLs
-server_base_url       = "https://radio-backend-296736956418.us-central1.run.app"
-cors_allowed_origins  = "https://your-production-frontend.com"
+server_base_url       = "https://api.rradio.online"
+cors_allowed_origins  = "https://rradio.online"
 
 # Container Image
 container_image = "gcr.io/radio-485022/radio-backend:latest"
