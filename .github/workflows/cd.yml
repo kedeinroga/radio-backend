@@ -115,6 +115,20 @@ jobs:
           echo "**URL:** $URL" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
 
+      - name: Run Database Migrations (Staging)
+        run: |
+          echo "Installing golang-migrate..."
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+          echo "Fetching DATABASE_URL from Secret Manager..."
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="database-url-staging" --project=${{ env.PROJECT_ID }})
+
+          echo "Running migrations..."
+          migrate -path ./migrations -database "$DATABASE_URL" up
+
+          echo "✅ Migrations completed successfully!" >> $GITHUB_STEP_SUMMARY
+
       - name: Health Check
         run: |
           sleep 10
@@ -200,6 +214,20 @@ jobs:
           echo "**Image:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
           echo "**Database:** Supabase PostgreSQL" >> $GITHUB_STEP_SUMMARY
           echo "**Cache:** Upstash Redis" >> $GITHUB_STEP_SUMMARY
+
+      - name: Run Database Migrations (Production)
+        run: |
+          echo "Installing golang-migrate..."
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+          echo "Fetching DATABASE_URL from Secret Manager..."
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="database-url" --project=${{ env.PROJECT_ID }})
+
+          echo "Running migrations..."
+          migrate -path ./migrations -database "$DATABASE_URL" up
+
+          echo "✅ Migrations completed successfully!" >> $GITHUB_STEP_SUMMARY
 
       - name: Health Check
         run: |
