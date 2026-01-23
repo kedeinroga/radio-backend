@@ -1,4 +1,5 @@
 # Secret Manager Configuration
+# Free Tier: 6 active secret versions, 10,000 access operations/month
 
 # Create secrets in Secret Manager
 resource "google_secret_manager_secret" "secrets" {
@@ -14,6 +15,12 @@ resource "google_secret_manager_secret" "secrets" {
     environment = var.environment
     service     = var.service_name
     managed_by  = "terraform"
+  }
+
+  # Rotation policy to keep only 1 version (free tier optimization)
+  rotation {
+    next_rotation_time = null
+    rotation_period    = null
   }
 }
 
@@ -39,6 +46,11 @@ resource "google_secret_manager_secret_version" "secret_versions" {
 # - gcloud secrets versions add <secret-name> --data-file=<file>
 # - Google Cloud Console
 # - Your existing setup-secrets.sh script
+#
+# FREE TIER OPTIMIZATION:
+# Keep only 1 active version per secret (5 secrets = 5 versions, within 6 free limit)
+# When rotating secrets, destroy old version immediately:
+#   gcloud secrets versions destroy VERSION --secret=SECRET_NAME
 
 # Output instructions for adding secret values
 output "secret_instructions" {

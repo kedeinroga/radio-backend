@@ -7,7 +7,7 @@ variable "project_id" {
 }
 
 variable "region" {
-  description = "Google Cloud Region"
+  description = "Google Cloud Region (us-west1, us-east1, us-central1 eligible for Always Free)"
   type        = string
   default     = "us-central1"
 }
@@ -47,7 +47,8 @@ variable "github_branch" {
   default     = "main"
 }
 
-# Cloud Run Configuration
+# Cloud Run Configuration (Optimized for GCP Free Tier)
+# Always Free: 2M requests/month, 360,000 vCPU-seconds, 180,000 GiB-seconds
 variable "cloudrun_config" {
   description = "Cloud Run service configuration"
   type = object({
@@ -61,13 +62,13 @@ variable "cloudrun_config" {
   })
 
   default = {
-    min_instances      = 1
+    min_instances      = 0  # Scale to zero for free tier
     max_instances      = 3
-    cpu                = "1000m"
-    memory             = "512Mi"
-    timeout_seconds    = 300
-    concurrency        = 80
-    cpu_throttling     = true
+    cpu                = "1000m"  # 1 vCPU
+    memory             = "512Mi"  # 512 MiB (free tier: up to 2GB)
+    timeout_seconds    = 60       # Reduced to save compute time
+    concurrency        = 80       # Max concurrent requests per instance
+    cpu_throttling     = true     # CPU only allocated during request processing
   }
 }
 
