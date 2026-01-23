@@ -1,4 +1,4 @@
-.PHONY: help build run test test-integration lint fmt clean migrate migrate-up migrate-down security docker-build docker-run
+.PHONY: help build run test test-integration lint fmt clean migrate migrate-up migrate-down security docker-build docker-run cloudrun-logs terraform
 
 # Variables
 BINARY_NAME=radio-backend
@@ -173,45 +173,15 @@ install-tools: ## Install development tools
 all: clean deps fmt lint test build ## Run all checks and build
 
 # =============================================================================
-# Cloud Run / GCP Deployment
+# Cloud Run Utilities (GitHub Actions handles deployment)
 # =============================================================================
 
-.PHONY: cloudrun-setup cloudrun-secrets cloudrun-deploy cloudrun-build cloudrun-logs cloudrun-describe
+.PHONY: cloudrun-logs cloudrun-describe cloudrun-url
 
 # Cloud Run variables
 PROJECT_ID ?= $(shell gcloud config get-value project)
 REGION ?= us-central1
 SERVICE_NAME ?= radio-backend
-IMAGE_TAG ?= gcr.io/$(PROJECT_ID)/$(SERVICE_NAME)
-
-cloudrun-setup: ## Setup Cloud Run prerequisites (APIs, service account)
-	@echo "${GREEN}Setting up Cloud Run prerequisites...${NC}"
-	@gcloud services enable cloudbuild.googleapis.com run.googleapis.com containerregistry.googleapis.com secretmanager.googleapis.com --project=$(PROJECT_ID)
-	@gcloud iam service-accounts create $(SERVICE_NAME)-sa --display-name="Radio Backend Service Account" --project=$(PROJECT_ID) || true
-	@echo "${GREEN}Cloud Run setup complete${NC}"
-
-cloudrun-secrets: ## Setup secrets in Secret Manager
-	@echo "${GREEN}Setting up secrets...${NC}"
-	@chmod +x scripts/setup-secrets.sh
-	@./scripts/setup-secrets.sh $(PROJECT_ID)
-
-cloudrun-build: ## Build and push Docker image to GCR
-	@echo "${GREEN}Building and pushing image to GCR...${NC}"
-	@gcloud builds submit --tag $(IMAGE_TAG):$(shell git rev-parse --short HEAD) --project=$(PROJECT_ID)
-	@gcloud container images add-tag $(IMAGE_TAG):$(shell git rev-parse --short HEAD) $(IMAGE_TAG):latest --quiet
-	@echo "${GREEN}Image built and pushed: $(IMAGE_TAG):latest${NC}"
-
-cloudrun-deploy: ## Deploy to Cloud Run (production)
-	@echo "${GREEN}Deploying to Cloud Run (production)...${NC}"
-	@chmod +x scripts/deploy-cloudrun.sh
-	@./scripts/deploy-cloudrun.sh production $(PROJECT_ID) $(REGION)
-
-cloudrun-deploy-production: cloudrun-deploy ## Deploy to Cloud Run (production) - alias
-
-cloudrun-deploy-staging: ## Deploy to Cloud Run (staging)
-	@echo "${GREEN}Deploying to Cloud Run (staging)...${NC}"
-	@chmod +x scripts/deploy-cloudrun.sh
-	@./scripts/deploy-cloudrun.sh staging $(PROJECT_ID) $(REGION)
 
 cloudrun-logs: ## View Cloud Run logs
 	@echo "${GREEN}Fetching Cloud Run logs...${NC}"
@@ -226,12 +196,6 @@ cloudrun-describe: ## Describe Cloud Run service
 
 cloudrun-url: ## Get Cloud Run service URL
 	@gcloud run services describe $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID) --format='value(status.url)'
-
-cloudrun-delete: ## Delete Cloud Run service
-	@echo "${YELLOW}Deleting Cloud Run service...${NC}"
-	@gcloud run services delete $(SERVICE_NAME) --region $(REGION) --project $(PROJECT_ID)
-
-cloudrun-all: cloudrun-setup cloudrun-secrets cloudrun-build cloudrun-deploy ## Complete Cloud Run setup and deployment
 
 # Local Docker testing (multi-stage)
 docker-build-prod: ## Build production Docker image locally
@@ -297,3 +261,69 @@ docker-redis: ## Open Redis CLI
 
 docker-health: ## Run health checks on all services
 	@./docker.sh test
+
+# =============================================================================
+# Terraform Infrastructure as Code
+# =============================================================================
+
+.PHONY: tf-init tf-plan tf-apply tf-destroy tf-output tf-validate tf-fmt tf-state tf-init-prod tf-init-staging
+
+tf-init: ## Initialize Terraform for production
+	@./scripts/terraform-helpers.sh init production
+
+tf-init-staging: ## Initialize Terraform for staging
+	@./scripts/terraform-helpers.sh init staging
+
+tf-plan: ## Show Terraform execution plan (production)
+	@./scripts/terraform-helpers.sh plan production
+
+tf-plan-staging: ## Show Terraform execution plan (staging)
+	@./scripts/terraform-helpers.sh plan staging
+
+tf-apply: ## Apply Terraform changes (production)
+	@./scripts/terraform-helpers.sh apply production
+
+tf-apply-staging: ## Apply Terraform changes (staging)
+	@./scripts/terraform-helpers.sh apply staging
+
+tf-destroy: ## Destroy Terraform infrastructure (production)
+	@./scripts/terraform-helpers.sh destroy production
+
+tf-destroy-staging: ## Destroy Terraform infrastructure (staging)
+	@./scripts/terraform-helpers.sh destroy staging
+
+tf-output: ## Show Terraform outputs (production)
+	@./scripts/terraform-helpers.sh output production
+
+tf-output-staging: ## Show Terraform outputs (staging)
+	@./scripts/terraform-helpers.sh output staging
+
+tf-validate: ## Validate Terraform configuration
+	@./scripts/terraform-helpers.sh validate production
+
+tf-fmt: ## Format Terraform files
+	@./scripts/terraform-helpers.sh fmt production
+
+tf-state: ## Show Terraform state (production)
+	@./scripts/terraform-helpers.sh state production
+
+tf-state-staging: ## Show Terraform state (staging)
+	@./scripts/terraform-helpers.sh state staging
+
+tf-clean: ## Clean infrastructure and start fresh
+	@./scripts/clean-infrastructure.sh
+
+tf-setup-backend: ## Create GCS bucket for Terraform state
+	@echo "${GREEN}Creating GCS bucket for Terraform state...${NC}"
+	@gsutil mb -p radio-485022 -l us-central1 gs://radio-485022-terraform-state || echo "Bucket already exists"
+	@gsutil versioning set on gs://radio-485022-terraform-state
+	@echo "${GREEN}✓ Backend configured${NC}"
+
+tf-github-secrets: ## Show GitHub Actions secrets to configure
+	@echo "${YELLOW}Configure these secrets in GitHub:${NC}"
+	@echo ""
+	@echo "Go to: https://github.com/kedeinroga/radio-backend/settings/secrets/actions"
+	@echo ""
+	@cd terraform && terraform output -raw workload_identity_provider > /tmp/wip.txt 2>/dev/null && echo "GCP_WORKLOAD_IDENTITY_PROVIDER:" && cat /tmp/wip.txt && echo "" || echo "Run 'make tf-apply' first"
+	@cd terraform && terraform output -raw github_actions_service_account_email > /tmp/gasa.txt 2>/dev/null && echo "GCP_SERVICE_ACCOUNT:" && cat /tmp/gasa.txt && echo "" || echo "Run 'make tf-apply' first"
+	@rm -f /tmp/wip.txt /tmp/gasa.txt
