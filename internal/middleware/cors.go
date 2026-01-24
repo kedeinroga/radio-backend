@@ -12,17 +12,23 @@ func CORSMiddleware(allowedOrigins, allowedMethods, allowedHeaders []string) gin
 		// Check if origin is allowed
 		allowed := false
 		for _, allowedOrigin := range allowedOrigins {
-			if allowedOrigin == "*" || allowedOrigin == origin {
+			if allowedOrigin == "*" {
+				allowed = true
+				break
+			}
+			if allowedOrigin == origin && origin != "" {
 				allowed = true
 				break
 			}
 		}
 
+		// Only set CORS headers if origin is allowed
 		if allowed {
-			if origin != "" {
+			// If wildcard, use it; otherwise use the specific origin
+			if len(allowedOrigins) > 0 && allowedOrigins[0] == "*" {
+				c.Header("Access-Control-Allow-Origin", "*")
+			} else if origin != "" {
 				c.Header("Access-Control-Allow-Origin", origin)
-			} else if len(allowedOrigins) > 0 {
-				c.Header("Access-Control-Allow-Origin", allowedOrigins[0])
 			}
 
 			c.Header("Access-Control-Allow-Methods", joinStrings(allowedMethods, ", "))
@@ -33,7 +39,11 @@ func CORSMiddleware(allowedOrigins, allowedMethods, allowedHeaders []string) gin
 
 		// Handle preflight requests
 		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
+			if allowed {
+				c.AbortWithStatus(204)
+			} else {
+				c.AbortWithStatus(403)
+			}
 			return
 		}
 
