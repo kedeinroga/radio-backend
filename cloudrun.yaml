@@ -137,9 +137,9 @@ spec:
         - name: RATE_LIMIT_WINDOW
           value: "1m"
 
-        # CORS
+        # CORS - Production: Only allow rradio.online frontend
         - name: CORS_ALLOWED_ORIGINS
-          value: "https://your-frontend-domain.com"
+          value: "https://rradio.online"
 
         - name: CORS_ALLOWED_METHODS
           value: "GET,POST,PUT,DELETE,OPTIONS"

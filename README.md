@@ -15,21 +15,43 @@ A production-ready radio streaming proxy backend built with Go, following Clean 
 📖 **[Complete Docker Guide →](docs/DOCKER_GUIDE.md)**
 
 ### Production Deployment (Supabase + Upstash + Cloud Run)
+
+#### Terraform + GitHub Actions (Automated CI/CD) 🏗️
+
+Infrastructure as Code con deployment automático para gestionar toda la infraestructura:
+
 ```bash
-# 1. Setup infrastructure (one-time)
-./scripts/setup-github-actions.sh
+# 1. Inicializar Terraform
+make tf-init
 
-# 2. Configure secrets (Supabase + Upstash)
-./scripts/setup-secrets.sh
+# 2. Ver qué se va a crear
+make tf-plan
 
-# 3. Deploy!
-git push origin main  # Auto-deploys via GitHub Actions
+# 3. Crear infraestructura (una sola vez)
+make tf-apply
+
+# 4. Configurar secretos en GitHub (una sola vez)
+make tf-github-secrets
+
+# 5. Deploy automático!
+git push origin main  # GitHub Actions se encarga del resto
 ```
 
-📖 **[Production Setup Guide →](docs/PRODUCTION_SETUP.md)**  
-📖 **[Cloud Run Deployment →](docs/CLOUDRUN_DEPLOYMENT.md)**  
-📖 **[GitHub Actions Setup →](docs/GITHUB_ACTIONS_SETUP.md)**  
-📖 **[Quick Start (15 min) →](docs/QUICKSTART_GITHUB_ACTIONS.md)**
+**Ventajas:**
+- ✅ CI/CD completamente automatizado con GitHub Actions
+- ✅ Infraestructura como código con Terraform
+- ✅ Estado rastreado en GCS bucket
+- ✅ Detecta cambios manuales (drift detection)
+- ✅ Tests + Linting + Build + Deploy automáticos
+- ✅ Migraciones de BD automáticas
+- ✅ Versionado con Git
+- ✅ Rollback fácil
+- ✅ Multi-ambiente (staging/production)
+
+📖 **[Terraform Quick Start →](terraform/QUICKSTART.md)**  
+📖 **[Terraform Full Guide →](terraform/README.md)**  
+📖 **[GitHub Actions Workflows →](.github/workflows/README.md)**  
+📖 **[Ejemplos Prácticos →](terraform/EXAMPLES.md)**
 
 ## 🆕 What's New in v2.0
 
