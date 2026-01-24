@@ -21,16 +21,22 @@ resource "google_secret_manager_secret" "secrets" {
 # Create initial secret versions with placeholder values
 # This allows the infrastructure to be created without failing
 # You MUST update these values before deploying the application
+#
+# IMPORTANT: This resource only creates the INITIAL version.
+# After you manually update the secret values, Terraform will NOT overwrite them.
+# The lifecycle block prevents Terraform from recreating or modifying versions.
 resource "google_secret_manager_secret_version" "secret_versions" {
   for_each = var.secrets
 
   secret = google_secret_manager_secret.secrets[each.key].id
 
-  # Placeholder value - MUST be changed before production use
+  # Placeholder value - only used for initial creation
   secret_data = "CHANGE_ME_${upper(replace(each.key, "_", "-"))}"
 
   lifecycle {
-    ignore_changes = [secret_data]
+    # Prevent Terraform from ever recreating this resource
+    # This ensures manually updated secret values are preserved
+    ignore_changes = all
   }
 }
 
