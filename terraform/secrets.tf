@@ -16,12 +16,6 @@ resource "google_secret_manager_secret" "secrets" {
     service     = var.service_name
     managed_by  = "terraform"
   }
-
-  # Rotation policy to keep only 1 version (free tier optimization)
-  rotation {
-    next_rotation_time = null
-    rotation_period    = null
-  }
 }
 
 # Create initial secret versions with placeholder values
