@@ -97,12 +97,6 @@ jobs:
         uses: securego/gosec@master
         with:
           args: '-no-fail -fmt json -out gosec-results.json ./...'
-      
-      - name: Upload Gosec results
-        uses: actions/upload-artifact@v4
-        with:
-          name: gosec-results
-          path: gosec-results.json
 
   build:
     name: Build
@@ -128,9 +122,3 @@ jobs:
           GOARCH: ${{ matrix.arch }}
         run: |
           go build -o bin/radio-backend-${{ matrix.os }}-${{ matrix.arch }} ./cmd/server
-      
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: radio-backend-${{ matrix.os }}-${{ matrix.arch }}
-          path: bin/radio-backend-${{ matrix.os }}-${{ matrix.arch }}

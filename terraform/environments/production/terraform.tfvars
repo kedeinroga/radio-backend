@@ -21,7 +21,7 @@ cloudrun_config = {
 
 # Production URLs
 server_base_url       = "https://api.rradio.online"
-cors_allowed_origins  = "https://rradio.online"
+cors_allowed_origins  = "https://rradio.online,https://www.rradio.online"
 
 # Container Image
 container_image = "gcr.io/radio-485022/radio-backend:latest"
