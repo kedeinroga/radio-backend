@@ -131,7 +131,7 @@ func TestTranslationService_CreateTranslation(t *testing.T) {
 		mockTranslationRepo.On("Create", mock.AnythingOfType("*domain.StationTranslation")).Return(nil)
 
 		// Act
-		result, err := service.CreateTranslation(req)
+		result, err := service.CreateTranslation(context.Background(), req)
 
 		// Assert
 		assert.NoError(t, err)
@@ -184,7 +184,7 @@ func TestTranslationService_CreateTranslation(t *testing.T) {
 		mockStationRepo.On("FindByID", "station-1").Return(station, nil)
 
 		// Act
-		result, err := service.CreateTranslation(req)
+		result, err := service.CreateTranslation(context.Background(), req)
 
 		// Assert
 		assert.Error(t, err)
@@ -219,7 +219,7 @@ func TestTranslationService_UpdateTranslation(t *testing.T) {
 		mockTranslationRepo.On("Update", mock.AnythingOfType("*domain.StationTranslation")).Return(nil)
 
 		// Act
-		result, err := service.UpdateTranslation("station-1", i18n.LanguageEN, req)
+		result, err := service.UpdateTranslation(context.Background(), "station-1", i18n.LanguageEN, req)
 
 		// Assert
 		assert.NoError(t, err)
@@ -243,7 +243,7 @@ func TestTranslationService_UpdateTranslation(t *testing.T) {
 		mockTranslationRepo.On("Get", "station-1", i18n.LanguageEN).Return(nil, domain.ErrTranslationNotFound)
 
 		// Act
-		result, err := service.UpdateTranslation("station-1", i18n.LanguageEN, req)
+		result, err := service.UpdateTranslation(context.Background(), "station-1", i18n.LanguageEN, req)
 
 		// Assert
 		assert.Error(t, err)
