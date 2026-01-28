@@ -86,13 +86,13 @@ func (h *AdvertisementHandler) CreateAdvertisement(c *gin.Context) {
 	var req CreateAdvertisementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Warn("Invalid advertisement creation request", "error", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
 	campaignID, err := uuid.Parse(req.CampaignID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+		RespondWithError(c, http.StatusBadRequest, "invalid_campaign_id", "Invalid campaign_id")
 		return
 	}
 
@@ -128,11 +128,11 @@ func (h *AdvertisementHandler) CreateAdvertisement(c *gin.Context) {
 
 	if err := h.adService.CreateAdvertisement(c.Request.Context(), ad); err != nil {
 		h.logger.Error("Failed to create advertisement", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create advertisement"})
+		RespondWithError(c, http.StatusInternalServerError, "create_failed", "Failed to create advertisement")
 		return
 	}
 
-	c.JSON(http.StatusCreated, ad)
+	RespondWithSuccess(c, http.StatusCreated, ad)
 }
 
 // GetAdvertisement retrieves an advertisement by ID
@@ -149,20 +149,19 @@ func (h *AdvertisementHandler) CreateAdvertisement(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/ads/{id} [get]
 func (h *AdvertisementHandler) GetAdvertisement(c *gin.Context) {
-	adID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid advertisement_id"})
+	adID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
 	ad, err := h.adService.GetAdvertisement(c.Request.Context(), adID)
 	if err != nil {
 		h.logger.Error("Failed to get advertisement", "error", err, "ad_id", adID)
-		c.JSON(http.StatusNotFound, gin.H{"error": "advertisement not found"})
+		RespondWithError(c, http.StatusNotFound, "advertisement_not_found", "Advertisement not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, ad)
+	RespondWithSuccess(c, http.StatusOK, ad)
 }
 
 // GetAdvertisementsByCampaign retrieves all advertisements for a campaign
@@ -178,20 +177,19 @@ func (h *AdvertisementHandler) GetAdvertisement(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{campaign_id}/ads [get]
 func (h *AdvertisementHandler) GetAdvertisementsByCampaign(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("campaign_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "campaign_id")
+	if !ok {
 		return
 	}
 
 	ads, err := h.adService.GetAdvertisementsByCampaign(c.Request.Context(), campaignID)
 	if err != nil {
 		h.logger.Error("Failed to get advertisements", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get advertisements"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get advertisements")
 		return
 	}
 
-	c.JSON(http.StatusOK, ads)
+	RespondWithSuccess(c, http.StatusOK, ads)
 }
 
 // UpdateAdvertisement updates an advertisement
@@ -210,23 +208,22 @@ func (h *AdvertisementHandler) GetAdvertisementsByCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/ads/{id} [put]
 func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
-	adID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid advertisement_id"})
+	adID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
 	var req UpdateAdvertisementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Warn("Invalid advertisement update request", "error", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
 	// Get existing advertisement
 	ad, err := h.adService.GetAdvertisement(c.Request.Context(), adID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "advertisement not found"})
+		RespondWithError(c, http.StatusNotFound, "advertisement_not_found", "Advertisement not found")
 		return
 	}
 
@@ -273,11 +270,11 @@ func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 
 	if err := h.adService.UpdateAdvertisement(c.Request.Context(), ad); err != nil {
 		h.logger.Error("Failed to update advertisement", "error", err, "ad_id", adID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update advertisement"})
+		RespondWithError(c, http.StatusInternalServerError, "update_failed", "Failed to update advertisement")
 		return
 	}
 
-	c.JSON(http.StatusOK, ad)
+	RespondWithSuccess(c, http.StatusOK, ad)
 }
 
 // DeleteAdvertisement deletes an advertisement
@@ -293,15 +290,14 @@ func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/ads/{id} [delete]
 func (h *AdvertisementHandler) DeleteAdvertisement(c *gin.Context) {
-	adID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid advertisement_id"})
+	adID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
 	if err := h.adService.DeleteAdvertisement(c.Request.Context(), adID); err != nil {
 		h.logger.Error("Failed to delete advertisement", "error", err, "ad_id", adID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete advertisement"})
+		RespondWithError(c, http.StatusInternalServerError, "delete_failed", "Failed to delete advertisement")
 		return
 	}
 
@@ -330,7 +326,7 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
 		parsedID, err := uuid.Parse(userIDStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
+			RespondWithError(c, http.StatusBadRequest, "invalid_user_id", "Invalid user_id")
 			return
 		}
 		userID = &parsedID
@@ -363,7 +359,7 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 	ads, err := h.adService.GetEligibleAdsForUser(c.Request.Context(), userIDValue, country, genre, language, device, isPremium)
 	if err != nil {
 		h.logger.Error("Failed to get eligible ads", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get eligible ads"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get eligible ads")
 		return
 	}
 
@@ -372,7 +368,7 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 		ads = []*domain.Advertisement{}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	RespondWithSuccess(c, http.StatusOK, gin.H{
 		"ads":   ads,
 		"count": len(ads),
 	})
@@ -392,18 +388,17 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/ads/{id}/stats [get]
 func (h *AdvertisementHandler) GetAdvertisementStats(c *gin.Context) {
-	adID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid advertisement_id"})
+	adID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
 	stats, err := h.adService.GetAdvertisementStats(c.Request.Context(), adID)
 	if err != nil {
 		h.logger.Error("Failed to get advertisement stats", "error", err, "ad_id", adID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get stats"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get stats")
 		return
 	}
 
-	c.JSON(http.StatusOK, stats)
+	RespondWithSuccess(c, http.StatusOK, stats)
 }
