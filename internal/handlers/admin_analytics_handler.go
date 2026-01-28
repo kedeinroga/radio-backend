@@ -57,7 +57,7 @@ func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 	if fromStr := c.Query("from"); fromStr != "" {
 		parsedTime, err := time.Parse(time.RFC3339, fromStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid from format (use RFC3339)"})
+			RespondWithError(c, http.StatusBadRequest, "invalid_from_date", "Invalid from format (use RFC3339)")
 			return
 		}
 		from = parsedTime
@@ -67,7 +67,7 @@ func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 	if toStr := c.Query("to"); toStr != "" {
 		parsedTime, err := time.Parse(time.RFC3339, toStr)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid to format (use RFC3339)"})
+			RespondWithError(c, http.StatusBadRequest, "invalid_to_date", "Invalid to format (use RFC3339)")
 			return
 		}
 		to = parsedTime
@@ -86,16 +86,16 @@ func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 	}
 
 	h.logger.Info("Retrieved revenue analytics", "from", from, "to", to)
-	c.JSON(http.StatusOK, response)
+	RespondWithSuccess(c, http.StatusOK, response)
 }
 
 // GetCampaignPerformance retrieves performance metrics for all campaigns
 func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 	// Get all active campaigns
-	campaigns, err := h.analyticsService.GetActiveCampaigns()
+	campaigns, err := h.analyticsService.GetActiveCampaigns(c.Request.Context())
 	if err != nil {
 		h.logger.Error("Failed to get active campaigns", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get campaigns"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get campaigns")
 		return
 	}
 
@@ -103,7 +103,7 @@ func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 	performances := make([]CampaignPerformanceResponse, 0, len(campaigns))
 	for _, campaign := range campaigns {
 		// Get campaign stats
-		stats, err := h.analyticsService.GetCampaignStats(campaign.ID)
+		stats, err := h.analyticsService.GetCampaignStats(c.Request.Context(), campaign.ID)
 		if err != nil {
 			h.logger.Warn("Failed to get campaign stats", "error", err, "campaign_id", campaign.ID)
 			continue
@@ -123,7 +123,7 @@ func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	RespondWithSuccess(c, http.StatusOK, gin.H{
 		"campaigns": performances,
 		"count":     len(performances),
 	})
@@ -144,7 +144,7 @@ func (h *AdminAnalyticsHandler) GetFraudMetrics(c *gin.Context) {
 	}
 
 	h.logger.Info("Retrieved fraud metrics")
-	c.JSON(http.StatusOK, response)
+	RespondWithSuccess(c, http.StatusOK, response)
 }
 
 // GetTopAds retrieves top performing ads
@@ -163,7 +163,7 @@ func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 	}
 
 	if !validMetrics[metric] {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid metric (use: impressions, clicks, ctr, revenue)"})
+		RespondWithError(c, http.StatusBadRequest, "invalid_metric", "Invalid metric (use: impressions, clicks, ctr, revenue)")
 		return
 	}
 
@@ -171,7 +171,7 @@ func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 	topAds := []gin.H{}
 
 	h.logger.Info("Retrieved top ads", "metric", metric)
-	c.JSON(http.StatusOK, gin.H{
+	RespondWithSuccess(c, http.StatusOK, gin.H{
 		"metric":  metric,
 		"top_ads": topAds,
 		"count":   len(topAds),
@@ -181,10 +181,10 @@ func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 // GetDashboardOverview retrieves dashboard overview metrics
 func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	// Get all active campaigns
-	activeCampaigns, err := h.analyticsService.GetActiveCampaigns()
+	activeCampaigns, err := h.analyticsService.GetActiveCampaigns(c.Request.Context())
 	if err != nil {
 		h.logger.Error("Failed to get active campaigns", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get dashboard data"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get dashboard data")
 		return
 	}
 
@@ -195,7 +195,7 @@ func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	for _, campaign := range activeCampaigns {
 		totalBudgetCents += campaign.TotalBudgetCents
 
-		stats, err := h.analyticsService.GetCampaignStats(campaign.ID)
+		stats, err := h.analyticsService.GetCampaignStats(c.Request.Context(), campaign.ID)
 		if err != nil {
 			h.logger.Warn("Failed to get campaign stats", "error", err, "campaign_id", campaign.ID)
 			continue
@@ -219,5 +219,5 @@ func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	}
 
 	h.logger.Info("Retrieved dashboard overview")
-	c.JSON(http.StatusOK, overview)
+	RespondWithSuccess(c, http.StatusOK, overview)
 }

@@ -46,7 +46,7 @@ func (h *TranslationHandler) CreateTranslation(c *gin.Context) {
 	}
 
 	// Create the translation
-	translation, err := h.translationService.CreateTranslation(&req)
+	translation, err := h.translationService.CreateTranslation(c.Request.Context(), &req)
 	if err != nil {
 		switch err {
 		case domain.ErrStationNotFound:
@@ -128,7 +128,7 @@ func (h *TranslationHandler) ListTranslations(c *gin.Context) {
 	stationID := c.Param("stationId")
 
 	// List translations
-	translations, err := h.translationService.ListTranslationsByStation(stationID)
+	translations, err := h.translationService.ListTranslationsByStation(c.Request.Context(), stationID)
 	if err != nil {
 		if err == domain.ErrStationNotFound {
 			RespondWithError(c, http.StatusNotFound, "station_not_found", "Station not found")
@@ -186,7 +186,7 @@ func (h *TranslationHandler) UpdateTranslation(c *gin.Context) {
 	}
 
 	// Update the translation
-	translation, err := h.translationService.UpdateTranslation(stationID, lang, &req)
+	translation, err := h.translationService.UpdateTranslation(c.Request.Context(), stationID, lang, &req)
 	if err != nil {
 		if err == domain.ErrTranslationNotFound {
 			RespondWithError(c, http.StatusNotFound, "translation_not_found", "Translation not found")

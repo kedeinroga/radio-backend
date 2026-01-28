@@ -349,3 +349,54 @@ func (r *translationRepository) GetAvailableLanguages(stationID string) ([]i18n.
 
 	return languages, nil
 }
+
+// GetByStationIDs obtiene traducciones para múltiples estaciones en un idioma
+func (r *translationRepository) GetByStationIDs(stationIDs []string, languageCode i18n.Language) (map[string]*domain.StationTranslation, error) {
+	if len(stationIDs) == 0 {
+		return map[string]*domain.StationTranslation{}, nil
+	}
+
+	query := `
+		SELECT station_id, language_code, title, description, keywords, created_at, updated_at
+		FROM station_translations
+		WHERE language_code = $1 AND station_id = ANY($2)
+	`
+
+	rows, err := r.db.Query(query, languageCode.String(), pq.Array(stationIDs))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get translations by station IDs: %w", err)
+	}
+	defer rows.Close()
+
+	translations := make(map[string]*domain.StationTranslation)
+
+	for rows.Next() {
+		translation := &domain.StationTranslation{}
+		var langCode string
+		var keywords pq.StringArray
+
+		err := rows.Scan(
+			&translation.StationID,
+			&langCode,
+			&translation.Title,
+			&translation.Description,
+			&keywords,
+			&translation.CreatedAt,
+			&translation.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan translation: %w", err)
+		}
+
+		translation.LanguageCode = i18n.ParseLanguage(langCode)
+		translation.Keywords = []string(keywords)
+		translations[translation.StationID] = translation
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating translations: %w", err)
+	}
+
+	return translations, nil
+}

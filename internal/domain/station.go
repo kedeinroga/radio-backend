@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // Station representa una estación de radio
 type Station struct {
@@ -42,8 +45,9 @@ func (s *Station) NeedsSync(maxAge time.Duration) bool {
 	return time.Since(*s.LastSyncedAt) > maxAge
 }
 
+// StationRepository define las operaciones de persistencia para estaciones
 type StationRepository interface {
-	FindByID(id string) (*Station, error)
-	FindPopular(limit int, country string) ([]Station, error)
-	Search(query string, limit int) ([]Station, error)
+	FindByID(ctx context.Context, id string) (*Station, error)
+	FindPopular(ctx context.Context, limit int, country string) ([]Station, error)
+	Search(ctx context.Context, query string, limit int) ([]Station, error)
 }

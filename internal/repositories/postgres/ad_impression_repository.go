@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,7 +22,7 @@ func NewAdImpressionRepository(db *database.Connection) *AdImpressionRepository 
 }
 
 // Create crea una nueva impresión
-func (r *AdImpressionRepository) Create(impression *domain.AdImpression) error {
+func (r *AdImpressionRepository) Create(ctx context.Context, impression *domain.AdImpression) error {
 	query := `
 		INSERT INTO ad_impressions (
 			id, advertisement_id, user_id, session_id, station_id,
@@ -33,7 +34,7 @@ func (r *AdImpressionRepository) Create(impression *domain.AdImpression) error {
 		)
 	`
 
-	_, err := r.db.DB.Exec(query,
+	_, err := r.db.DB.ExecContext(ctx, query,
 		impression.ID,
 		impression.AdvertisementID,
 		impression.UserID,
@@ -54,7 +55,7 @@ func (r *AdImpressionRepository) Create(impression *domain.AdImpression) error {
 }
 
 // GetByID obtiene una impresión por ID
-func (r *AdImpressionRepository) GetByID(id uuid.UUID) (*domain.AdImpression, error) {
+func (r *AdImpressionRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.AdImpression, error) {
 	query := `
 		SELECT
 			id, advertisement_id, user_id, session_id, station_id,
@@ -66,7 +67,7 @@ func (r *AdImpressionRepository) GetByID(id uuid.UUID) (*domain.AdImpression, er
 	`
 
 	var impression domain.AdImpression
-	err := r.db.DB.QueryRow(query, id).Scan(
+	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
 		&impression.ID,
 		&impression.AdvertisementID,
 		&impression.UserID,
@@ -91,7 +92,7 @@ func (r *AdImpressionRepository) GetByID(id uuid.UUID) (*domain.AdImpression, er
 }
 
 // GetByAdvertisementID obtiene impresiones de un anuncio
-func (r *AdImpressionRepository) GetByAdvertisementID(adID uuid.UUID, limit int) ([]*domain.AdImpression, error) {
+func (r *AdImpressionRepository) GetByAdvertisementID(ctx context.Context, adID uuid.UUID, limit int) ([]*domain.AdImpression, error) {
 	query := `
 		SELECT
 			id, advertisement_id, user_id, session_id, station_id,
@@ -104,11 +105,11 @@ func (r *AdImpressionRepository) GetByAdvertisementID(adID uuid.UUID, limit int)
 		LIMIT $2
 	`
 
-	return r.queryImpressions(query, adID, limit)
+	return r.queryImpressions(ctx, query, adID, limit)
 }
 
 // GetByUserID obtiene impresiones de un usuario desde una fecha
-func (r *AdImpressionRepository) GetByUserID(userID uuid.UUID, since time.Time) ([]*domain.AdImpression, error) {
+func (r *AdImpressionRepository) GetByUserID(ctx context.Context, userID uuid.UUID, since time.Time) ([]*domain.AdImpression, error) {
 	query := `
 		SELECT
 			id, advertisement_id, user_id, session_id, station_id,
@@ -121,11 +122,11 @@ func (r *AdImpressionRepository) GetByUserID(userID uuid.UUID, since time.Time) 
 		ORDER BY created_at DESC
 	`
 
-	return r.queryImpressions(query, userID, since)
+	return r.queryImpressions(ctx, query, userID, since)
 }
 
 // CountByAdvertisementID cuenta impresiones de un anuncio
-func (r *AdImpressionRepository) CountByAdvertisementID(adID uuid.UUID, since time.Time) (int64, error) {
+func (r *AdImpressionRepository) CountByAdvertisementID(ctx context.Context, adID uuid.UUID, since time.Time) (int64, error) {
 	query := `
 		SELECT COUNT(*)
 		FROM ad_impressions
@@ -134,12 +135,12 @@ func (r *AdImpressionRepository) CountByAdvertisementID(adID uuid.UUID, since ti
 	`
 
 	var count int64
-	err := r.db.DB.QueryRow(query, adID, since).Scan(&count)
+	err := r.db.DB.QueryRowContext(ctx, query, adID, since).Scan(&count)
 	return count, err
 }
 
 // CountByIPAddress cuenta impresiones de una IP
-func (r *AdImpressionRepository) CountByIPAddress(ipAddress string, since time.Time) (int64, error) {
+func (r *AdImpressionRepository) CountByIPAddress(ctx context.Context, ipAddress string, since time.Time) (int64, error) {
 	query := `
 		SELECT COUNT(*)
 		FROM ad_impressions
@@ -148,12 +149,12 @@ func (r *AdImpressionRepository) CountByIPAddress(ipAddress string, since time.T
 	`
 
 	var count int64
-	err := r.db.DB.QueryRow(query, ipAddress, since).Scan(&count)
+	err := r.db.DB.QueryRowContext(ctx, query, ipAddress, since).Scan(&count)
 	return count, err
 }
 
 // CountViewableImpressions cuenta impresiones viewable de un anuncio
-func (r *AdImpressionRepository) CountViewableImpressions(adID uuid.UUID, since time.Time) (int64, error) {
+func (r *AdImpressionRepository) CountViewableImpressions(ctx context.Context, adID uuid.UUID, since time.Time) (int64, error) {
 	query := `
 		SELECT COUNT(*)
 		FROM ad_impressions
@@ -164,12 +165,12 @@ func (r *AdImpressionRepository) CountViewableImpressions(adID uuid.UUID, since 
 	`
 
 	var count int64
-	err := r.db.DB.QueryRow(query, adID, since).Scan(&count)
+	err := r.db.DB.QueryRowContext(ctx, query, adID, since).Scan(&count)
 	return count, err
 }
 
 // GetRecentBySessionID obtiene impresiones recientes de una sesión
-func (r *AdImpressionRepository) GetRecentBySessionID(sessionID string, since time.Time) ([]*domain.AdImpression, error) {
+func (r *AdImpressionRepository) GetRecentBySessionID(ctx context.Context, sessionID string, since time.Time) ([]*domain.AdImpression, error) {
 	query := `
 		SELECT
 			id, advertisement_id, user_id, session_id, station_id,
@@ -182,12 +183,12 @@ func (r *AdImpressionRepository) GetRecentBySessionID(sessionID string, since ti
 		ORDER BY created_at DESC
 	`
 
-	return r.queryImpressions(query, sessionID, since)
+	return r.queryImpressions(ctx, query, sessionID, since)
 }
 
 // queryImpressions es un helper para ejecutar queries y escanear múltiples impresiones
-func (r *AdImpressionRepository) queryImpressions(query string, args ...interface{}) ([]*domain.AdImpression, error) {
-	rows, err := r.db.DB.Query(query, args...)
+func (r *AdImpressionRepository) queryImpressions(ctx context.Context, query string, args ...interface{}) ([]*domain.AdImpression, error) {
+	rows, err := r.db.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -43,11 +44,11 @@ func NewStationService(
 }
 
 // GetByID retrieves a station by ID using cache-aside pattern
-func (s *StationService) GetByID(id string, userType domain.UserType, lang i18n.Language) (*domain.Station, error) {
+func (s *StationService) GetByID(ctx context.Context, id string, userType domain.UserType, lang i18n.Language) (*domain.Station, error) {
 	logger.Info("fetching station by ID", "id", id, "user_type", userType, "language", lang)
 
 	// 1. Try cache first
-	cachedStation, err := s.cacheRepo.Get(id)
+	cachedStation, err := s.cacheRepo.Get(ctx, id)
 	if err == nil && cachedStation != nil {
 		logger.Info("cache hit for station", "id", id)
 		if !cachedStation.IsAccessibleBy(userType) {
@@ -55,7 +56,7 @@ func (s *StationService) GetByID(id string, userType domain.UserType, lang i18n.
 		}
 		// Enriquecer con SEO antes de retornar
 		if s.seoService != nil {
-			s.seoService.EnrichStationWithSEO(cachedStation, lang)
+			s.seoService.EnrichStationWithSEO(ctx, cachedStation, lang)
 		}
 		return cachedStation, nil
 	}
@@ -63,13 +64,13 @@ func (s *StationService) GetByID(id string, userType domain.UserType, lang i18n.
 	logger.Info("cache miss for station, fetching from external API", "id", id)
 
 	// 2. Fallback to external API
-	station, err := s.externalRepo.FindByID(id)
+	station, err := s.externalRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// 3. Save to cache asynchronously
-	go s.cacheStations([]domain.Station{*station})
+	go s.cacheStations(context.Background(), []domain.Station{*station})
 
 	// 4. Check user access
 	if !station.IsAccessibleBy(userType) {
@@ -78,24 +79,24 @@ func (s *StationService) GetByID(id string, userType domain.UserType, lang i18n.
 
 	// Enriquecer con SEO antes de retornar
 	if s.seoService != nil {
-		s.seoService.EnrichStationWithSEO(station, lang)
+		s.seoService.EnrichStationWithSEO(ctx, station, lang)
 	}
 
 	return station, nil
 }
 
 // ListPopular returns popular stations using cache-aside pattern
-func (s *StationService) ListPopular(limit int, country string, userType domain.UserType, lang i18n.Language) ([]domain.Station, error) {
+func (s *StationService) ListPopular(ctx context.Context, limit int, country string, userType domain.UserType, lang i18n.Language) ([]domain.Station, error) {
 	// 1. Try cache first
 	logger.Info("fetching popular stations", "limit", limit, "country", country, "user_type", userType, "language", lang)
 
-	cachedStations, err := s.cacheRepo.FindPopular(limit, country)
+	cachedStations, err := s.cacheRepo.FindPopular(ctx, limit, country)
 	if err == nil && len(cachedStations) >= limit {
 		logger.Info("cache hit for popular stations", "count", len(cachedStations))
 		filtered := s.filterByUserType(cachedStations, userType)
 		// Enriquecer con SEO
 		if s.seoService != nil {
-			s.seoService.EnrichStationsWithSEO(filtered, lang)
+			s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 		}
 		return filtered, nil
 	}
@@ -103,7 +104,7 @@ func (s *StationService) ListPopular(limit int, country string, userType domain.
 	logger.Info("cache miss for popular stations, fetching from external API")
 
 	// 2. Fallback to external API
-	stations, err := s.externalRepo.FindPopular(limit, country)
+	stations, err := s.externalRepo.FindPopular(ctx, limit, country)
 	if err != nil {
 		// If external fails, return whatever we have in cache (even if less than limit)
 		if len(cachedStations) > 0 {
@@ -111,7 +112,7 @@ func (s *StationService) ListPopular(limit int, country string, userType domain.
 			filtered := s.filterByUserType(cachedStations, userType)
 			// Enriquecer con SEO
 			if s.seoService != nil {
-				s.seoService.EnrichStationsWithSEO(filtered, lang)
+				s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 			}
 			return filtered, nil
 		}
@@ -119,18 +120,18 @@ func (s *StationService) ListPopular(limit int, country string, userType domain.
 	}
 
 	// 3. Save to cache asynchronously
-	go s.cacheStations(stations)
+	go s.cacheStations(context.Background(), stations)
 
 	filtered := s.filterByUserType(stations, userType)
 	// Enriquecer con SEO
 	if s.seoService != nil {
-		s.seoService.EnrichStationsWithSEO(filtered, lang)
+		s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 	}
 	return filtered, nil
 }
 
 // Search searches for stations using cache-aside pattern
-func (s *StationService) Search(query string, limit int, userType domain.UserType, lang i18n.Language) ([]domain.Station, error) {
+func (s *StationService) Search(ctx context.Context, query string, limit int, userType domain.UserType, lang i18n.Language) ([]domain.Station, error) {
 	if query == "" {
 		return nil, domain.ErrInvalidQuery
 	}
@@ -141,7 +142,7 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 	queryHash := s.hashQuery(query, limit)
 	logger.Info("checking search cache", "query", query, "query_hash", queryHash)
 
-	cachedEntry, err := s.searchCache.Get(queryHash)
+	cachedEntry, err := s.searchCache.Get(ctx, queryHash)
 	if err != nil {
 		logger.Warn("search cache get error", "query", query, "error", err)
 	}
@@ -151,12 +152,12 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 		logger.Info("search cache hit", "query", query, "station_count", len(cachedEntry.StationIDs))
 
 		// Get stations from cache by IDs
-		stations, err := s.cacheRepo.GetMany(cachedEntry.StationIDs)
+		stations, err := s.cacheRepo.GetMany(ctx, cachedEntry.StationIDs)
 		if err == nil && len(stations) > 0 {
 			filtered := s.filterByUserType(stations, userType)
 			// Enriquecer con SEO
 			if s.seoService != nil {
-				s.seoService.EnrichStationsWithSEO(filtered, lang)
+				s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 			}
 			return filtered, nil
 		}
@@ -165,21 +166,21 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 
 	// 2. Try local database search
 	logger.Info("search cache miss, trying local database", "query", query)
-	cachedStations, err := s.cacheRepo.FindByName(query, limit)
+	cachedStations, err := s.cacheRepo.FindByName(ctx, query, limit)
 	if err == nil && len(cachedStations) >= limit {
 		logger.Info("found in local database", "count", len(cachedStations))
-		go s.saveSearchCache(queryHash, query, limit, cachedStations)
+		go s.saveSearchCache(context.Background(), queryHash, query, limit, cachedStations)
 		filtered := s.filterByUserType(cachedStations, userType)
 		// Enriquecer con SEO
 		if s.seoService != nil {
-			s.seoService.EnrichStationsWithSEO(filtered, lang)
+			s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 		}
 		return filtered, nil
 	}
 
 	// 3. Fallback to external API
 	logger.Info("local database miss, fetching from external API", "query", query)
-	stations, err := s.externalRepo.Search(query, limit)
+	stations, err := s.externalRepo.Search(ctx, query, limit)
 	if err != nil {
 		logger.Error("external API search failed", "query", query, "limit", limit, "error", err)
 		// If external fails, return whatever we have in cache
@@ -188,7 +189,7 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 			filtered := s.filterByUserType(cachedStations, userType)
 			// Enriquecer con SEO
 			if s.seoService != nil {
-				s.seoService.EnrichStationsWithSEO(filtered, lang)
+				s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 			}
 			return filtered, nil
 		}
@@ -196,13 +197,13 @@ func (s *StationService) Search(query string, limit int, userType domain.UserTyp
 	}
 
 	// 4. Cache results asynchronously
-	go s.cacheStations(stations)
-	go s.saveSearchCache(queryHash, query, limit, stations)
+	go s.cacheStations(context.Background(), stations)
+	go s.saveSearchCache(context.Background(), queryHash, query, limit, stations)
 
 	filtered := s.filterByUserType(stations, userType)
 	// Enriquecer con SEO
 	if s.seoService != nil {
-		s.seoService.EnrichStationsWithSEO(filtered, lang)
+		s.seoService.EnrichStationsWithSEO(ctx, filtered, lang)
 	}
 	return filtered, nil
 }
@@ -219,11 +220,11 @@ func (s *StationService) filterByUserType(stations []domain.Station, userType do
 }
 
 // cacheStations saves stations to cache asynchronously
-func (s *StationService) cacheStations(stations []domain.Station) {
+func (s *StationService) cacheStations(ctx context.Context, stations []domain.Station) {
 	for _, station := range stations {
 		station.Source = "radio_browser"
 		station.IsActive = true
-		if err := s.cacheRepo.Save(&station); err != nil {
+		if err := s.cacheRepo.Save(ctx, &station); err != nil {
 			logger.Error("failed to cache station", "station_id", station.ID, "error", err)
 		}
 	}
@@ -231,7 +232,7 @@ func (s *StationService) cacheStations(stations []domain.Station) {
 }
 
 // saveSearchCache saves search results to cache
-func (s *StationService) saveSearchCache(queryHash, query string, limit int, stations []domain.Station) {
+func (s *StationService) saveSearchCache(ctx context.Context, queryHash, query string, limit int, stations []domain.Station) {
 	stationIDs := make([]string, len(stations))
 	for i, station := range stations {
 		stationIDs[i] = station.ID
@@ -249,7 +250,7 @@ func (s *StationService) saveSearchCache(queryHash, query string, limit int, sta
 		CreatedAt:   time.Now(),
 	}
 
-	if err := s.searchCache.Save(entry); err != nil {
+	if err := s.searchCache.Save(ctx, entry); err != nil {
 		logger.Error("failed to save search cache", "query", query, "error", err)
 	} else {
 		logger.Info("saved search cache", "query", query, "count", len(stations))

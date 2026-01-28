@@ -34,7 +34,7 @@ func NewSEOHandler(seoService *services.SEOService) *SEOHandler {
 func (h *SEOHandler) GetSitemapData(c *gin.Context) {
 	logger.Info("fetching sitemap data")
 
-	data, err := h.seoService.GetSitemapData()
+	data, err := h.seoService.GetSitemapData(c.Request.Context())
 	if err != nil {
 		logger.Error("failed to fetch sitemap data", "error", err)
 		RespondWithError(c, http.StatusInternalServerError, "seo_error", "Failed to fetch sitemap data")
@@ -71,7 +71,7 @@ func (h *SEOHandler) GetPopularTags(c *gin.Context) {
 
 	logger.Info("fetching popular tags", "limit", limit)
 
-	data, err := h.seoService.GetSitemapData()
+	data, err := h.seoService.GetSitemapData(c.Request.Context())
 	if err != nil {
 		logger.Error("failed to fetch tags", "error", err)
 		RespondWithError(c, http.StatusInternalServerError, "seo_error", "Failed to fetch tags")
@@ -118,7 +118,7 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 
 	logger.Info("fetching popular countries", "limit", limit)
 
-	data, err := h.seoService.GetSitemapData()
+	data, err := h.seoService.GetSitemapData(c.Request.Context())
 	if err != nil {
 		logger.Error("failed to fetch countries", "error", err)
 		RespondWithError(c, http.StatusInternalServerError, "seo_error", "Failed to fetch countries")
@@ -154,7 +154,7 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 func (h *SEOHandler) RefreshSEOStats(c *gin.Context) {
 	logger.Info("manually refreshing SEO statistics")
 
-	err := h.seoService.RefreshSEOStats()
+	err := h.seoService.RefreshSEOStats(c.Request.Context())
 	if err != nil {
 		logger.Error("failed to refresh SEO stats", "error", err)
 		RespondWithError(c, http.StatusInternalServerError, "refresh_failed", "Failed to refresh SEO statistics")

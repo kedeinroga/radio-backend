@@ -1,35 +1,38 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // StationCacheRepository defines the interface for local station cache operations
 // Following Dependency Inversion Principle - domain defines interface, infrastructure implements
 type StationCacheRepository interface {
 	// Single station operations
-	Get(id string) (*Station, error)
-	Save(station *Station) error
+	Get(ctx context.Context, id string) (*Station, error)
+	Save(ctx context.Context, station *Station) error
 
 	// Batch operations
-	GetMany(ids []string) ([]Station, error)
-	SaveMany(stations []Station) error
+	GetMany(ctx context.Context, ids []string) ([]Station, error)
+	SaveMany(ctx context.Context, stations []Station) error
 
 	// Query operations
-	FindByName(name string, limit int) ([]Station, error)
-	FindByCountry(country string, limit int) ([]Station, error)
-	FindPopular(limit int, country string) ([]Station, error)
+	FindByName(ctx context.Context, name string, limit int) ([]Station, error)
+	FindByCountry(ctx context.Context, country string, limit int) ([]Station, error)
+	FindPopular(ctx context.Context, limit int, country string) ([]Station, error)
 
 	// Cache management
-	MarkForSync(id string) error
-	GetStaleStations(maxAge time.Duration, limit int) ([]Station, error)
-	DeleteInactive(olderThan time.Duration) error
+	MarkForSync(ctx context.Context, id string) error
+	GetStaleStations(ctx context.Context, maxAge time.Duration, limit int) ([]Station, error)
+	DeleteInactive(ctx context.Context, olderThan time.Duration) error
 }
 
 // SearchCacheRepository defines the interface for search results caching
 type SearchCacheRepository interface {
-	Get(queryHash string) (*SearchCacheEntry, error)
-	Save(entry *SearchCacheEntry) error
-	Invalidate(queryHash string) error
-	CleanExpired() error
+	Get(ctx context.Context, queryHash string) (*SearchCacheEntry, error)
+	Save(ctx context.Context, entry *SearchCacheEntry) error
+	Invalidate(ctx context.Context, queryHash string) error
+	CleanExpired(ctx context.Context) error
 }
 
 // SearchCacheEntry represents a cached search result

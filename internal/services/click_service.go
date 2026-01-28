@@ -49,7 +49,7 @@ func (s *ClickService) RecordClick(ctx context.Context, click *domain.AdClick) e
 	}
 
 	// 2. Verify impression exists and is recent (within 24 hours)
-	impression, err := s.impressionRepo.GetByID(click.ImpressionID)
+	impression, err := s.impressionRepo.GetByID(ctx, click.ImpressionID)
 	if err != nil {
 		s.logger.Error("Failed to fetch impression for click", "error", err, "impression_id", click.ImpressionID)
 		return fmt.Errorf("impression not found: %w", err)
@@ -73,7 +73,7 @@ func (s *ClickService) RecordClick(ctx context.Context, click *domain.AdClick) e
 	}
 
 	// 3. Verify advertisement exists and is active
-	ad, err := s.adRepo.GetByID(click.AdvertisementID)
+	ad, err := s.adRepo.GetByID(ctx, click.AdvertisementID)
 	if err != nil {
 		s.logger.Error("Failed to fetch advertisement for click", "error", err, "ad_id", click.AdvertisementID)
 		return err
@@ -105,6 +105,7 @@ func (s *ClickService) RecordClick(ctx context.Context, click *domain.AdClick) e
 	}
 
 	// 7. Save click
+	// clickRepo might need updating too.
 	if err := s.clickRepo.Create(click); err != nil {
 		s.logger.Error("Failed to save click", "error", err)
 		return fmt.Errorf("failed to save click: %w", err)
@@ -228,7 +229,7 @@ func (s *ClickService) GetClickStats(ctx context.Context, adID uuid.UUID, since 
 		}
 
 		// Get corresponding impression for delay calculation
-		impression, err := s.impressionRepo.GetByID(click.ImpressionID)
+		impression, err := s.impressionRepo.GetByID(ctx, click.ImpressionID)
 		if err == nil {
 			delay := click.TimeToClick(impression)
 			totalDelay += delay

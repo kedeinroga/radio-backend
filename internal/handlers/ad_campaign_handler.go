@@ -65,13 +65,13 @@ func (h *AdCampaignHandler) CreateCampaign(c *gin.Context) {
 	var req CreateCampaignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Warn("Invalid campaign creation request", "error", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
 	advertiserID, err := uuid.Parse(req.AdvertiserID)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid advertiser_id"})
+		RespondWithError(c, http.StatusBadRequest, "invalid_advertiser_id", "Invalid advertiser_id")
 		return
 	}
 
@@ -89,13 +89,13 @@ func (h *AdCampaignHandler) CreateCampaign(c *gin.Context) {
 		UpdatedAt:        time.Now(),
 	}
 
-	if err := h.campaignService.CreateCampaign(campaign); err != nil {
+	if err := h.campaignService.CreateCampaign(c.Request.Context(), campaign); err != nil {
 		h.logger.Error("Failed to create campaign", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create campaign"})
+		RespondWithError(c, http.StatusInternalServerError, "create_failed", "Failed to create campaign")
 		return
 	}
 
-	c.JSON(http.StatusCreated, campaign)
+	RespondWithSuccess(c, http.StatusCreated, campaign)
 }
 
 // GetCampaign retrieves a campaign by ID
@@ -112,20 +112,19 @@ func (h *AdCampaignHandler) CreateCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id} [get]
 func (h *AdCampaignHandler) GetCampaign(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
-	campaign, err := h.campaignService.GetCampaign(campaignID)
+	campaign, err := h.campaignService.GetCampaign(c.Request.Context(), campaignID)
 	if err != nil {
 		h.logger.Error("Failed to get campaign", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusNotFound, gin.H{"error": "campaign not found"})
+		RespondWithError(c, http.StatusNotFound, "campaign_not_found", "Campaign not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, campaign)
+	RespondWithSuccess(c, http.StatusOK, campaign)
 }
 
 // GetCampaignsByAdvertiser retrieves all campaigns for an advertiser
@@ -141,20 +140,19 @@ func (h *AdCampaignHandler) GetCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/advertisers/{advertiser_id}/campaigns [get]
 func (h *AdCampaignHandler) GetCampaignsByAdvertiser(c *gin.Context) {
-	advertiserID, err := uuid.Parse(c.Param("advertiser_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid advertiser_id"})
+	advertiserID, ok := GetUUIDParam(c, "advertiser_id")
+	if !ok {
 		return
 	}
 
-	campaigns, err := h.campaignService.GetCampaignsByAdvertiser(advertiserID)
+	campaigns, err := h.campaignService.GetCampaignsByAdvertiser(c.Request.Context(), advertiserID)
 	if err != nil {
 		h.logger.Error("Failed to get campaigns", "error", err, "advertiser_id", advertiserID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get campaigns"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get campaigns")
 		return
 	}
 
-	c.JSON(http.StatusOK, campaigns)
+	RespondWithSuccess(c, http.StatusOK, campaigns)
 }
 
 // UpdateCampaign updates a campaign
@@ -173,23 +171,22 @@ func (h *AdCampaignHandler) GetCampaignsByAdvertiser(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id} [put]
 func (h *AdCampaignHandler) UpdateCampaign(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
 	var req UpdateCampaignRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Warn("Invalid campaign update request", "error", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
 	// Get existing campaign
-	campaign, err := h.campaignService.GetCampaign(campaignID)
+	campaign, err := h.campaignService.GetCampaign(c.Request.Context(), campaignID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "campaign not found"})
+		RespondWithError(c, http.StatusNotFound, "campaign_not_found", "Campaign not found")
 		return
 	}
 
@@ -210,13 +207,13 @@ func (h *AdCampaignHandler) UpdateCampaign(c *gin.Context) {
 		campaign.Description = req.Description
 	}
 
-	if err := h.campaignService.UpdateCampaign(campaign); err != nil {
+	if err := h.campaignService.UpdateCampaign(c.Request.Context(), campaign); err != nil {
 		h.logger.Error("Failed to update campaign", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update campaign"})
+		RespondWithError(c, http.StatusInternalServerError, "update_failed", "Failed to update campaign")
 		return
 	}
 
-	c.JSON(http.StatusOK, campaign)
+	RespondWithSuccess(c, http.StatusOK, campaign)
 }
 
 // DeleteCampaign deletes a campaign
@@ -232,15 +229,14 @@ func (h *AdCampaignHandler) UpdateCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id} [delete]
 func (h *AdCampaignHandler) DeleteCampaign(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
-	if err := h.campaignService.DeleteCampaign(campaignID); err != nil {
+	if err := h.campaignService.DeleteCampaign(c.Request.Context(), campaignID); err != nil {
 		h.logger.Error("Failed to delete campaign", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete campaign"})
+		RespondWithError(c, http.StatusInternalServerError, "delete_failed", "Failed to delete campaign")
 		return
 	}
 
@@ -261,20 +257,19 @@ func (h *AdCampaignHandler) DeleteCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id}/pause [post]
 func (h *AdCampaignHandler) PauseCampaign(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
-	if err := h.campaignService.PauseCampaign(campaignID); err != nil {
+	if err := h.campaignService.PauseCampaign(c.Request.Context(), campaignID); err != nil {
 		h.logger.Error("Failed to pause campaign", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "pause_failed", err.Error())
 		return
 	}
 
-	campaign, _ := h.campaignService.GetCampaign(campaignID)
-	c.JSON(http.StatusOK, campaign)
+	campaign, _ := h.campaignService.GetCampaign(c.Request.Context(), campaignID)
+	RespondWithSuccess(c, http.StatusOK, campaign)
 }
 
 // ResumeCampaign resumes a paused campaign
@@ -291,20 +286,19 @@ func (h *AdCampaignHandler) PauseCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id}/resume [post]
 func (h *AdCampaignHandler) ResumeCampaign(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
-	if err := h.campaignService.ResumeCampaign(campaignID); err != nil {
+	if err := h.campaignService.ResumeCampaign(c.Request.Context(), campaignID); err != nil {
 		h.logger.Error("Failed to resume campaign", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "resume_failed", err.Error())
 		return
 	}
 
-	campaign, _ := h.campaignService.GetCampaign(campaignID)
-	c.JSON(http.StatusOK, campaign)
+	campaign, _ := h.campaignService.GetCampaign(c.Request.Context(), campaignID)
+	RespondWithSuccess(c, http.StatusOK, campaign)
 }
 
 // GetCampaignStats retrieves campaign statistics
@@ -321,20 +315,19 @@ func (h *AdCampaignHandler) ResumeCampaign(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id}/stats [get]
 func (h *AdCampaignHandler) GetCampaignStats(c *gin.Context) {
-	campaignID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid campaign_id"})
+	campaignID, ok := GetUUIDParam(c, "id")
+	if !ok {
 		return
 	}
 
-	stats, err := h.campaignService.GetCampaignStats(campaignID)
+	stats, err := h.campaignService.GetCampaignStats(c.Request.Context(), campaignID)
 	if err != nil {
 		h.logger.Error("Failed to get campaign stats", "error", err, "campaign_id", campaignID)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get stats"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get stats")
 		return
 	}
 
-	c.JSON(http.StatusOK, stats)
+	RespondWithSuccess(c, http.StatusOK, stats)
 }
 
 // GetActiveCampaigns retrieves all active campaigns
@@ -348,12 +341,12 @@ func (h *AdCampaignHandler) GetCampaignStats(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/active [get]
 func (h *AdCampaignHandler) GetActiveCampaigns(c *gin.Context) {
-	campaigns, err := h.campaignService.GetActiveCampaigns()
+	campaigns, err := h.campaignService.GetActiveCampaigns(c.Request.Context())
 	if err != nil {
 		h.logger.Error("Failed to get active campaigns", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get campaigns"})
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to get campaigns")
 		return
 	}
 
-	c.JSON(http.StatusOK, campaigns)
+	RespondWithSuccess(c, http.StatusOK, campaigns)
 }

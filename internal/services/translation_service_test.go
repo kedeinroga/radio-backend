@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -79,12 +80,20 @@ func (m *MockTranslationRepository) GetAvailableLanguages(stationID string) ([]i
 	return args.Get(0).([]i18n.Language), args.Error(1)
 }
 
+func (m *MockTranslationRepository) GetByStationIDs(stationIDs []string, languageCode i18n.Language) (map[string]*domain.StationTranslation, error) {
+	args := m.Called(stationIDs, languageCode)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[string]*domain.StationTranslation), args.Error(1)
+}
+
 // MockStationRepository es un mock del StationRepository
 type MockStationRepository struct {
 	mock.Mock
 }
 
-func (m *MockStationRepository) FindByID(id string) (*domain.Station, error) {
+func (m *MockStationRepository) FindByID(ctx context.Context, id string) (*domain.Station, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -92,12 +101,12 @@ func (m *MockStationRepository) FindByID(id string) (*domain.Station, error) {
 	return args.Get(0).(*domain.Station), args.Error(1)
 }
 
-func (m *MockStationRepository) FindPopular(limit int, country string) ([]domain.Station, error) {
+func (m *MockStationRepository) FindPopular(ctx context.Context, limit int, country string) ([]domain.Station, error) {
 	args := m.Called(limit, country)
 	return args.Get(0).([]domain.Station), args.Error(1)
 }
 
-func (m *MockStationRepository) Search(query string, limit int) ([]domain.Station, error) {
+func (m *MockStationRepository) Search(ctx context.Context, query string, limit int) ([]domain.Station, error) {
 	args := m.Called(query, limit)
 	return args.Get(0).([]domain.Station), args.Error(1)
 }
@@ -122,7 +131,7 @@ func TestTranslationService_CreateTranslation(t *testing.T) {
 		mockTranslationRepo.On("Create", mock.AnythingOfType("*domain.StationTranslation")).Return(nil)
 
 		// Act
-		result, err := service.CreateTranslation(req)
+		result, err := service.CreateTranslation(context.Background(), req)
 
 		// Assert
 		assert.NoError(t, err)
@@ -149,7 +158,7 @@ func TestTranslationService_CreateTranslation(t *testing.T) {
 		mockStationRepo.On("FindByID", "nonexistent").Return(nil, domain.ErrStationNotFound)
 
 		// Act
-		result, err := service.CreateTranslation(req)
+		result, err := service.CreateTranslation(context.Background(), req)
 
 		// Assert
 		assert.Error(t, err)
@@ -175,7 +184,7 @@ func TestTranslationService_CreateTranslation(t *testing.T) {
 		mockStationRepo.On("FindByID", "station-1").Return(station, nil)
 
 		// Act
-		result, err := service.CreateTranslation(req)
+		result, err := service.CreateTranslation(context.Background(), req)
 
 		// Assert
 		assert.Error(t, err)
@@ -210,7 +219,7 @@ func TestTranslationService_UpdateTranslation(t *testing.T) {
 		mockTranslationRepo.On("Update", mock.AnythingOfType("*domain.StationTranslation")).Return(nil)
 
 		// Act
-		result, err := service.UpdateTranslation("station-1", i18n.LanguageEN, req)
+		result, err := service.UpdateTranslation(context.Background(), "station-1", i18n.LanguageEN, req)
 
 		// Assert
 		assert.NoError(t, err)
@@ -234,7 +243,7 @@ func TestTranslationService_UpdateTranslation(t *testing.T) {
 		mockTranslationRepo.On("Get", "station-1", i18n.LanguageEN).Return(nil, domain.ErrTranslationNotFound)
 
 		// Act
-		result, err := service.UpdateTranslation("station-1", i18n.LanguageEN, req)
+		result, err := service.UpdateTranslation(context.Background(), "station-1", i18n.LanguageEN, req)
 
 		// Assert
 		assert.Error(t, err)

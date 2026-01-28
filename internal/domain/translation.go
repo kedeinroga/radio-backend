@@ -45,6 +45,9 @@ type TranslationRepository interface {
 
 	// GetAvailableLanguages obtiene los idiomas disponibles para una estación
 	GetAvailableLanguages(stationID string) ([]i18n.Language, error)
+
+	// GetByStationIDs obtiene traducciones para múltiples estaciones en un idioma
+	GetByStationIDs(stationIDs []string, languageCode i18n.Language) (map[string]*StationTranslation, error)
 }
 
 // CreateTranslationRequest representa la solicitud para crear una traducción

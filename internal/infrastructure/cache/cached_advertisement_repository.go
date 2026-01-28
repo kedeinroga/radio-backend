@@ -31,14 +31,13 @@ func NewCachedAdvertisementRepository(db *database.Connection, cache *redis.Clie
 }
 
 // Create crea un anuncio e invalida cache
-func (r *CachedAdvertisementRepository) Create(ad *domain.Advertisement) error {
-	err := r.repo.Create(ad)
+func (r *CachedAdvertisementRepository) Create(ctx context.Context, ad *domain.Advertisement) error {
+	err := r.repo.Create(ctx, ad)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache de eligible ads
-	ctx := context.Background()
 	r.cache.Del(ctx,
 		fmt.Sprintf("ads:campaign:%s", ad.CampaignID),
 		"ads:eligible:*", // Patrón para invalidar todos los eligible ads
@@ -48,8 +47,7 @@ func (r *CachedAdvertisementRepository) Create(ad *domain.Advertisement) error {
 }
 
 // GetByID obtiene anuncio por ID con cache
-func (r *CachedAdvertisementRepository) GetByID(id uuid.UUID) (*domain.Advertisement, error) {
-	ctx := context.Background()
+func (r *CachedAdvertisementRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Advertisement, error) {
 	cacheKey := fmt.Sprintf("ad:%s", id)
 
 	// Intentar obtener del cache
@@ -62,7 +60,7 @@ func (r *CachedAdvertisementRepository) GetByID(id uuid.UUID) (*domain.Advertise
 	}
 
 	// Si no está en cache, obtener de BD
-	ad, err := r.repo.GetByID(id)
+	ad, err := r.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +74,7 @@ func (r *CachedAdvertisementRepository) GetByID(id uuid.UUID) (*domain.Advertise
 }
 
 // GetByCampaignID obtiene anuncios de una campaña (con cache)
-func (r *CachedAdvertisementRepository) GetByCampaignID(campaignID uuid.UUID) ([]*domain.Advertisement, error) {
-	ctx := context.Background()
+func (r *CachedAdvertisementRepository) GetByCampaignID(ctx context.Context, campaignID uuid.UUID) ([]*domain.Advertisement, error) {
 	cacheKey := fmt.Sprintf("ads:campaign:%s", campaignID)
 
 	// Intentar obtener del cache
@@ -90,7 +87,7 @@ func (r *CachedAdvertisementRepository) GetByCampaignID(campaignID uuid.UUID) ([
 	}
 
 	// Si no está en cache, obtener de BD
-	ads, err := r.repo.GetByCampaignID(campaignID)
+	ads, err := r.repo.GetByCampaignID(ctx, campaignID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,14 +101,13 @@ func (r *CachedAdvertisementRepository) GetByCampaignID(campaignID uuid.UUID) ([
 }
 
 // Update actualiza anuncio e invalida cache
-func (r *CachedAdvertisementRepository) Update(ad *domain.Advertisement) error {
-	err := r.repo.Update(ad)
+func (r *CachedAdvertisementRepository) Update(ctx context.Context, ad *domain.Advertisement) error {
+	err := r.repo.Update(ctx, ad)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache
-	ctx := context.Background()
 	r.cache.Del(ctx,
 		fmt.Sprintf("ad:%s", ad.ID),
 		fmt.Sprintf("ads:campaign:%s", ad.CampaignID),
@@ -125,8 +121,7 @@ func (r *CachedAdvertisementRepository) Update(ad *domain.Advertisement) error {
 
 // GetEligibleAds obtiene anuncios elegibles con cache por criterios
 // IMPORTANTE: Cache agresivo para reducir carga de DB en queries complejas
-func (r *CachedAdvertisementRepository) GetEligibleAds(country, genre, language, device string) ([]*domain.Advertisement, error) {
-	ctx := context.Background()
+func (r *CachedAdvertisementRepository) GetEligibleAds(ctx context.Context, country, genre, language, device string) ([]*domain.Advertisement, error) {
 	// Cache key específico para estos criterios
 	cacheKey := fmt.Sprintf("ads:eligible:%s:%s:%s:%s", country, genre, language, device)
 
@@ -143,7 +138,7 @@ func (r *CachedAdvertisementRepository) GetEligibleAds(country, genre, language,
 	}
 
 	// Si no está en cache, obtener de BD (query compleja)
-	ads, err := r.repo.GetEligibleAds(country, genre, language, device)
+	ads, err := r.repo.GetEligibleAds(ctx, country, genre, language, device)
 	if err != nil {
 		return nil, err
 	}
@@ -157,42 +152,39 @@ func (r *CachedAdvertisementRepository) GetEligibleAds(country, genre, language,
 }
 
 // IncrementImpressions incrementa contador (bypass cache)
-func (r *CachedAdvertisementRepository) IncrementImpressions(adID uuid.UUID) error {
-	err := r.repo.IncrementImpressions(adID)
+func (r *CachedAdvertisementRepository) IncrementImpressions(ctx context.Context, adID uuid.UUID) error {
+	err := r.repo.IncrementImpressions(ctx, adID)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache del anuncio
-	ctx := context.Background()
 	r.cache.Del(ctx, fmt.Sprintf("ad:%s", adID))
 
 	return nil
 }
 
 // IncrementClicks incrementa contador (bypass cache)
-func (r *CachedAdvertisementRepository) IncrementClicks(adID uuid.UUID) error {
-	err := r.repo.IncrementClicks(adID)
+func (r *CachedAdvertisementRepository) IncrementClicks(ctx context.Context, adID uuid.UUID) error {
+	err := r.repo.IncrementClicks(ctx, adID)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache del anuncio
-	ctx := context.Background()
 	r.cache.Del(ctx, fmt.Sprintf("ad:%s", adID))
 
 	return nil
 }
 
 // IncrementSpend incrementa gasto (bypass cache)
-func (r *CachedAdvertisementRepository) IncrementSpend(adID uuid.UUID, amountCents int) error {
-	err := r.repo.IncrementSpend(adID, amountCents)
+func (r *CachedAdvertisementRepository) IncrementSpend(ctx context.Context, adID uuid.UUID, amountCents int) error {
+	err := r.repo.IncrementSpend(ctx, adID, amountCents)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache
-	ctx := context.Background()
 	r.cache.Del(ctx, fmt.Sprintf("ad:%s", adID))
 
 	// Si se agotó presupuesto, invalidar eligible ads
@@ -202,8 +194,7 @@ func (r *CachedAdvertisementRepository) IncrementSpend(adID uuid.UUID, amountCen
 }
 
 // GetActiveAds obtiene anuncios activos (con cache corto)
-func (r *CachedAdvertisementRepository) GetActiveAds() ([]*domain.Advertisement, error) {
-	ctx := context.Background()
+func (r *CachedAdvertisementRepository) GetActiveAds(ctx context.Context) ([]*domain.Advertisement, error) {
 	cacheKey := "ads:active"
 
 	// Cache corto (5 minutos)
@@ -219,7 +210,7 @@ func (r *CachedAdvertisementRepository) GetActiveAds() ([]*domain.Advertisement,
 	}
 
 	// Si no está en cache, obtener de BD
-	ads, err := r.repo.GetActiveAds()
+	ads, err := r.repo.GetActiveAds(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -233,14 +224,13 @@ func (r *CachedAdvertisementRepository) GetActiveAds() ([]*domain.Advertisement,
 }
 
 // Delete elimina un anuncio
-func (r *CachedAdvertisementRepository) Delete(id uuid.UUID) error {
-	err := r.repo.Delete(id)
+func (r *CachedAdvertisementRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	err := r.repo.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache
-	ctx := context.Background()
 	r.cache.Del(ctx, fmt.Sprintf("ad:%s", id))
 	r.invalidateEligibleAdsCache(ctx)
 

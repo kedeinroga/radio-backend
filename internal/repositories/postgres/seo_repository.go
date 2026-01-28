@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -20,7 +21,7 @@ func NewSEORepository(db *sql.DB) *SEORepository {
 }
 
 // GetPopularTags obtiene los tags más populares desde la vista materializada
-func (r *SEORepository) GetPopularTags(limit int) ([]domain.PopularTag, error) {
+func (r *SEORepository) GetPopularTags(ctx context.Context, limit int) ([]domain.PopularTag, error) {
 	query := `
 		SELECT tag, slug, station_count, active_count
 		FROM mv_top_tags_seo
@@ -28,7 +29,7 @@ func (r *SEORepository) GetPopularTags(limit int) ([]domain.PopularTag, error) {
 		LIMIT $1
 	`
 
-	rows, err := r.db.Query(query, limit)
+	rows, err := r.db.QueryContext(ctx, query, limit)
 	if err != nil {
 		logger.Error("failed to query popular tags", "error", err)
 		return nil, fmt.Errorf("failed to query popular tags: %w", err)
@@ -55,7 +56,7 @@ func (r *SEORepository) GetPopularTags(limit int) ([]domain.PopularTag, error) {
 }
 
 // GetPopularCountries obtiene los países más populares desde la vista materializada
-func (r *SEORepository) GetPopularCountries(limit int) ([]domain.PopularCountry, error) {
+func (r *SEORepository) GetPopularCountries(ctx context.Context, limit int) ([]domain.PopularCountry, error) {
 	query := `
 		SELECT country_name, slug, station_count
 		FROM mv_top_countries_seo
@@ -63,7 +64,7 @@ func (r *SEORepository) GetPopularCountries(limit int) ([]domain.PopularCountry,
 		LIMIT $1
 	`
 
-	rows, err := r.db.Query(query, limit)
+	rows, err := r.db.QueryContext(ctx, query, limit)
 	if err != nil {
 		logger.Error("failed to query popular countries", "error", err)
 		return nil, fmt.Errorf("failed to query popular countries: %w", err)
@@ -93,7 +94,7 @@ func (r *SEORepository) GetPopularCountries(limit int) ([]domain.PopularCountry,
 }
 
 // GetTotalStations obtiene el total de estaciones activas
-func (r *SEORepository) GetTotalStations() (int, error) {
+func (r *SEORepository) GetTotalStations(ctx context.Context) (int, error) {
 	query := `
 		SELECT COUNT(*)
 		FROM stations
@@ -101,7 +102,7 @@ func (r *SEORepository) GetTotalStations() (int, error) {
 	`
 
 	var total int
-	err := r.db.QueryRow(query).Scan(&total)
+	err := r.db.QueryRowContext(ctx, query).Scan(&total)
 	if err != nil {
 		logger.Error("failed to query total stations", "error", err)
 		return 0, fmt.Errorf("failed to query total stations: %w", err)
@@ -112,11 +113,11 @@ func (r *SEORepository) GetTotalStations() (int, error) {
 }
 
 // UpdateTagStats actualiza las estadísticas de tags desde stations_cache
-func (r *SEORepository) UpdateTagStats() error {
+func (r *SEORepository) UpdateTagStats(ctx context.Context) error {
 	logger.Info("updating tag statistics")
 
 	// Usar una transacción para atomicidad
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -157,7 +158,7 @@ func (r *SEORepository) UpdateTagStats() error {
 			last_updated = EXCLUDED.last_updated
 	`
 
-	result, err := tx.Exec(query)
+	result, err := tx.ExecContext(ctx, query)
 	if err != nil {
 		logger.Error("failed to update tag stats", "error", err)
 		return fmt.Errorf("failed to update tag stats: %w", err)
@@ -172,7 +173,7 @@ func (r *SEORepository) UpdateTagStats() error {
 		WHERE station_count = 0 OR active_count = 0
 	`
 
-	cleanupResult, err := tx.Exec(cleanupQuery)
+	cleanupResult, err := tx.ExecContext(ctx, cleanupQuery)
 	if err != nil {
 		logger.Error("failed to cleanup tag stats", "error", err)
 		return fmt.Errorf("failed to cleanup tag stats: %w", err)
@@ -183,11 +184,11 @@ func (r *SEORepository) UpdateTagStats() error {
 
 	// 3. Refresh materialized view
 	refreshQuery := `REFRESH MATERIALIZED VIEW CONCURRENTLY mv_top_tags_seo`
-	if _, err := tx.Exec(refreshQuery); err != nil {
+	if _, err := tx.ExecContext(ctx, refreshQuery); err != nil {
 		// Si falla el CONCURRENTLY (primera vez), intentar sin él
 		logger.Warn("concurrent refresh failed, trying without CONCURRENTLY", "error", err)
 		refreshQuery = `REFRESH MATERIALIZED VIEW mv_top_tags_seo`
-		if _, err := tx.Exec(refreshQuery); err != nil {
+		if _, err := tx.ExecContext(ctx, refreshQuery); err != nil {
 			logger.Error("failed to refresh materialized view", "error", err)
 			return fmt.Errorf("failed to refresh materialized view: %w", err)
 		}
@@ -205,16 +206,21 @@ func (r *SEORepository) UpdateTagStats() error {
 }
 
 // UpdateCountryStats actualiza las estadísticas de países desde stations
-func (r *SEORepository) UpdateCountryStats() error {
+func (r *SEORepository) UpdateCountryStats(ctx context.Context) error {
 	logger.Info("updating country statistics")
 
-	tx, err := r.db.Begin()
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
 	// 1. Actualizar estadísticas de países
+	// NOTE: Adjusted slug generation in query to be simpler or match previous logic if regex was tricky in postgres directly without function,
+	// but keeping the replaced query similar to original logic.
+	// Original query had: LEFT(LOWER(REGEXP_REPLACE(country_name, '[^a-z0-9]+', '-', 'g')), 100) as slug
+	// Restoring that part.
+
 	query := `
 		WITH country_data AS (
 			SELECT
@@ -243,7 +249,7 @@ func (r *SEORepository) UpdateCountryStats() error {
 			last_updated = EXCLUDED.last_updated
 	`
 
-	result, err := tx.Exec(query)
+	result, err := tx.ExecContext(ctx, query)
 	if err != nil {
 		logger.Error("failed to update country stats", "error", err)
 		return fmt.Errorf("failed to update country stats: %w", err)
@@ -258,7 +264,7 @@ func (r *SEORepository) UpdateCountryStats() error {
 		WHERE station_count = 0
 	`
 
-	cleanupResult, err := tx.Exec(cleanupQuery)
+	cleanupResult, err := tx.ExecContext(ctx, cleanupQuery)
 	if err != nil {
 		logger.Error("failed to cleanup country stats", "error", err)
 		return fmt.Errorf("failed to cleanup country stats: %w", err)
@@ -269,10 +275,10 @@ func (r *SEORepository) UpdateCountryStats() error {
 
 	// 3. Refresh materialized view
 	refreshQuery := `REFRESH MATERIALIZED VIEW CONCURRENTLY mv_top_countries_seo`
-	if _, err := tx.Exec(refreshQuery); err != nil {
+	if _, err := tx.ExecContext(ctx, refreshQuery); err != nil {
 		logger.Warn("concurrent refresh failed, trying without CONCURRENTLY", "error", err)
 		refreshQuery = `REFRESH MATERIALIZED VIEW mv_top_countries_seo`
-		if _, err := tx.Exec(refreshQuery); err != nil {
+		if _, err := tx.ExecContext(ctx, refreshQuery); err != nil {
 			logger.Error("failed to refresh materialized view", "error", err)
 			return fmt.Errorf("failed to refresh materialized view: %w", err)
 		}

@@ -1,6 +1,7 @@
 package radiobrowser
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -72,11 +73,12 @@ type RadioBrowserStation struct {
 }
 
 // FindByID returns a station by its UUID
-func (r *Repository) FindByID(id string) (*domain.Station, error) {
+func (r *Repository) FindByID(ctx context.Context, id string) (*domain.Station, error) {
 	result, err := r.cb.Execute(func() (interface{}, error) {
 		var stations []RadioBrowserStation
 
 		resp, err := r.client.R().
+			SetContext(ctx).
 			SetResult(&stations).
 			SetQueryParam("uuids", id).
 			Get(r.baseURL + "/json/stations/byuuid")
@@ -111,11 +113,12 @@ func (r *Repository) FindByID(id string) (*domain.Station, error) {
 }
 
 // FindPopular returns popular stations
-func (r *Repository) FindPopular(limit int, country string) ([]domain.Station, error) {
+func (r *Repository) FindPopular(ctx context.Context, limit int, country string) ([]domain.Station, error) {
 	result, err := r.cb.Execute(func() (interface{}, error) {
 		var stations []RadioBrowserStation
 
 		req := r.client.R().
+			SetContext(ctx).
 			SetResult(&stations).
 			SetQueryParam("limit", strconv.Itoa(limit)).
 			SetQueryParam("order", "votes").
@@ -151,13 +154,14 @@ func (r *Repository) FindPopular(limit int, country string) ([]domain.Station, e
 }
 
 // Search searches for stations
-func (r *Repository) Search(query string, limit int) ([]domain.Station, error) {
+func (r *Repository) Search(ctx context.Context, query string, limit int) ([]domain.Station, error) {
 	logger.Info("calling radiobrowser API", "query", query, "limit", limit, "url", r.baseURL, "circuit_state", r.cb.State().String())
 
 	result, err := r.cb.Execute(func() (interface{}, error) {
 		var stations []RadioBrowserStation
 
 		resp, err := r.client.R().
+			SetContext(ctx).
 			SetResult(&stations).
 			SetQueryParam("name", query).
 			SetQueryParam("limit", strconv.Itoa(limit)).

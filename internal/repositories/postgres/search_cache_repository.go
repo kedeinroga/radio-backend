@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -24,7 +25,7 @@ func NewSearchCacheRepository(db *database.Connection) *SearchCacheRepository {
 }
 
 // Get retrieves a cached search result
-func (r *SearchCacheRepository) Get(queryHash string) (*domain.SearchCacheEntry, error) {
+func (r *SearchCacheRepository) Get(ctx context.Context, queryHash string) (*domain.SearchCacheEntry, error) {
 	query := `
 		SELECT query_hash, query_params, station_ids, result_count, expires_at, created_at
 		FROM station_search_cache
@@ -35,7 +36,7 @@ func (r *SearchCacheRepository) Get(queryHash string) (*domain.SearchCacheEntry,
 	var queryParamsJSON []byte
 	var stationIDs pq.StringArray
 
-	err := r.db.DB.QueryRow(query, queryHash).Scan(
+	err := r.db.DB.QueryRowContext(ctx, query, queryHash).Scan(
 		&entry.QueryHash,
 		&queryParamsJSON,
 		&stationIDs,
@@ -62,7 +63,7 @@ func (r *SearchCacheRepository) Get(queryHash string) (*domain.SearchCacheEntry,
 }
 
 // Save saves a search result to cache
-func (r *SearchCacheRepository) Save(entry *domain.SearchCacheEntry) error {
+func (r *SearchCacheRepository) Save(ctx context.Context, entry *domain.SearchCacheEntry) error {
 	query := `
 		INSERT INTO station_search_cache (query_hash, query_params, station_ids, result_count, expires_at, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -79,7 +80,7 @@ func (r *SearchCacheRepository) Save(entry *domain.SearchCacheEntry) error {
 		return fmt.Errorf("failed to marshal query params: %w", err)
 	}
 
-	_, err = r.db.DB.Exec(query,
+	_, err = r.db.DB.ExecContext(ctx, query,
 		entry.QueryHash,
 		queryParamsJSON,
 		pq.Array(entry.StationIDs),
@@ -96,9 +97,9 @@ func (r *SearchCacheRepository) Save(entry *domain.SearchCacheEntry) error {
 }
 
 // Invalidate removes a search result from cache
-func (r *SearchCacheRepository) Invalidate(queryHash string) error {
+func (r *SearchCacheRepository) Invalidate(ctx context.Context, queryHash string) error {
 	query := `DELETE FROM station_search_cache WHERE query_hash = $1`
-	_, err := r.db.DB.Exec(query, queryHash)
+	_, err := r.db.DB.ExecContext(ctx, query, queryHash)
 	if err != nil {
 		return fmt.Errorf("failed to invalidate search cache: %w", err)
 	}
@@ -106,9 +107,9 @@ func (r *SearchCacheRepository) Invalidate(queryHash string) error {
 }
 
 // CleanExpired removes expired search results
-func (r *SearchCacheRepository) CleanExpired() error {
+func (r *SearchCacheRepository) CleanExpired(ctx context.Context) error {
 	query := `DELETE FROM station_search_cache WHERE expires_at < NOW()`
-	_, err := r.db.DB.Exec(query)
+	_, err := r.db.DB.ExecContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf("failed to clean expired cache: %w", err)
 	}

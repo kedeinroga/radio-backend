@@ -64,14 +64,14 @@ func (s *StreamSessionService) StartSession(
 	ipAddress string,
 ) (*domain.StreamSession, string, error) {
 	// Verificar que la estación existe
-	station, err := s.stationRepo.FindByID(stationID)
+	station, err := s.stationRepo.FindByID(ctx, stationID)
 	if err != nil {
 		return nil, "", fmt.Errorf("station not found: %w", err)
 	}
 
 	// Si hay adID, verificar que el anuncio existe
 	if adID != nil {
-		_, err := s.adRepo.GetByID(*adID)
+		_, err := s.adRepo.GetByID(ctx, *adID)
 		if err != nil {
 			return nil, "", fmt.Errorf("advertisement not found: %w", err)
 		}

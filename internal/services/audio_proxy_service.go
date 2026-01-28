@@ -68,7 +68,7 @@ func (s *AudioProxyService) ProxyStream(
 	}
 
 	// Obtener URL del stream original de la estación
-	station, err := s.sessionService.stationRepo.FindByID(session.StationID)
+	station, err := s.sessionService.stationRepo.FindByID(ctx, session.StationID)
 	if err != nil {
 		s.logger.Error("failed to get station", "error", err, "station_id", session.StationID)
 		http.Error(writer, "Station not found", http.StatusNotFound)

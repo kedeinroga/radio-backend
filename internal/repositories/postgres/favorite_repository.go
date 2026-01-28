@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,7 +22,7 @@ func NewFavoriteRepository(db *database.Connection) *FavoriteRepository {
 }
 
 // GetUserFavorites returns all favorite stations for a user
-func (r *FavoriteRepository) GetUserFavorites(userID string) ([]domain.Favorite, error) {
+func (r *FavoriteRepository) GetUserFavorites(ctx context.Context, userID string) ([]domain.Favorite, error) {
 	query := `
 		SELECT user_id, station_id, created_at
 		FROM user_favorites
@@ -29,7 +30,7 @@ func (r *FavoriteRepository) GetUserFavorites(userID string) ([]domain.Favorite,
 		ORDER BY created_at DESC
 	`
 
-	rows, err := r.db.DB.Query(query, userID)
+	rows, err := r.db.DB.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user favorites: %w", err)
 	}
@@ -53,13 +54,13 @@ func (r *FavoriteRepository) GetUserFavorites(userID string) ([]domain.Favorite,
 }
 
 // AddFavorite adds a station to user's favorites
-func (r *FavoriteRepository) AddFavorite(userID, stationID string) error {
+func (r *FavoriteRepository) AddFavorite(ctx context.Context, userID, stationID string) error {
 	query := `
 		INSERT INTO user_favorites (user_id, station_id, created_at)
 		VALUES ($1, $2, $3)
 	`
 
-	_, err := r.db.DB.Exec(query, userID, stationID, time.Now())
+	_, err := r.db.DB.ExecContext(ctx, query, userID, stationID, time.Now())
 	if err != nil {
 		// Check for unique constraint violation (duplicate favorite)
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -72,13 +73,13 @@ func (r *FavoriteRepository) AddFavorite(userID, stationID string) error {
 }
 
 // RemoveFavorite removes a station from user's favorites
-func (r *FavoriteRepository) RemoveFavorite(userID, stationID string) error {
+func (r *FavoriteRepository) RemoveFavorite(ctx context.Context, userID, stationID string) error {
 	query := `
 		DELETE FROM user_favorites
 		WHERE user_id = $1 AND station_id = $2
 	`
 
-	result, err := r.db.DB.Exec(query, userID, stationID)
+	result, err := r.db.DB.ExecContext(ctx, query, userID, stationID)
 	if err != nil {
 		return fmt.Errorf("failed to remove favorite: %w", err)
 	}
@@ -96,7 +97,7 @@ func (r *FavoriteRepository) RemoveFavorite(userID, stationID string) error {
 }
 
 // IsFavorite checks if a station is in user's favorites
-func (r *FavoriteRepository) IsFavorite(userID, stationID string) (bool, error) {
+func (r *FavoriteRepository) IsFavorite(ctx context.Context, userID, stationID string) (bool, error) {
 	query := `
 		SELECT EXISTS(
 			SELECT 1 FROM user_favorites
@@ -105,7 +106,7 @@ func (r *FavoriteRepository) IsFavorite(userID, stationID string) (bool, error) 
 	`
 
 	var exists bool
-	err := r.db.DB.QueryRow(query, userID, stationID).Scan(&exists)
+	err := r.db.DB.QueryRowContext(ctx, query, userID, stationID).Scan(&exists)
 	if err != nil {
 		return false, fmt.Errorf("failed to check favorite: %w", err)
 	}

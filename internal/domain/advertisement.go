@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -194,14 +195,14 @@ func contains(slice []string, item string) bool {
 
 // AdvertisementRepository define la interfaz para persistencia de anuncios
 type AdvertisementRepository interface {
-	Create(ad *Advertisement) error
-	GetByID(id uuid.UUID) (*Advertisement, error)
-	GetByCampaignID(campaignID uuid.UUID) ([]*Advertisement, error)
-	Update(ad *Advertisement) error
-	Delete(id uuid.UUID) error
-	GetActiveAds() ([]*Advertisement, error)
-	GetEligibleAds(country, genre, language, device string) ([]*Advertisement, error)
-	IncrementImpressions(adID uuid.UUID) error
-	IncrementClicks(adID uuid.UUID) error
-	IncrementSpend(adID uuid.UUID, amountCents int) error
+	Create(ctx context.Context, ad *Advertisement) error
+	GetByID(ctx context.Context, id uuid.UUID) (*Advertisement, error)
+	GetByCampaignID(ctx context.Context, campaignID uuid.UUID) ([]*Advertisement, error)
+	Update(ctx context.Context, ad *Advertisement) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetActiveAds(ctx context.Context) ([]*Advertisement, error)
+	GetEligibleAds(ctx context.Context, country, genre, language, device string) ([]*Advertisement, error)
+	IncrementImpressions(ctx context.Context, adID uuid.UUID) error
+	IncrementClicks(ctx context.Context, adID uuid.UUID) error
+	IncrementSpend(ctx context.Context, adID uuid.UUID, amountCents int) error
 }
