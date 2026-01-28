@@ -33,7 +33,7 @@ func NewAdvertisementService(
 }
 
 // CreateAdvertisement crea un nuevo anuncio con validaciones
-func (s *AdvertisementService) CreateAdvertisement(ad *domain.Advertisement) error {
+func (s *AdvertisementService) CreateAdvertisement(ctx context.Context, ad *domain.Advertisement) error {
 	logger.Info("creating new advertisement", "title", ad.Title, "campaign_id", ad.CampaignID)
 
 	// Validar datos
@@ -43,7 +43,7 @@ func (s *AdvertisementService) CreateAdvertisement(ad *domain.Advertisement) err
 	}
 
 	// Verificar que la campaña existe y está activa
-	campaign, err := s.campaignRepo.GetByID(ad.CampaignID)
+	campaign, err := s.campaignRepo.GetByID(ctx, ad.CampaignID)
 	if err != nil {
 		return fmt.Errorf("campaign not found: %w", err)
 	}
@@ -68,7 +68,7 @@ func (s *AdvertisementService) CreateAdvertisement(ad *domain.Advertisement) err
 	ad.SpendCents = 0
 
 	// Crear en BD
-	if err := s.repo.Create(ad); err != nil {
+	if err := s.repo.Create(ctx, ad); err != nil {
 		logger.Error("failed to create advertisement", "error", err)
 		return fmt.Errorf("failed to create advertisement: %w", err)
 	}
@@ -78,8 +78,8 @@ func (s *AdvertisementService) CreateAdvertisement(ad *domain.Advertisement) err
 }
 
 // GetAdvertisement obtiene un anuncio por ID
-func (s *AdvertisementService) GetAdvertisement(id uuid.UUID) (*domain.Advertisement, error) {
-	ad, err := s.repo.GetByID(id)
+func (s *AdvertisementService) GetAdvertisement(ctx context.Context, id uuid.UUID) (*domain.Advertisement, error) {
+	ad, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		logger.Error("failed to get advertisement", "id", id, "error", err)
 		return nil, fmt.Errorf("advertisement not found: %w", err)
@@ -88,8 +88,8 @@ func (s *AdvertisementService) GetAdvertisement(id uuid.UUID) (*domain.Advertise
 }
 
 // GetAdvertisementsByCampaign obtiene todos los anuncios de una campaña
-func (s *AdvertisementService) GetAdvertisementsByCampaign(campaignID uuid.UUID) ([]*domain.Advertisement, error) {
-	ads, err := s.repo.GetByCampaignID(campaignID)
+func (s *AdvertisementService) GetAdvertisementsByCampaign(ctx context.Context, campaignID uuid.UUID) ([]*domain.Advertisement, error) {
+	ads, err := s.repo.GetByCampaignID(ctx, campaignID)
 	if err != nil {
 		logger.Error("failed to get advertisements by campaign", "campaign_id", campaignID, "error", err)
 		return nil, err
@@ -98,7 +98,7 @@ func (s *AdvertisementService) GetAdvertisementsByCampaign(campaignID uuid.UUID)
 }
 
 // UpdateAdvertisement actualiza un anuncio existente
-func (s *AdvertisementService) UpdateAdvertisement(ad *domain.Advertisement) error {
+func (s *AdvertisementService) UpdateAdvertisement(ctx context.Context, ad *domain.Advertisement) error {
 	logger.Info("updating advertisement", "id", ad.ID)
 
 	// Validar
@@ -108,7 +108,7 @@ func (s *AdvertisementService) UpdateAdvertisement(ad *domain.Advertisement) err
 	}
 
 	// Verificar que existe
-	existing, err := s.repo.GetByID(ad.ID)
+	existing, err := s.repo.GetByID(ctx, ad.ID)
 	if err != nil {
 		return fmt.Errorf("advertisement not found: %w", err)
 	}
@@ -120,7 +120,7 @@ func (s *AdvertisementService) UpdateAdvertisement(ad *domain.Advertisement) err
 	ad.UpdatedAt = time.Now()
 
 	// Actualizar en BD
-	if err := s.repo.Update(ad); err != nil {
+	if err := s.repo.Update(ctx, ad); err != nil {
 		logger.Error("failed to update advertisement", "error", err)
 		return fmt.Errorf("failed to update advertisement: %w", err)
 	}
@@ -130,16 +130,16 @@ func (s *AdvertisementService) UpdateAdvertisement(ad *domain.Advertisement) err
 }
 
 // DeleteAdvertisement elimina un anuncio
-func (s *AdvertisementService) DeleteAdvertisement(id uuid.UUID) error {
+func (s *AdvertisementService) DeleteAdvertisement(ctx context.Context, id uuid.UUID) error {
 	logger.Info("deleting advertisement", "id", id)
 
 	// Verificar que existe
-	_, err := s.repo.GetByID(id)
+	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("advertisement not found: %w", err)
 	}
 
-	if err := s.repo.Delete(id); err != nil {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		logger.Error("failed to delete advertisement", "error", err)
 		return fmt.Errorf("failed to delete advertisement: %w", err)
 	}
@@ -151,6 +151,7 @@ func (s *AdvertisementService) DeleteAdvertisement(id uuid.UUID) error {
 // GetEligibleAdsForUser obtiene anuncios elegibles para un usuario
 // Aplica targeting, frequency capping y filtros de premium
 func (s *AdvertisementService) GetEligibleAdsForUser(
+	ctx context.Context,
 	userID uuid.UUID,
 	country, genre, language, device string,
 	isPremium bool,
@@ -169,7 +170,7 @@ func (s *AdvertisementService) GetEligibleAdsForUser(
 	}
 
 	// Verificar frequency capping usando cache
-	canShow, err := s.checkFrequencyCapping(userID)
+	canShow, err := s.checkFrequencyCapping(ctx, userID)
 	if err != nil {
 		logger.Error("failed to check frequency capping", "error", err)
 		// Continuar de todos modos (graceful degradation)
@@ -180,7 +181,7 @@ func (s *AdvertisementService) GetEligibleAdsForUser(
 	}
 
 	// Obtener anuncios elegibles con targeting
-	ads, err := s.repo.GetEligibleAds(country, genre, language, device)
+	ads, err := s.repo.GetEligibleAds(ctx, country, genre, language, device)
 	if err != nil {
 		logger.Error("failed to get eligible ads", "error", err)
 		return nil, err
@@ -191,9 +192,7 @@ func (s *AdvertisementService) GetEligibleAdsForUser(
 }
 
 // checkFrequencyCapping verifica si el usuario puede ver más anuncios
-func (s *AdvertisementService) checkFrequencyCapping(userID uuid.UUID) (bool, error) {
-	ctx := context.Background()
-
+func (s *AdvertisementService) checkFrequencyCapping(ctx context.Context, userID uuid.UUID) (bool, error) {
 	// Obtener contadores del cache
 	hourlyCount, err := s.adCache.GetUserAdCountHourly(ctx, userID)
 	if err != nil {
@@ -225,11 +224,11 @@ func (s *AdvertisementService) checkFrequencyCapping(userID uuid.UUID) (bool, er
 }
 
 // RecordImpression registra la impresión de un anuncio
-func (s *AdvertisementService) RecordImpression(adID uuid.UUID) error {
+func (s *AdvertisementService) RecordImpression(ctx context.Context, adID uuid.UUID) error {
 	logger.Info("recording impression", "ad_id", adID)
 
 	// Incrementar contador en BD
-	if err := s.repo.IncrementImpressions(adID); err != nil {
+	if err := s.repo.IncrementImpressions(ctx, adID); err != nil {
 		logger.Error("failed to increment impressions", "error", err)
 		return err
 	}
@@ -238,11 +237,11 @@ func (s *AdvertisementService) RecordImpression(adID uuid.UUID) error {
 }
 
 // RecordClick registra el click de un anuncio
-func (s *AdvertisementService) RecordClick(adID uuid.UUID) error {
+func (s *AdvertisementService) RecordClick(ctx context.Context, adID uuid.UUID) error {
 	logger.Info("recording click", "ad_id", adID)
 
 	// Incrementar contador en BD
-	if err := s.repo.IncrementClicks(adID); err != nil {
+	if err := s.repo.IncrementClicks(ctx, adID); err != nil {
 		logger.Error("failed to increment clicks", "error", err)
 		return err
 	}
@@ -251,11 +250,11 @@ func (s *AdvertisementService) RecordClick(adID uuid.UUID) error {
 }
 
 // RecordSpend registra gasto en un anuncio
-func (s *AdvertisementService) RecordSpend(adID uuid.UUID, amountCents int) error {
+func (s *AdvertisementService) RecordSpend(ctx context.Context, adID uuid.UUID, amountCents int) error {
 	logger.Info("recording spend", "ad_id", adID, "amount_cents", amountCents)
 
 	// Verificar que el anuncio existe y está activo
-	ad, err := s.repo.GetByID(adID)
+	ad, err := s.repo.GetByID(ctx, adID)
 	if err != nil {
 		return fmt.Errorf("advertisement not found: %w", err)
 	}
@@ -270,13 +269,13 @@ func (s *AdvertisementService) RecordSpend(adID uuid.UUID, amountCents int) erro
 	}
 
 	// Incrementar gasto
-	if err := s.repo.IncrementSpend(adID, amountCents); err != nil {
+	if err := s.repo.IncrementSpend(ctx, adID, amountCents); err != nil {
 		logger.Error("failed to increment spend", "error", err)
 		return err
 	}
 
 	// También incrementar en la campaña
-	if err := s.campaignRepo.IncrementSpent(ad.CampaignID, amountCents); err != nil {
+	if err := s.campaignRepo.IncrementSpent(ctx, ad.CampaignID, amountCents); err != nil {
 		logger.Error("failed to increment campaign spend", "error", err)
 		// No retornar error, ya se registró en el ad
 	}
@@ -285,8 +284,8 @@ func (s *AdvertisementService) RecordSpend(adID uuid.UUID, amountCents int) erro
 }
 
 // GetAdvertisementStats obtiene estadísticas de un anuncio
-func (s *AdvertisementService) GetAdvertisementStats(id uuid.UUID) (*AdvertisementStats, error) {
-	ad, err := s.repo.GetByID(id)
+func (s *AdvertisementService) GetAdvertisementStats(ctx context.Context, id uuid.UUID) (*AdvertisementStats, error) {
+	ad, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("advertisement not found: %w", err)
 	}

@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -22,7 +23,7 @@ func NewAdvertisementRepository(db *database.Connection) *AdvertisementRepositor
 }
 
 // Create crea un nuevo anuncio
-func (r *AdvertisementRepository) Create(ad *domain.Advertisement) error {
+func (r *AdvertisementRepository) Create(ctx context.Context, ad *domain.Advertisement) error {
 	query := `
 		INSERT INTO advertisements (
 			id, campaign_id, title, description, advertiser_name,
@@ -42,7 +43,7 @@ func (r *AdvertisementRepository) Create(ad *domain.Advertisement) error {
 		)
 	`
 
-	_, err := r.db.DB.Exec(query,
+	_, err := r.db.DB.ExecContext(ctx, query,
 		ad.ID,
 		ad.CampaignID,
 		ad.Title,
@@ -81,7 +82,7 @@ func (r *AdvertisementRepository) Create(ad *domain.Advertisement) error {
 }
 
 // GetByID obtiene un anuncio por ID
-func (r *AdvertisementRepository) GetByID(id uuid.UUID) (*domain.Advertisement, error) {
+func (r *AdvertisementRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.Advertisement, error) {
 	query := `
 		SELECT
 			id, campaign_id, title, description, advertiser_name,
@@ -98,7 +99,7 @@ func (r *AdvertisementRepository) GetByID(id uuid.UUID) (*domain.Advertisement, 
 	`
 
 	var ad domain.Advertisement
-	err := r.db.DB.QueryRow(query, id).Scan(
+	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
 		&ad.ID,
 		&ad.CampaignID,
 		&ad.Title,
@@ -141,7 +142,7 @@ func (r *AdvertisementRepository) GetByID(id uuid.UUID) (*domain.Advertisement, 
 }
 
 // GetByCampaignID obtiene todos los anuncios de una campaña
-func (r *AdvertisementRepository) GetByCampaignID(campaignID uuid.UUID) ([]*domain.Advertisement, error) {
+func (r *AdvertisementRepository) GetByCampaignID(ctx context.Context, campaignID uuid.UUID) ([]*domain.Advertisement, error) {
 	query := `
 		SELECT
 			id, campaign_id, title, description, advertiser_name,
@@ -158,11 +159,11 @@ func (r *AdvertisementRepository) GetByCampaignID(campaignID uuid.UUID) ([]*doma
 		ORDER BY priority DESC, created_at DESC
 	`
 
-	return r.queryAds(query, campaignID)
+	return r.queryAds(ctx, query, campaignID)
 }
 
 // Update actualiza un anuncio
-func (r *AdvertisementRepository) Update(ad *domain.Advertisement) error {
+func (r *AdvertisementRepository) Update(ctx context.Context, ad *domain.Advertisement) error {
 	query := `
 		UPDATE advertisements
 		SET title = $2,
@@ -194,7 +195,7 @@ func (r *AdvertisementRepository) Update(ad *domain.Advertisement) error {
 		WHERE id = $1
 	`
 
-	_, err := r.db.DB.Exec(query,
+	_, err := r.db.DB.ExecContext(ctx, query,
 		ad.ID,
 		ad.Title,
 		ad.Description,
@@ -228,14 +229,14 @@ func (r *AdvertisementRepository) Update(ad *domain.Advertisement) error {
 }
 
 // Delete elimina un anuncio
-func (r *AdvertisementRepository) Delete(id uuid.UUID) error {
+func (r *AdvertisementRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM advertisements WHERE id = $1`
-	_, err := r.db.DB.Exec(query, id)
+	_, err := r.db.DB.ExecContext(ctx, query, id)
 	return err
 }
 
 // GetActiveAds obtiene todos los anuncios activos
-func (r *AdvertisementRepository) GetActiveAds() ([]*domain.Advertisement, error) {
+func (r *AdvertisementRepository) GetActiveAds(ctx context.Context) ([]*domain.Advertisement, error) {
 	query := `
 		SELECT
 			id, campaign_id, title, description, advertiser_name,
@@ -255,11 +256,11 @@ func (r *AdvertisementRepository) GetActiveAds() ([]*domain.Advertisement, error
 		ORDER BY priority DESC
 	`
 
-	return r.queryAds(query)
+	return r.queryAds(ctx, query)
 }
 
 // GetEligibleAds obtiene anuncios elegibles basados en targeting
-func (r *AdvertisementRepository) GetEligibleAds(country, genre, language, device string) ([]*domain.Advertisement, error) {
+func (r *AdvertisementRepository) GetEligibleAds(ctx context.Context, country, genre, language, device string) ([]*domain.Advertisement, error) {
 	query := `
 		SELECT
 			id, campaign_id, title, description, advertiser_name,
@@ -284,11 +285,11 @@ func (r *AdvertisementRepository) GetEligibleAds(country, genre, language, devic
 		LIMIT 10
 	`
 
-	return r.queryAds(query, country, genre, language, device)
+	return r.queryAds(ctx, query, country, genre, language, device)
 }
 
 // IncrementImpressions incrementa el contador de impresiones
-func (r *AdvertisementRepository) IncrementImpressions(adID uuid.UUID) error {
+func (r *AdvertisementRepository) IncrementImpressions(ctx context.Context, adID uuid.UUID) error {
 	query := `
 		UPDATE advertisements
 		SET impressions_count = impressions_count + 1,
@@ -296,12 +297,12 @@ func (r *AdvertisementRepository) IncrementImpressions(adID uuid.UUID) error {
 		WHERE id = $1
 	`
 
-	_, err := r.db.DB.Exec(query, adID)
+	_, err := r.db.DB.ExecContext(ctx, query, adID)
 	return err
 }
 
 // IncrementClicks incrementa el contador de clicks
-func (r *AdvertisementRepository) IncrementClicks(adID uuid.UUID) error {
+func (r *AdvertisementRepository) IncrementClicks(ctx context.Context, adID uuid.UUID) error {
 	query := `
 		UPDATE advertisements
 		SET clicks_count = clicks_count + 1,
@@ -309,12 +310,12 @@ func (r *AdvertisementRepository) IncrementClicks(adID uuid.UUID) error {
 		WHERE id = $1
 	`
 
-	_, err := r.db.DB.Exec(query, adID)
+	_, err := r.db.DB.ExecContext(ctx, query, adID)
 	return err
 }
 
 // IncrementSpend incrementa el gasto del anuncio
-func (r *AdvertisementRepository) IncrementSpend(adID uuid.UUID, amountCents int) error {
+func (r *AdvertisementRepository) IncrementSpend(ctx context.Context, adID uuid.UUID, amountCents int) error {
 	query := `
 		UPDATE advertisements
 		SET spend_cents = spend_cents + $2,
@@ -322,13 +323,13 @@ func (r *AdvertisementRepository) IncrementSpend(adID uuid.UUID, amountCents int
 		WHERE id = $1
 	`
 
-	_, err := r.db.DB.Exec(query, adID, amountCents)
+	_, err := r.db.DB.ExecContext(ctx, query, adID, amountCents)
 	return err
 }
 
 // queryAds es un helper para ejecutar queries y escanear múltiples ads
-func (r *AdvertisementRepository) queryAds(query string, args ...interface{}) ([]*domain.Advertisement, error) {
-	rows, err := r.db.DB.Query(query, args...)
+func (r *AdvertisementRepository) queryAds(ctx context.Context, query string, args ...interface{}) ([]*domain.Advertisement, error) {
+	rows, err := r.db.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

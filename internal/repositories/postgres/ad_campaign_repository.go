@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,7 +22,7 @@ func NewAdCampaignRepository(db *database.Connection) *AdCampaignRepository {
 }
 
 // Create crea una nueva campaña
-func (r *AdCampaignRepository) Create(campaign *domain.AdCampaign) error {
+func (r *AdCampaignRepository) Create(ctx context.Context, campaign *domain.AdCampaign) error {
 	query := `
 		INSERT INTO ad_campaigns (
 			id, advertiser_id, name, description,
@@ -33,7 +34,7 @@ func (r *AdCampaignRepository) Create(campaign *domain.AdCampaign) error {
 		)
 	`
 
-	_, err := r.db.DB.Exec(query,
+	_, err := r.db.DB.ExecContext(ctx, query,
 		campaign.ID,
 		campaign.AdvertiserID,
 		campaign.Name,
@@ -52,7 +53,7 @@ func (r *AdCampaignRepository) Create(campaign *domain.AdCampaign) error {
 }
 
 // GetByID obtiene una campaña por ID
-func (r *AdCampaignRepository) GetByID(id uuid.UUID) (*domain.AdCampaign, error) {
+func (r *AdCampaignRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.AdCampaign, error) {
 	query := `
 		SELECT
 			id, advertiser_id, name, description,
@@ -64,7 +65,7 @@ func (r *AdCampaignRepository) GetByID(id uuid.UUID) (*domain.AdCampaign, error)
 	`
 
 	var campaign domain.AdCampaign
-	err := r.db.DB.QueryRow(query, id).Scan(
+	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
 		&campaign.ID,
 		&campaign.AdvertiserID,
 		&campaign.Name,
@@ -87,7 +88,7 @@ func (r *AdCampaignRepository) GetByID(id uuid.UUID) (*domain.AdCampaign, error)
 }
 
 // GetByAdvertiserID obtiene todas las campañas de un advertiser
-func (r *AdCampaignRepository) GetByAdvertiserID(advertiserID uuid.UUID) ([]*domain.AdCampaign, error) {
+func (r *AdCampaignRepository) GetByAdvertiserID(ctx context.Context, advertiserID uuid.UUID) ([]*domain.AdCampaign, error) {
 	query := `
 		SELECT
 			id, advertiser_id, name, description,
@@ -99,7 +100,7 @@ func (r *AdCampaignRepository) GetByAdvertiserID(advertiserID uuid.UUID) ([]*dom
 		ORDER BY created_at DESC
 	`
 
-	rows, err := r.db.DB.Query(query, advertiserID)
+	rows, err := r.db.DB.QueryContext(ctx, query, advertiserID)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +133,7 @@ func (r *AdCampaignRepository) GetByAdvertiserID(advertiserID uuid.UUID) ([]*dom
 }
 
 // Update actualiza una campaña
-func (r *AdCampaignRepository) Update(campaign *domain.AdCampaign) error {
+func (r *AdCampaignRepository) Update(ctx context.Context, campaign *domain.AdCampaign) error {
 	query := `
 		UPDATE ad_campaigns
 		SET name = $2,
@@ -147,7 +148,7 @@ func (r *AdCampaignRepository) Update(campaign *domain.AdCampaign) error {
 		WHERE id = $1
 	`
 
-	_, err := r.db.DB.Exec(query,
+	_, err := r.db.DB.ExecContext(ctx, query,
 		campaign.ID,
 		campaign.Name,
 		campaign.Description,
@@ -164,15 +165,15 @@ func (r *AdCampaignRepository) Update(campaign *domain.AdCampaign) error {
 }
 
 // Delete elimina una campaña
-func (r *AdCampaignRepository) Delete(id uuid.UUID) error {
+func (r *AdCampaignRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM ad_campaigns WHERE id = $1`
 
-	_, err := r.db.DB.Exec(query, id)
+	_, err := r.db.DB.ExecContext(ctx, query, id)
 	return err
 }
 
 // GetActiveCampaigns obtiene todas las campañas activas
-func (r *AdCampaignRepository) GetActiveCampaigns() ([]*domain.AdCampaign, error) {
+func (r *AdCampaignRepository) GetActiveCampaigns(ctx context.Context) ([]*domain.AdCampaign, error) {
 	query := `
 		SELECT
 			id, advertiser_id, name, description,
@@ -187,7 +188,7 @@ func (r *AdCampaignRepository) GetActiveCampaigns() ([]*domain.AdCampaign, error
 		ORDER BY created_at DESC
 	`
 
-	rows, err := r.db.DB.Query(query)
+	rows, err := r.db.DB.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -220,7 +221,7 @@ func (r *AdCampaignRepository) GetActiveCampaigns() ([]*domain.AdCampaign, error
 }
 
 // IncrementSpent incrementa el gasto de una campaña
-func (r *AdCampaignRepository) IncrementSpent(campaignID uuid.UUID, amountCents int) error {
+func (r *AdCampaignRepository) IncrementSpent(ctx context.Context, campaignID uuid.UUID, amountCents int) error {
 	query := `
 		UPDATE ad_campaigns
 		SET spent_cents = spent_cents + $2,
@@ -228,12 +229,12 @@ func (r *AdCampaignRepository) IncrementSpent(campaignID uuid.UUID, amountCents 
 		WHERE id = $1
 	`
 
-	_, err := r.db.DB.Exec(query, campaignID, amountCents)
+	_, err := r.db.DB.ExecContext(ctx, query, campaignID, amountCents)
 	return err
 }
 
 // GetExpiredCampaigns obtiene campañas que deberían expirar
-func (r *AdCampaignRepository) GetExpiredCampaigns() ([]*domain.AdCampaign, error) {
+func (r *AdCampaignRepository) GetExpiredCampaigns(ctx context.Context) ([]*domain.AdCampaign, error) {
 	query := `
 		SELECT
 			id, advertiser_id, name, description,
@@ -245,7 +246,7 @@ func (r *AdCampaignRepository) GetExpiredCampaigns() ([]*domain.AdCampaign, erro
 			AND (end_date < NOW() OR spent_cents >= total_budget_cents)
 	`
 
-	rows, err := r.db.DB.Query(query)
+	rows, err := r.db.DB.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

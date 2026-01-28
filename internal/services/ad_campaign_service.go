@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -28,7 +29,7 @@ func NewAdCampaignService(repo domain.AdCampaignRepository) *AdCampaignService {
 }
 
 // CreateCampaign crea una nueva campaña con validaciones
-func (s *AdCampaignService) CreateCampaign(campaign *domain.AdCampaign) error {
+func (s *AdCampaignService) CreateCampaign(ctx context.Context, campaign *domain.AdCampaign) error {
 	logger.Info("creating new ad campaign", "name", campaign.Name, "advertiser_id", campaign.AdvertiserID)
 
 	// Validar datos
@@ -56,7 +57,7 @@ func (s *AdCampaignService) CreateCampaign(campaign *domain.AdCampaign) error {
 	}
 
 	// Crear en BD
-	if err := s.repo.Create(campaign); err != nil {
+	if err := s.repo.Create(ctx, campaign); err != nil {
 		logger.Error("failed to create campaign", "error", err)
 		return fmt.Errorf("failed to create campaign: %w", err)
 	}
@@ -66,8 +67,8 @@ func (s *AdCampaignService) CreateCampaign(campaign *domain.AdCampaign) error {
 }
 
 // GetCampaign obtiene una campaña por ID
-func (s *AdCampaignService) GetCampaign(id uuid.UUID) (*domain.AdCampaign, error) {
-	campaign, err := s.repo.GetByID(id)
+func (s *AdCampaignService) GetCampaign(ctx context.Context, id uuid.UUID) (*domain.AdCampaign, error) {
+	campaign, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		logger.Error("failed to get campaign", "id", id, "error", err)
 		return nil, fmt.Errorf("campaign not found: %w", err)
@@ -76,8 +77,8 @@ func (s *AdCampaignService) GetCampaign(id uuid.UUID) (*domain.AdCampaign, error
 }
 
 // GetCampaignsByAdvertiser obtiene todas las campañas de un advertiser
-func (s *AdCampaignService) GetCampaignsByAdvertiser(advertiserID uuid.UUID) ([]*domain.AdCampaign, error) {
-	campaigns, err := s.repo.GetByAdvertiserID(advertiserID)
+func (s *AdCampaignService) GetCampaignsByAdvertiser(ctx context.Context, advertiserID uuid.UUID) ([]*domain.AdCampaign, error) {
+	campaigns, err := s.repo.GetByAdvertiserID(ctx, advertiserID)
 	if err != nil {
 		logger.Error("failed to get campaigns by advertiser", "advertiser_id", advertiserID, "error", err)
 		return nil, err
@@ -86,7 +87,7 @@ func (s *AdCampaignService) GetCampaignsByAdvertiser(advertiserID uuid.UUID) ([]
 }
 
 // UpdateCampaign actualiza una campaña existente
-func (s *AdCampaignService) UpdateCampaign(campaign *domain.AdCampaign) error {
+func (s *AdCampaignService) UpdateCampaign(ctx context.Context, campaign *domain.AdCampaign) error {
 	logger.Info("updating campaign", "id", campaign.ID)
 
 	// Validar
@@ -96,7 +97,7 @@ func (s *AdCampaignService) UpdateCampaign(campaign *domain.AdCampaign) error {
 	}
 
 	// Verificar que existe
-	existing, err := s.repo.GetByID(campaign.ID)
+	existing, err := s.repo.GetByID(ctx, campaign.ID)
 	if err != nil {
 		return fmt.Errorf("campaign not found: %w", err)
 	}
@@ -108,7 +109,7 @@ func (s *AdCampaignService) UpdateCampaign(campaign *domain.AdCampaign) error {
 	campaign.UpdatedAt = time.Now()
 
 	// Actualizar en BD
-	if err := s.repo.Update(campaign); err != nil {
+	if err := s.repo.Update(ctx, campaign); err != nil {
 		logger.Error("failed to update campaign", "error", err)
 		return fmt.Errorf("failed to update campaign: %w", err)
 	}
@@ -118,16 +119,16 @@ func (s *AdCampaignService) UpdateCampaign(campaign *domain.AdCampaign) error {
 }
 
 // DeleteCampaign elimina una campaña
-func (s *AdCampaignService) DeleteCampaign(id uuid.UUID) error {
+func (s *AdCampaignService) DeleteCampaign(ctx context.Context, id uuid.UUID) error {
 	logger.Info("deleting campaign", "id", id)
 
 	// Verificar que existe
-	_, err := s.repo.GetByID(id)
+	_, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("campaign not found: %w", err)
 	}
 
-	if err := s.repo.Delete(id); err != nil {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		logger.Error("failed to delete campaign", "error", err)
 		return fmt.Errorf("failed to delete campaign: %w", err)
 	}
@@ -137,10 +138,10 @@ func (s *AdCampaignService) DeleteCampaign(id uuid.UUID) error {
 }
 
 // PauseCampaign pausa una campaña activa
-func (s *AdCampaignService) PauseCampaign(id uuid.UUID) error {
+func (s *AdCampaignService) PauseCampaign(ctx context.Context, id uuid.UUID) error {
 	logger.Info("pausing campaign", "id", id)
 
-	campaign, err := s.repo.GetByID(id)
+	campaign, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("campaign not found: %w", err)
 	}
@@ -152,7 +153,7 @@ func (s *AdCampaignService) PauseCampaign(id uuid.UUID) error {
 	campaign.Status = domain.CampaignStatusPaused
 	campaign.UpdatedAt = time.Now()
 
-	if err := s.repo.Update(campaign); err != nil {
+	if err := s.repo.Update(ctx, campaign); err != nil {
 		logger.Error("failed to pause campaign", "error", err)
 		return err
 	}
@@ -162,10 +163,10 @@ func (s *AdCampaignService) PauseCampaign(id uuid.UUID) error {
 }
 
 // ResumeCampaign reactiva una campaña pausada
-func (s *AdCampaignService) ResumeCampaign(id uuid.UUID) error {
+func (s *AdCampaignService) ResumeCampaign(ctx context.Context, id uuid.UUID) error {
 	logger.Info("resuming campaign", "id", id)
 
-	campaign, err := s.repo.GetByID(id)
+	campaign, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return fmt.Errorf("campaign not found: %w", err)
 	}
@@ -183,7 +184,7 @@ func (s *AdCampaignService) ResumeCampaign(id uuid.UUID) error {
 	campaign.Status = domain.CampaignStatusActive
 	campaign.UpdatedAt = now
 
-	if err := s.repo.Update(campaign); err != nil {
+	if err := s.repo.Update(ctx, campaign); err != nil {
 		logger.Error("failed to resume campaign", "error", err)
 		return err
 	}
@@ -193,8 +194,8 @@ func (s *AdCampaignService) ResumeCampaign(id uuid.UUID) error {
 }
 
 // GetActiveCampaigns obtiene todas las campañas activas
-func (s *AdCampaignService) GetActiveCampaigns() ([]*domain.AdCampaign, error) {
-	campaigns, err := s.repo.GetActiveCampaigns()
+func (s *AdCampaignService) GetActiveCampaigns(ctx context.Context) ([]*domain.AdCampaign, error) {
+	campaigns, err := s.repo.GetActiveCampaigns(ctx)
 	if err != nil {
 		logger.Error("failed to get active campaigns", "error", err)
 		return nil, err
@@ -203,11 +204,11 @@ func (s *AdCampaignService) GetActiveCampaigns() ([]*domain.AdCampaign, error) {
 }
 
 // RecordSpend registra gasto en una campaña
-func (s *AdCampaignService) RecordSpend(campaignID uuid.UUID, amountCents int) error {
+func (s *AdCampaignService) RecordSpend(ctx context.Context, campaignID uuid.UUID, amountCents int) error {
 	logger.Info("recording spend", "campaign_id", campaignID, "amount_cents", amountCents)
 
 	// Verificar que la campaña existe y está activa
-	campaign, err := s.repo.GetByID(campaignID)
+	campaign, err := s.repo.GetByID(ctx, campaignID)
 	if err != nil {
 		return fmt.Errorf("campaign not found: %w", err)
 	}
@@ -222,17 +223,17 @@ func (s *AdCampaignService) RecordSpend(campaignID uuid.UUID, amountCents int) e
 	}
 
 	// Incrementar gasto
-	if err := s.repo.IncrementSpent(campaignID, amountCents); err != nil {
+	if err := s.repo.IncrementSpent(ctx, campaignID, amountCents); err != nil {
 		logger.Error("failed to increment spend", "error", err)
 		return err
 	}
 
 	// Verificar si se agotó el presupuesto
-	campaign, _ = s.repo.GetByID(campaignID)
+	campaign, _ = s.repo.GetByID(ctx, campaignID)
 	if !campaign.HasBudget() {
 		logger.Warn("campaign budget exhausted", "campaign_id", campaignID)
 		campaign.Status = domain.CampaignStatusExpired
-		s.repo.Update(campaign)
+		s.repo.Update(ctx, campaign)
 	}
 
 	return nil
@@ -240,10 +241,10 @@ func (s *AdCampaignService) RecordSpend(campaignID uuid.UUID, amountCents int) e
 
 // ProcessExpiredCampaigns procesa campañas que agotaron presupuesto
 // Debe ser llamado por un cron job periódicamente
-func (s *AdCampaignService) ProcessExpiredCampaigns() (int, error) {
+func (s *AdCampaignService) ProcessExpiredCampaigns(ctx context.Context) (int, error) {
 	logger.Info("processing expired campaigns")
 
-	campaigns, err := s.repo.GetExpiredCampaigns()
+	campaigns, err := s.repo.GetExpiredCampaigns(ctx)
 	if err != nil {
 		logger.Error("failed to get expired campaigns", "error", err)
 		return 0, err
@@ -254,7 +255,7 @@ func (s *AdCampaignService) ProcessExpiredCampaigns() (int, error) {
 		if campaign.Status != domain.CampaignStatusExpired {
 			campaign.Status = domain.CampaignStatusExpired
 			campaign.UpdatedAt = time.Now()
-			if err := s.repo.Update(campaign); err != nil {
+			if err := s.repo.Update(ctx, campaign); err != nil {
 				logger.Error("failed to update expired campaign", "id", campaign.ID, "error", err)
 				continue
 			}
@@ -267,8 +268,8 @@ func (s *AdCampaignService) ProcessExpiredCampaigns() (int, error) {
 }
 
 // GetCampaignStats obtiene estadísticas de una campaña
-func (s *AdCampaignService) GetCampaignStats(id uuid.UUID) (*CampaignStats, error) {
-	campaign, err := s.repo.GetByID(id)
+func (s *AdCampaignService) GetCampaignStats(ctx context.Context, id uuid.UUID) (*CampaignStats, error) {
+	campaign, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("campaign not found: %w", err)
 	}

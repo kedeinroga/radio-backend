@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 
 	"radio-backend/internal/domain"
@@ -26,7 +27,7 @@ func NewTranslationService(
 }
 
 // CreateTranslation crea una nueva traducción después de validar
-func (s *TranslationService) CreateTranslation(req *domain.CreateTranslationRequest) (*domain.StationTranslation, error) {
+func (s *TranslationService) CreateTranslation(ctx context.Context, req *domain.CreateTranslationRequest) (*domain.StationTranslation, error) {
 	logger.Info("creating translation", "station_id", req.StationID, "language", req.LanguageCode)
 
 	// Validar idioma
@@ -36,7 +37,7 @@ func (s *TranslationService) CreateTranslation(req *domain.CreateTranslationRequ
 	}
 
 	// Verificar que la estación existe
-	_, err := s.stationRepo.FindByID(req.StationID)
+	_, err := s.stationRepo.FindByID(ctx, req.StationID)
 	if err != nil {
 		logger.Warn("station not found for translation", "station_id", req.StationID)
 		return nil, domain.ErrStationNotFound
@@ -72,7 +73,7 @@ func (s *TranslationService) GetTranslation(stationID string, lang i18n.Language
 }
 
 // UpdateTranslation actualiza una traducción existente
-func (s *TranslationService) UpdateTranslation(stationID string, lang i18n.Language, req *domain.UpdateTranslationRequest) (*domain.StationTranslation, error) {
+func (s *TranslationService) UpdateTranslation(ctx context.Context, stationID string, lang i18n.Language, req *domain.UpdateTranslationRequest) (*domain.StationTranslation, error) {
 	logger.Info("updating translation", "station_id", stationID, "language", lang)
 
 	// Verificar que existe
@@ -115,9 +116,9 @@ func (s *TranslationService) DeleteTranslation(stationID string, lang i18n.Langu
 }
 
 // ListTranslationsByStation lista todas las traducciones de una estación
-func (s *TranslationService) ListTranslationsByStation(stationID string) ([]*domain.StationTranslation, error) {
+func (s *TranslationService) ListTranslationsByStation(ctx context.Context, stationID string) ([]*domain.StationTranslation, error) {
 	// Verificar que la estación existe
-	_, err := s.stationRepo.FindByID(stationID)
+	_, err := s.stationRepo.FindByID(ctx, stationID)
 	if err != nil {
 		logger.Warn("station not found for listing translations", "station_id", stationID)
 		return nil, domain.ErrStationNotFound
@@ -145,6 +146,43 @@ func (s *TranslationService) GetOrGenerateTranslation(
 
 	// Generar traducción por defecto
 	return s.generateDefaultTranslation(station, lang)
+}
+
+// GetOrGenerateTranslations obtiene traducciones en batch o las genera
+func (s *TranslationService) GetOrGenerateTranslations(
+	stations []*domain.Station,
+	lang i18n.Language,
+) map[string]*domain.StationTranslation {
+	result := make(map[string]*domain.StationTranslation)
+	if len(stations) == 0 {
+		return result
+	}
+
+	stationIDs := make([]string, len(stations))
+	stationMap := make(map[string]*domain.Station)
+	for i, station := range stations {
+		stationIDs[i] = station.ID
+		stationMap[station.ID] = station
+	}
+
+	// Obtener traducciones existentes de BD
+	existing, err := s.translationRepo.GetByStationIDs(stationIDs, lang)
+	if err != nil {
+		logger.Error("failed to get batch translations", "error", err)
+		// Fallback to empty map, generate all
+		existing = make(map[string]*domain.StationTranslation)
+	}
+
+	// Combinar existentes y generadas
+	for _, station := range stations {
+		if translation, ok := existing[station.ID]; ok {
+			result[station.ID] = translation
+		} else {
+			result[station.ID] = s.generateDefaultTranslation(station, lang)
+		}
+	}
+
+	return result
 }
 
 // generateDefaultTranslation genera una traducción por defecto cuando no existe en BD

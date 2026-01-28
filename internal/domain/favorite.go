@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // Favorite represents a user's favorite station
 type Favorite struct {
@@ -12,14 +15,14 @@ type Favorite struct {
 // FavoriteRepository defines the interface for favorite data access
 type FavoriteRepository interface {
 	// GetUserFavorites returns all favorite stations for a user
-	GetUserFavorites(userID string) ([]Favorite, error)
+	GetUserFavorites(ctx context.Context, userID string) ([]Favorite, error)
 
 	// AddFavorite adds a station to user's favorites
-	AddFavorite(userID, stationID string) error
+	AddFavorite(ctx context.Context, userID, stationID string) error
 
 	// RemoveFavorite removes a station from user's favorites
-	RemoveFavorite(userID, stationID string) error
+	RemoveFavorite(ctx context.Context, userID, stationID string) error
 
 	// IsFavorite checks if a station is in user's favorites
-	IsFavorite(userID, stationID string) (bool, error)
+	IsFavorite(ctx context.Context, userID, stationID string) (bool, error)
 }

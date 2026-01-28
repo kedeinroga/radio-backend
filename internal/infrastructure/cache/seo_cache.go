@@ -21,8 +21,7 @@ func NewSEOCache(redis *RedisClient) *SEOCache {
 }
 
 // GetSitemapData obtiene los datos del sitemap desde cache
-func (c *SEOCache) GetSitemapData() (*domain.SitemapData, error) {
-	ctx := context.Background()
+func (c *SEOCache) GetSitemapData(ctx context.Context) (*domain.SitemapData, error) {
 	key := "seo:sitemap:data"
 
 	data, err := c.redis.client.Get(ctx, key).Result()
@@ -46,8 +45,7 @@ func (c *SEOCache) GetSitemapData() (*domain.SitemapData, error) {
 }
 
 // SetSitemapData guarda los datos del sitemap en cache
-func (c *SEOCache) SetSitemapData(data *domain.SitemapData, ttl time.Duration) error {
-	ctx := context.Background()
+func (c *SEOCache) SetSitemapData(ctx context.Context, data *domain.SitemapData, ttl time.Duration) error {
 	key := "seo:sitemap:data"
 
 	jsonData, err := json.Marshal(data)
@@ -66,8 +64,7 @@ func (c *SEOCache) SetSitemapData(data *domain.SitemapData, ttl time.Duration) e
 }
 
 // GetStationSEO obtiene los metadatos SEO de una estación desde cache (con idioma)
-func (c *SEOCache) GetStationSEO(stationID string, language string) (*domain.SEOMetadata, error) {
-	ctx := context.Background()
+func (c *SEOCache) GetStationSEO(ctx context.Context, stationID string, language string) (*domain.SEOMetadata, error) {
 	key := fmt.Sprintf("seo:station:%s:%s", stationID, language)
 
 	data, err := c.redis.client.Get(ctx, key).Result()
@@ -91,8 +88,7 @@ func (c *SEOCache) GetStationSEO(stationID string, language string) (*domain.SEO
 }
 
 // SetStationSEO guarda los metadatos SEO de una estación en cache (con idioma)
-func (c *SEOCache) SetStationSEO(stationID string, language string, metadata *domain.SEOMetadata, ttl time.Duration) error {
-	ctx := context.Background()
+func (c *SEOCache) SetStationSEO(ctx context.Context, stationID string, language string, metadata *domain.SEOMetadata, ttl time.Duration) error {
 	key := fmt.Sprintf("seo:station:%s:%s", stationID, language)
 
 	jsonData, err := json.Marshal(metadata)
@@ -110,9 +106,89 @@ func (c *SEOCache) SetStationSEO(stationID string, language string, metadata *do
 	return nil
 }
 
+// GetStationsSEO obtiene metadatos SEO de múltiples estaciones (MGET)
+func (c *SEOCache) GetStationsSEO(ctx context.Context, stationIDs []string, language string) (map[string]*domain.SEOMetadata, error) {
+	if len(stationIDs) == 0 {
+		return map[string]*domain.SEOMetadata{}, nil
+	}
+
+	keys := make([]string, len(stationIDs))
+	keyToID := make(map[string]string)
+	for i, id := range stationIDs {
+		key := fmt.Sprintf("seo:station:%s:%s", id, language)
+		keys[i] = key
+		keyToID[key] = id
+	}
+
+	results, err := c.redis.client.MGet(ctx, keys...).Result()
+	if err != nil {
+		logger.Error("failed to mget station SEO", "error", err, "count", len(keys))
+		return nil, fmt.Errorf("failed to mget station SEO: %w", err)
+	}
+
+	metadataMap := make(map[string]*domain.SEOMetadata)
+	for i, result := range results {
+		if result == nil {
+			continue // Cache miss for this one
+		}
+
+		key := keys[i]
+		id := keyToID[key]
+
+		// result is interface{}, needs casting to string then unmarshal
+		strData, ok := result.(string)
+		if !ok {
+			logger.Warn("invalid type in cache for station SEO", "key", key)
+			continue
+		}
+
+		var metadata domain.SEOMetadata
+		if err := json.Unmarshal([]byte(strData), &metadata); err != nil {
+			logger.Error("failed to unmarshal station SEO in batch", "error", err, "key", key)
+			continue
+		}
+
+		metadataMap[id] = &metadata
+	}
+
+	logger.Info("batch station SEO cache retrieved",
+		"requested", len(stationIDs),
+		"hits", len(metadataMap),
+		"language", language)
+
+	return metadataMap, nil
+}
+
+// SetStationsSEO guarda metadatos de múltiples estaciones (Pipeline)
+func (c *SEOCache) SetStationsSEO(ctx context.Context, metadataMap map[string]*domain.SEOMetadata, language string, ttl time.Duration) error {
+	if len(metadataMap) == 0 {
+		return nil
+	}
+
+	pipe := c.redis.client.Pipeline()
+
+	for id, metadata := range metadataMap {
+		key := fmt.Sprintf("seo:station:%s:%s", id, language)
+		jsonData, err := json.Marshal(metadata)
+		if err != nil {
+			logger.Error("failed to marshal station SEO in batch", "error", err, "id", id)
+			continue
+		}
+		pipe.Set(ctx, key, jsonData, ttl)
+	}
+
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		logger.Error("failed to execute pipeline for station SEO", "error", err)
+		return fmt.Errorf("failed to execute pipeline: %w", err)
+	}
+
+	logger.Info("batch station SEO cached successfully", "count", len(metadataMap))
+	return nil
+}
+
 // InvalidateSitemapData invalida el cache de sitemap data
-func (c *SEOCache) InvalidateSitemapData() error {
-	ctx := context.Background()
+func (c *SEOCache) InvalidateSitemapData(ctx context.Context) error {
 	key := "seo:sitemap:data"
 
 	if err := c.redis.client.Del(ctx, key).Err(); err != nil {
@@ -125,8 +201,7 @@ func (c *SEOCache) InvalidateSitemapData() error {
 }
 
 // InvalidateStationSEO invalida el cache SEO de una estación específica (todos los idiomas)
-func (c *SEOCache) InvalidateStationSEO(stationID string) error {
-	ctx := context.Background()
+func (c *SEOCache) InvalidateStationSEO(ctx context.Context, stationID string) error {
 	pattern := fmt.Sprintf("seo:station:%s:*", stationID)
 
 	// Obtener todas las claves que coincidan con el patrón

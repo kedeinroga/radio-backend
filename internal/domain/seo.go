@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // SEOMetadata contiene información optimizada para motores de búsqueda
 type SEOMetadata struct {
@@ -53,19 +56,21 @@ type SitemapData struct {
 
 // SEORepository define operaciones de agregación
 type SEORepository interface {
-	GetPopularTags(limit int) ([]PopularTag, error)
-	GetPopularCountries(limit int) ([]PopularCountry, error)
-	GetTotalStations() (int, error)
-	UpdateTagStats() error
-	UpdateCountryStats() error
+	GetPopularTags(ctx context.Context, limit int) ([]PopularTag, error)
+	GetPopularCountries(ctx context.Context, limit int) ([]PopularCountry, error)
+	GetTotalStations(ctx context.Context) (int, error)
+	UpdateTagStats(ctx context.Context) error
+	UpdateCountryStats(ctx context.Context) error
 }
 
 // SEOCache define operaciones de cache para SEO
 type SEOCache interface {
-	GetSitemapData() (*SitemapData, error)
-	SetSitemapData(data *SitemapData, ttl time.Duration) error
-	GetStationSEO(stationID string, language string) (*SEOMetadata, error)
-	SetStationSEO(stationID string, language string, metadata *SEOMetadata, ttl time.Duration) error
-	InvalidateSitemapData() error
-	InvalidateStationSEO(stationID string) error
+	GetSitemapData(ctx context.Context) (*SitemapData, error)
+	SetSitemapData(ctx context.Context, data *SitemapData, ttl time.Duration) error
+	GetStationSEO(ctx context.Context, stationID string, language string) (*SEOMetadata, error)
+	GetStationsSEO(ctx context.Context, stationIDs []string, language string) (map[string]*SEOMetadata, error)
+	SetStationSEO(ctx context.Context, stationID string, language string, metadata *SEOMetadata, ttl time.Duration) error
+	SetStationsSEO(ctx context.Context, metadataMap map[string]*SEOMetadata, language string, ttl time.Duration) error
+	InvalidateSitemapData(ctx context.Context) error
+	InvalidateStationSEO(ctx context.Context, stationID string) error
 }

@@ -81,7 +81,7 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 	lang := middleware.GetLanguage(c)
 
 	// Get station by ID
-	station, err := h.stationService.GetByID(stationID, userType, lang)
+	station, err := h.stationService.GetByID(c.Request.Context(), stationID, userType, lang)
 	if err != nil {
 		if err == domain.ErrStationNotFound {
 			RespondWithError(c, http.StatusNotFound, "station_not_found", "Station not found")
@@ -111,17 +111,7 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 	}
 
 	RespondWithSuccess(c, http.StatusOK, gin.H{
-		"data": gin.H{
-			"id":              station.ID,
-			"name":            station.Name,
-			"slug":            station.Slug,
-			"stream_url":      station.StreamURL,
-			"image_url":       station.ImageURL,
-			"tags":            station.Tags,
-			"country":         station.Country,
-			"votes":           station.Votes,
-			"is_premium_only": station.IsPremiumOnly,
-		},
+		"data":         h.toStationDTO(*station),
 		"seo_metadata": station.SEOMetadata,
 	})
 }
@@ -151,7 +141,7 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 	lang := middleware.GetLanguage(c)
 
 	// Get popular stations
-	stations, err := h.stationService.ListPopular(limit, country, userType, lang)
+	stations, err := h.stationService.ListPopular(c.Request.Context(), limit, country, userType, lang)
 	if err != nil {
 		// Check if it's a circuit breaker error
 		if strings.Contains(err.Error(), "temporarily unavailable") {
@@ -165,21 +155,7 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 	}
 
 	// Convert to DTOs with SEO metadata
-	stationDTOs := make([]gin.H, 0, len(stations))
-	for _, station := range stations {
-		stationDTOs = append(stationDTOs, gin.H{
-			"id":              station.ID,
-			"name":            station.Name,
-			"slug":            station.Slug, // NUEVO: Slug para SEO
-			"stream_url":      station.StreamURL,
-			"image_url":       station.ImageURL,
-			"tags":            station.Tags,
-			"country":         station.Country,
-			"votes":           station.Votes,
-			"is_premium_only": station.IsPremiumOnly,
-			"seo_metadata":    station.SEOMetadata, // NUEVO: Metadata SEO
-		})
-	}
+	stationDTOs := h.toStationDTOs(stations)
 
 	RespondWithSuccess(c, http.StatusOK, gin.H{
 		"data": stationDTOs,
@@ -222,7 +198,7 @@ func (h *StationHandler) Search(c *gin.Context) {
 	lang := middleware.GetLanguage(c)
 
 	// Search stations
-	stations, err := h.stationService.Search(query, limit, userType, lang)
+	stations, err := h.stationService.Search(c.Request.Context(), query, limit, userType, lang)
 	if err != nil {
 		logger.Error("search failed", "query", query, "limit", limit, "user_type", userType, "error", err)
 
@@ -243,21 +219,7 @@ func (h *StationHandler) Search(c *gin.Context) {
 	}()
 
 	// Convert to DTOs with SEO metadata
-	stationDTOs := make([]gin.H, 0, len(stations))
-	for _, station := range stations {
-		stationDTOs = append(stationDTOs, gin.H{
-			"id":              station.ID,
-			"name":            station.Name,
-			"slug":            station.Slug, // NUEVO: Slug para SEO
-			"stream_url":      station.StreamURL,
-			"image_url":       station.ImageURL,
-			"tags":            station.Tags,
-			"country":         station.Country,
-			"votes":           station.Votes,
-			"is_premium_only": station.IsPremiumOnly,
-			"seo_metadata":    station.SEOMetadata, // NUEVO: Metadata SEO
-		})
-	}
+	stationDTOs := h.toStationDTOs(stations)
 
 	RespondWithSuccess(c, http.StatusOK, gin.H{
 		"data": stationDTOs,
@@ -266,6 +228,31 @@ func (h *StationHandler) Search(c *gin.Context) {
 			"user_type": userType.String(),
 		},
 	})
+}
+
+// toStationDTO converts a domain Station to StationDTO
+func (h *StationHandler) toStationDTO(station domain.Station) StationDTO {
+	return StationDTO{
+		ID:            station.ID,
+		Name:          station.Name,
+		Slug:          station.Slug,
+		StreamURL:     station.StreamURL,
+		ImageURL:      station.ImageURL,
+		Tags:          station.Tags,
+		Country:       station.Country,
+		Votes:         station.Votes,
+		IsPremiumOnly: station.IsPremiumOnly,
+		SEOMetadata:   station.SEOMetadata,
+	}
+}
+
+// toStationDTOs converts a slice of domain Stations to a slice of StationDTOs
+func (h *StationHandler) toStationDTOs(stations []domain.Station) []StationDTO {
+	dtos := make([]StationDTO, len(stations))
+	for i, station := range stations {
+		dtos[i] = h.toStationDTO(station)
+	}
+	return dtos
 }
 
 // parseIntQuery parses an integer query parameter with a default value

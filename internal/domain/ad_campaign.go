@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -95,12 +96,12 @@ func (c *AdCampaign) ShouldExpire() bool {
 
 // AdCampaignRepository define la interfaz para persistencia de campañas
 type AdCampaignRepository interface {
-	Create(campaign *AdCampaign) error
-	GetByID(id uuid.UUID) (*AdCampaign, error)
-	GetByAdvertiserID(advertiserID uuid.UUID) ([]*AdCampaign, error)
-	Update(campaign *AdCampaign) error
-	Delete(id uuid.UUID) error
-	GetActiveCampaigns() ([]*AdCampaign, error)
-	IncrementSpent(campaignID uuid.UUID, amountCents int) error
-	GetExpiredCampaigns() ([]*AdCampaign, error)
+	Create(ctx context.Context, campaign *AdCampaign) error
+	GetByID(ctx context.Context, id uuid.UUID) (*AdCampaign, error)
+	GetByAdvertiserID(ctx context.Context, advertiserID uuid.UUID) ([]*AdCampaign, error)
+	Update(ctx context.Context, campaign *AdCampaign) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	GetActiveCampaigns(ctx context.Context) ([]*AdCampaign, error)
+	IncrementSpent(ctx context.Context, campaignID uuid.UUID, amountCents int) error
+	GetExpiredCampaigns(ctx context.Context) ([]*AdCampaign, error)
 }

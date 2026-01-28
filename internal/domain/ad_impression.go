@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -59,12 +60,12 @@ func (i *AdImpression) IsViewable() bool {
 
 // AdImpressionRepository define la interfaz para persistencia de impresiones
 type AdImpressionRepository interface {
-	Create(impression *AdImpression) error
-	GetByID(id uuid.UUID) (*AdImpression, error)
-	GetByAdvertisementID(adID uuid.UUID, limit int) ([]*AdImpression, error)
-	GetByUserID(userID uuid.UUID, since time.Time) ([]*AdImpression, error)
-	CountByAdvertisementID(adID uuid.UUID, since time.Time) (int64, error)
-	CountByIPAddress(ipAddress string, since time.Time) (int64, error)
-	CountViewableImpressions(adID uuid.UUID, since time.Time) (int64, error)
-	GetRecentBySessionID(sessionID string, since time.Time) ([]*AdImpression, error)
+	Create(ctx context.Context, impression *AdImpression) error
+	GetByID(ctx context.Context, id uuid.UUID) (*AdImpression, error)
+	GetByAdvertisementID(ctx context.Context, adID uuid.UUID, limit int) ([]*AdImpression, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID, since time.Time) ([]*AdImpression, error)
+	CountByAdvertisementID(ctx context.Context, adID uuid.UUID, since time.Time) (int64, error)
+	CountByIPAddress(ctx context.Context, ipAddress string, since time.Time) (int64, error)
+	CountViewableImpressions(ctx context.Context, adID uuid.UUID, since time.Time) (int64, error)
+	GetRecentBySessionID(ctx context.Context, sessionID string, since time.Time) ([]*AdImpression, error)
 }

@@ -41,7 +41,7 @@ type AddFavoriteRequest struct {
 func (h *FavoriteHandler) GetFavorites(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 
-	stations, err := h.favoriteService.GetUserFavorites(*userID)
+	stations, err := h.favoriteService.GetUserFavorites(c.Request.Context(), *userID)
 	if err != nil {
 		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to fetch favorites")
 		return
@@ -97,7 +97,7 @@ func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 	userType := middleware.GetUserType(c)
 	lang := middleware.GetLanguage(c)
 
-	err := h.favoriteService.AddFavorite(*userID, req.StationID, userType, lang)
+	err := h.favoriteService.AddFavorite(c.Request.Context(), *userID, req.StationID, userType, lang)
 	if err != nil {
 		if err == domain.ErrFavoriteAlreadyExists {
 			RespondWithError(c, http.StatusConflict, "already_exists", "Station is already in favorites")
@@ -142,7 +142,7 @@ func (h *FavoriteHandler) RemoveFavorite(c *gin.Context) {
 
 	userID := middleware.GetUserID(c)
 
-	err := h.favoriteService.RemoveFavorite(*userID, stationID)
+	err := h.favoriteService.RemoveFavorite(c.Request.Context(), *userID, stationID)
 	if err != nil {
 		if err == domain.ErrFavoriteNotFound {
 			RespondWithError(c, http.StatusNotFound, "not_found", "Favorite not found")

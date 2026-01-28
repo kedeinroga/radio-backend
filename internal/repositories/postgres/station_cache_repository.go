@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -22,7 +23,7 @@ func NewStationCacheRepository(db *database.Connection) *StationCacheRepository 
 }
 
 // Get retrieves a single station from cache by ID
-func (r *StationCacheRepository) Get(id string) (*domain.Station, error) {
+func (r *StationCacheRepository) Get(ctx context.Context, id string) (*domain.Station, error) {
 	query := `
 		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
@@ -35,7 +36,7 @@ func (r *StationCacheRepository) Get(id string) (*domain.Station, error) {
 	var tags pq.StringArray
 	var lastSyncedAt sql.NullTime
 
-	err := r.db.DB.QueryRow(query, id).Scan(
+	err := r.db.DB.QueryRowContext(ctx, query, id).Scan(
 		&station.ID,
 		&station.Name,
 		&station.StreamURL,
@@ -69,12 +70,12 @@ func (r *StationCacheRepository) Get(id string) (*domain.Station, error) {
 }
 
 // FindByID busca una estación por su ID (implementa domain.StationRepository)
-func (r *StationCacheRepository) FindByID(id string) (*domain.Station, error) {
-	return r.Get(id)
+func (r *StationCacheRepository) FindByID(ctx context.Context, id string) (*domain.Station, error) {
+	return r.Get(ctx, id)
 }
 
 // Save upserts a station to the cache
-func (r *StationCacheRepository) Save(station *domain.Station) error {
+func (r *StationCacheRepository) Save(ctx context.Context, station *domain.Station) error {
 	query := `
 		INSERT INTO stations (
 			id, name, stream_url, stream_url_resolved, image_url, tags, country,
@@ -103,7 +104,7 @@ func (r *StationCacheRepository) Save(station *domain.Station) error {
 	station.UpdatedAt = now
 	station.LastSyncedAt = &now
 
-	_, err := r.db.DB.Exec(query,
+	_, err := r.db.DB.ExecContext(ctx, query,
 		station.ID,
 		station.Name,
 		station.StreamURL,
@@ -129,7 +130,7 @@ func (r *StationCacheRepository) Save(station *domain.Station) error {
 }
 
 // GetMany retrieves multiple stations by IDs
-func (r *StationCacheRepository) GetMany(ids []string) ([]domain.Station, error) {
+func (r *StationCacheRepository) GetMany(ctx context.Context, ids []string) ([]domain.Station, error) {
 	if len(ids) == 0 {
 		return []domain.Station{}, nil
 	}
@@ -143,7 +144,7 @@ func (r *StationCacheRepository) GetMany(ids []string) ([]domain.Station, error)
 		ORDER BY votes DESC
 	`
 
-	rows, err := r.db.DB.Query(query, pq.Array(ids))
+	rows, err := r.db.DB.QueryContext(ctx, query, pq.Array(ids))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stations: %w", err)
 	}
@@ -153,9 +154,9 @@ func (r *StationCacheRepository) GetMany(ids []string) ([]domain.Station, error)
 }
 
 // SaveMany saves multiple stations in a batch
-func (r *StationCacheRepository) SaveMany(stations []domain.Station) error {
+func (r *StationCacheRepository) SaveMany(ctx context.Context, stations []domain.Station) error {
 	for _, station := range stations {
-		if err := r.Save(&station); err != nil {
+		if err := r.Save(ctx, &station); err != nil {
 			return err
 		}
 	}
@@ -163,7 +164,7 @@ func (r *StationCacheRepository) SaveMany(stations []domain.Station) error {
 }
 
 // FindByName searches stations by name using fuzzy matching
-func (r *StationCacheRepository) FindByName(name string, limit int) ([]domain.Station, error) {
+func (r *StationCacheRepository) FindByName(ctx context.Context, name string, limit int) ([]domain.Station, error) {
 	query := `
 		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
@@ -175,7 +176,7 @@ func (r *StationCacheRepository) FindByName(name string, limit int) ([]domain.St
 		LIMIT $2
 	`
 
-	rows, err := r.db.DB.Query(query, "%"+name+"%", limit)
+	rows, err := r.db.DB.QueryContext(ctx, query, "%"+name+"%", limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search stations: %w", err)
 	}
@@ -185,7 +186,7 @@ func (r *StationCacheRepository) FindByName(name string, limit int) ([]domain.St
 }
 
 // FindByCountry finds stations by country
-func (r *StationCacheRepository) FindByCountry(country string, limit int) ([]domain.Station, error) {
+func (r *StationCacheRepository) FindByCountry(ctx context.Context, country string, limit int) ([]domain.Station, error) {
 	query := `
 		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
@@ -197,7 +198,7 @@ func (r *StationCacheRepository) FindByCountry(country string, limit int) ([]dom
 		LIMIT $2
 	`
 
-	rows, err := r.db.DB.Query(query, country, limit)
+	rows, err := r.db.DB.QueryContext(ctx, query, country, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find stations by country: %w", err)
 	}
@@ -207,7 +208,7 @@ func (r *StationCacheRepository) FindByCountry(country string, limit int) ([]dom
 }
 
 // FindPopular finds popular stations from cache
-func (r *StationCacheRepository) FindPopular(limit int, country string) ([]domain.Station, error) {
+func (r *StationCacheRepository) FindPopular(ctx context.Context, limit int, country string) ([]domain.Station, error) {
 	var query string
 	var args []interface{}
 
@@ -238,7 +239,7 @@ func (r *StationCacheRepository) FindPopular(limit int, country string) ([]domai
 		args = []interface{}{limit}
 	}
 
-	rows, err := r.db.DB.Query(query, args...)
+	rows, err := r.db.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find popular stations: %w", err)
 	}
@@ -248,7 +249,7 @@ func (r *StationCacheRepository) FindPopular(limit int, country string) ([]domai
 }
 
 // Search busca estaciones por nombre o tags (implementa domain.StationRepository)
-func (r *StationCacheRepository) Search(query string, limit int) ([]domain.Station, error) {
+func (r *StationCacheRepository) Search(ctx context.Context, query string, limit int) ([]domain.Station, error) {
 	sqlQuery := `
 		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
@@ -267,7 +268,7 @@ func (r *StationCacheRepository) Search(query string, limit int) ([]domain.Stati
 	`
 
 	searchPattern := "%" + query + "%"
-	rows, err := r.db.DB.Query(sqlQuery, searchPattern, limit)
+	rows, err := r.db.DB.QueryContext(ctx, sqlQuery, searchPattern, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search stations: %w", err)
 	}
@@ -277,14 +278,14 @@ func (r *StationCacheRepository) Search(query string, limit int) ([]domain.Stati
 }
 
 // MarkForSync marks a station for synchronization
-func (r *StationCacheRepository) MarkForSync(id string) error {
+func (r *StationCacheRepository) MarkForSync(ctx context.Context, id string) error {
 	query := `UPDATE stations SET last_synced_at = NULL WHERE id = $1`
-	_, err := r.db.DB.Exec(query, id)
+	_, err := r.db.DB.ExecContext(ctx, query, id)
 	return err
 }
 
 // GetStaleStations retrieves stations that need synchronization
-func (r *StationCacheRepository) GetStaleStations(maxAge time.Duration, limit int) ([]domain.Station, error) {
+func (r *StationCacheRepository) GetStaleStations(ctx context.Context, maxAge time.Duration, limit int) ([]domain.Station, error) {
 	query := `
 		SELECT id, name, stream_url, stream_url_resolved, image_url, tags, country,
 		       votes, is_premium_only, source, last_synced_at, sync_count, is_active,
@@ -297,7 +298,7 @@ func (r *StationCacheRepository) GetStaleStations(maxAge time.Duration, limit in
 	`
 
 	cutoff := time.Now().Add(-maxAge)
-	rows, err := r.db.DB.Query(query, cutoff, limit)
+	rows, err := r.db.DB.QueryContext(ctx, query, cutoff, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stale stations: %w", err)
 	}
@@ -307,7 +308,7 @@ func (r *StationCacheRepository) GetStaleStations(maxAge time.Duration, limit in
 }
 
 // DeleteInactive deletes inactive stations older than the threshold
-func (r *StationCacheRepository) DeleteInactive(olderThan time.Duration) error {
+func (r *StationCacheRepository) DeleteInactive(ctx context.Context, olderThan time.Duration) error {
 	query := `
 		DELETE FROM stations
 		WHERE is_active = false
@@ -315,7 +316,7 @@ func (r *StationCacheRepository) DeleteInactive(olderThan time.Duration) error {
 	`
 
 	cutoff := time.Now().Add(-olderThan)
-	_, err := r.db.DB.Exec(query, cutoff)
+	_, err := r.db.DB.ExecContext(ctx, query, cutoff)
 	if err != nil {
 		return fmt.Errorf("failed to delete inactive stations: %w", err)
 	}

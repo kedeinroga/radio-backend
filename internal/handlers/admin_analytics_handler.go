@@ -92,7 +92,7 @@ func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 // GetCampaignPerformance retrieves performance metrics for all campaigns
 func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 	// Get all active campaigns
-	campaigns, err := h.analyticsService.GetActiveCampaigns()
+	campaigns, err := h.analyticsService.GetActiveCampaigns(c.Request.Context())
 	if err != nil {
 		h.logger.Error("Failed to get active campaigns", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get campaigns"})
@@ -103,7 +103,7 @@ func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 	performances := make([]CampaignPerformanceResponse, 0, len(campaigns))
 	for _, campaign := range campaigns {
 		// Get campaign stats
-		stats, err := h.analyticsService.GetCampaignStats(campaign.ID)
+		stats, err := h.analyticsService.GetCampaignStats(c.Request.Context(), campaign.ID)
 		if err != nil {
 			h.logger.Warn("Failed to get campaign stats", "error", err, "campaign_id", campaign.ID)
 			continue
@@ -181,7 +181,7 @@ func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 // GetDashboardOverview retrieves dashboard overview metrics
 func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	// Get all active campaigns
-	activeCampaigns, err := h.analyticsService.GetActiveCampaigns()
+	activeCampaigns, err := h.analyticsService.GetActiveCampaigns(c.Request.Context())
 	if err != nil {
 		h.logger.Error("Failed to get active campaigns", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get dashboard data"})
@@ -195,7 +195,7 @@ func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	for _, campaign := range activeCampaigns {
 		totalBudgetCents += campaign.TotalBudgetCents
 
-		stats, err := h.analyticsService.GetCampaignStats(campaign.ID)
+		stats, err := h.analyticsService.GetCampaignStats(c.Request.Context(), campaign.ID)
 		if err != nil {
 			h.logger.Warn("Failed to get campaign stats", "error", err, "campaign_id", campaign.ID)
 			continue

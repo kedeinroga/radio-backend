@@ -102,7 +102,7 @@ func (h *ImpressionHandler) TrackImpression(c *gin.Context) {
 		CreatedAt:       time.Now(),
 	}
 
-	if err := h.impressionService.RecordImpression(impression); err != nil {
+	if err := h.impressionService.RecordImpression(c.Request.Context(), impression); err != nil {
 		h.logger.Error("Failed to record impression", "error", err)
 
 		// Check if fraud was detected
@@ -166,7 +166,7 @@ func (h *ImpressionHandler) GetImpressionsByAdvertisement(c *gin.Context) {
 		}
 	}
 
-	impressions, err := h.impressionService.GetImpressionsByAdvertisement(adID, limit)
+	impressions, err := h.impressionService.GetImpressionsByAdvertisement(c.Request.Context(), adID, limit)
 	if err != nil {
 		h.logger.Error("Failed to get impressions", "error", err, "ad_id", adID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get impressions"})
@@ -198,7 +198,7 @@ func (h *ImpressionHandler) CountViewableImpressions(c *gin.Context) {
 		since = parsedTime
 	}
 
-	count, err := h.impressionService.CountViewableImpressions(adID, since)
+	count, err := h.impressionService.CountViewableImpressions(c.Request.Context(), adID, since)
 	if err != nil {
 		h.logger.Error("Failed to count viewable impressions", "error", err, "ad_id", adID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to count impressions"})

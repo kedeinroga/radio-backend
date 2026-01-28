@@ -126,7 +126,7 @@ func (h *AdvertisementHandler) CreateAdvertisement(c *gin.Context) {
 		UpdatedAt:             time.Now(),
 	}
 
-	if err := h.adService.CreateAdvertisement(ad); err != nil {
+	if err := h.adService.CreateAdvertisement(c.Request.Context(), ad); err != nil {
 		h.logger.Error("Failed to create advertisement", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create advertisement"})
 		return
@@ -155,7 +155,7 @@ func (h *AdvertisementHandler) GetAdvertisement(c *gin.Context) {
 		return
 	}
 
-	ad, err := h.adService.GetAdvertisement(adID)
+	ad, err := h.adService.GetAdvertisement(c.Request.Context(), adID)
 	if err != nil {
 		h.logger.Error("Failed to get advertisement", "error", err, "ad_id", adID)
 		c.JSON(http.StatusNotFound, gin.H{"error": "advertisement not found"})
@@ -184,7 +184,7 @@ func (h *AdvertisementHandler) GetAdvertisementsByCampaign(c *gin.Context) {
 		return
 	}
 
-	ads, err := h.adService.GetAdvertisementsByCampaign(campaignID)
+	ads, err := h.adService.GetAdvertisementsByCampaign(c.Request.Context(), campaignID)
 	if err != nil {
 		h.logger.Error("Failed to get advertisements", "error", err, "campaign_id", campaignID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get advertisements"})
@@ -224,7 +224,7 @@ func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 	}
 
 	// Get existing advertisement
-	ad, err := h.adService.GetAdvertisement(adID)
+	ad, err := h.adService.GetAdvertisement(c.Request.Context(), adID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "advertisement not found"})
 		return
@@ -271,7 +271,7 @@ func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 		ad.MaxImpressionsPerDay = req.MaxImpressionsPerDay
 	}
 
-	if err := h.adService.UpdateAdvertisement(ad); err != nil {
+	if err := h.adService.UpdateAdvertisement(c.Request.Context(), ad); err != nil {
 		h.logger.Error("Failed to update advertisement", "error", err, "ad_id", adID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update advertisement"})
 		return
@@ -299,7 +299,7 @@ func (h *AdvertisementHandler) DeleteAdvertisement(c *gin.Context) {
 		return
 	}
 
-	if err := h.adService.DeleteAdvertisement(adID); err != nil {
+	if err := h.adService.DeleteAdvertisement(c.Request.Context(), adID); err != nil {
 		h.logger.Error("Failed to delete advertisement", "error", err, "ad_id", adID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete advertisement"})
 		return
@@ -360,7 +360,7 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 		userIDValue = *userID
 	}
 
-	ads, err := h.adService.GetEligibleAdsForUser(userIDValue, country, genre, language, device, isPremium)
+	ads, err := h.adService.GetEligibleAdsForUser(c.Request.Context(), userIDValue, country, genre, language, device, isPremium)
 	if err != nil {
 		h.logger.Error("Failed to get eligible ads", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get eligible ads"})
@@ -398,7 +398,7 @@ func (h *AdvertisementHandler) GetAdvertisementStats(c *gin.Context) {
 		return
 	}
 
-	stats, err := h.adService.GetAdvertisementStats(adID)
+	stats, err := h.adService.GetAdvertisementStats(c.Request.Context(), adID)
 	if err != nil {
 		h.logger.Error("Failed to get advertisement stats", "error", err, "ad_id", adID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get stats"})

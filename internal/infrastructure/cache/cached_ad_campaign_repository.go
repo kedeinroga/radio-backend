@@ -31,14 +31,13 @@ func NewCachedAdCampaignRepository(db *database.Connection, cache *redis.Client,
 }
 
 // Create crea una campaña e invalida cache relacionado
-func (r *CachedAdCampaignRepository) Create(campaign *domain.AdCampaign) error {
-	err := r.repo.Create(campaign)
+func (r *CachedAdCampaignRepository) Create(ctx context.Context, campaign *domain.AdCampaign) error {
+	err := r.repo.Create(ctx, campaign)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache de campañas activas
-	ctx := context.Background()
 	r.cache.Del(ctx, "campaigns:active")
 	r.cache.Del(ctx, fmt.Sprintf("campaigns:advertiser:%s", campaign.AdvertiserID))
 
@@ -46,8 +45,7 @@ func (r *CachedAdCampaignRepository) Create(campaign *domain.AdCampaign) error {
 }
 
 // GetByID obtiene campaña por ID con cache
-func (r *CachedAdCampaignRepository) GetByID(id uuid.UUID) (*domain.AdCampaign, error) {
-	ctx := context.Background()
+func (r *CachedAdCampaignRepository) GetByID(ctx context.Context, id uuid.UUID) (*domain.AdCampaign, error) {
 	cacheKey := fmt.Sprintf("campaign:%s", id)
 
 	// Intentar obtener del cache
@@ -60,7 +58,7 @@ func (r *CachedAdCampaignRepository) GetByID(id uuid.UUID) (*domain.AdCampaign, 
 	}
 
 	// Si no está en cache, obtener de BD
-	campaign, err := r.repo.GetByID(id)
+	campaign, err := r.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +72,7 @@ func (r *CachedAdCampaignRepository) GetByID(id uuid.UUID) (*domain.AdCampaign, 
 }
 
 // GetByAdvertiserID obtiene campañas de un advertiser (con cache)
-func (r *CachedAdCampaignRepository) GetByAdvertiserID(advertiserID uuid.UUID) ([]*domain.AdCampaign, error) {
-	ctx := context.Background()
+func (r *CachedAdCampaignRepository) GetByAdvertiserID(ctx context.Context, advertiserID uuid.UUID) ([]*domain.AdCampaign, error) {
 	cacheKey := fmt.Sprintf("campaigns:advertiser:%s", advertiserID)
 
 	// Intentar obtener del cache
@@ -88,7 +85,7 @@ func (r *CachedAdCampaignRepository) GetByAdvertiserID(advertiserID uuid.UUID) (
 	}
 
 	// Si no está en cache, obtener de BD
-	campaigns, err := r.repo.GetByAdvertiserID(advertiserID)
+	campaigns, err := r.repo.GetByAdvertiserID(ctx, advertiserID)
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +99,13 @@ func (r *CachedAdCampaignRepository) GetByAdvertiserID(advertiserID uuid.UUID) (
 }
 
 // Update actualiza campaña e invalida cache
-func (r *CachedAdCampaignRepository) Update(campaign *domain.AdCampaign) error {
-	err := r.repo.Update(campaign)
+func (r *CachedAdCampaignRepository) Update(ctx context.Context, campaign *domain.AdCampaign) error {
+	err := r.repo.Update(ctx, campaign)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache
-	ctx := context.Background()
 	r.cache.Del(ctx,
 		fmt.Sprintf("campaign:%s", campaign.ID),
 		"campaigns:active",
@@ -120,8 +116,7 @@ func (r *CachedAdCampaignRepository) Update(campaign *domain.AdCampaign) error {
 }
 
 // GetActiveCampaigns obtiene campañas activas (con cache agresivo)
-func (r *CachedAdCampaignRepository) GetActiveCampaigns() ([]*domain.AdCampaign, error) {
-	ctx := context.Background()
+func (r *CachedAdCampaignRepository) GetActiveCampaigns(ctx context.Context) ([]*domain.AdCampaign, error) {
 	cacheKey := "campaigns:active"
 
 	// Cache más corto para datos dinámicos (5 minutos)
@@ -137,7 +132,7 @@ func (r *CachedAdCampaignRepository) GetActiveCampaigns() ([]*domain.AdCampaign,
 	}
 
 	// Si no está en cache, obtener de BD
-	campaigns, err := r.repo.GetActiveCampaigns()
+	campaigns, err := r.repo.GetActiveCampaigns(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -151,14 +146,13 @@ func (r *CachedAdCampaignRepository) GetActiveCampaigns() ([]*domain.AdCampaign,
 }
 
 // IncrementSpent incrementa gasto (bypass cache, actualiza BD)
-func (r *CachedAdCampaignRepository) IncrementSpent(campaignID uuid.UUID, amountCents int) error {
-	err := r.repo.IncrementSpent(campaignID, amountCents)
+func (r *CachedAdCampaignRepository) IncrementSpent(ctx context.Context, campaignID uuid.UUID, amountCents int) error {
+	err := r.repo.IncrementSpent(ctx, campaignID, amountCents)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache
-	ctx := context.Background()
 	r.cache.Del(ctx,
 		fmt.Sprintf("campaign:%s", campaignID),
 		"campaigns:active",
@@ -168,14 +162,13 @@ func (r *CachedAdCampaignRepository) IncrementSpent(campaignID uuid.UUID, amount
 }
 
 // Delete elimina una campaña
-func (r *CachedAdCampaignRepository) Delete(id uuid.UUID) error {
-	err := r.repo.Delete(id)
+func (r *CachedAdCampaignRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	err := r.repo.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	// Invalidar cache
-	ctx := context.Background()
 	r.cache.Del(ctx,
 		fmt.Sprintf("campaign:%s", id),
 		"campaigns:active",
@@ -185,7 +178,7 @@ func (r *CachedAdCampaignRepository) Delete(id uuid.UUID) error {
 }
 
 // GetExpiredCampaigns obtiene campañas expiradas (sin cache)
-func (r *CachedAdCampaignRepository) GetExpiredCampaigns() ([]*domain.AdCampaign, error) {
+func (r *CachedAdCampaignRepository) GetExpiredCampaigns(ctx context.Context) ([]*domain.AdCampaign, error) {
 	// No cachear queries administrativas
-	return r.repo.GetExpiredCampaigns()
+	return r.repo.GetExpiredCampaigns(ctx)
 }

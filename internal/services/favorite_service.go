@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"fmt"
 
 	"radio-backend/internal/domain"
@@ -29,11 +30,11 @@ func NewFavoriteService(
 }
 
 // GetUserFavorites returns all favorite stations for a user with full station details
-func (s *FavoriteService) GetUserFavorites(userID string) ([]domain.Station, error) {
+func (s *FavoriteService) GetUserFavorites(ctx context.Context, userID string) ([]domain.Station, error) {
 	logger.Info("getting user favorites", "user_id", userID)
 
 	// Get favorite records
-	favorites, err := s.favoriteRepo.GetUserFavorites(userID)
+	favorites, err := s.favoriteRepo.GetUserFavorites(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get favorites: %w", err)
 	}
@@ -49,7 +50,7 @@ func (s *FavoriteService) GetUserFavorites(userID string) ([]domain.Station, err
 	}
 
 	// Get station details from cache
-	stations, err := s.stationRepo.GetMany(stationIDs)
+	stations, err := s.stationRepo.GetMany(ctx, stationIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get station details: %w", err)
 	}
@@ -76,11 +77,11 @@ func (s *FavoriteService) GetUserFavorites(userID string) ([]domain.Station, err
 }
 
 // AddFavorite adds a station to user's favorites
-func (s *FavoriteService) AddFavorite(userID, stationID string, userType domain.UserType, lang i18n.Language) error {
+func (s *FavoriteService) AddFavorite(ctx context.Context, userID, stationID string, userType domain.UserType, lang i18n.Language) error {
 	logger.Info("adding favorite", "user_id", userID, "station_id", stationID, "language", lang)
 
 	// Verify station exists and is accessible
-	station, err := s.stationSvc.GetByID(stationID, userType, lang)
+	station, err := s.stationSvc.GetByID(ctx, stationID, userType, lang)
 	if err != nil {
 		if err == domain.ErrUnauthorized {
 			return domain.ErrUnauthorized
@@ -89,12 +90,12 @@ func (s *FavoriteService) AddFavorite(userID, stationID string, userType domain.
 	}
 
 	// Ensure station is in cache for future lookups
-	if err := s.stationRepo.Save(station); err != nil {
+	if err := s.stationRepo.Save(ctx, station); err != nil {
 		logger.Warn("failed to cache station", "station_id", stationID, "error", err)
 	}
 
 	// Add to favorites
-	if err := s.favoriteRepo.AddFavorite(userID, stationID); err != nil {
+	if err := s.favoriteRepo.AddFavorite(ctx, userID, stationID); err != nil {
 		return err
 	}
 
@@ -103,10 +104,10 @@ func (s *FavoriteService) AddFavorite(userID, stationID string, userType domain.
 }
 
 // RemoveFavorite removes a station from user's favorites
-func (s *FavoriteService) RemoveFavorite(userID, stationID string) error {
+func (s *FavoriteService) RemoveFavorite(ctx context.Context, userID, stationID string) error {
 	logger.Info("removing favorite", "user_id", userID, "station_id", stationID)
 
-	if err := s.favoriteRepo.RemoveFavorite(userID, stationID); err != nil {
+	if err := s.favoriteRepo.RemoveFavorite(ctx, userID, stationID); err != nil {
 		return err
 	}
 
@@ -115,6 +116,6 @@ func (s *FavoriteService) RemoveFavorite(userID, stationID string) error {
 }
 
 // IsFavorite checks if a station is in user's favorites
-func (s *FavoriteService) IsFavorite(userID, stationID string) (bool, error) {
-	return s.favoriteRepo.IsFavorite(userID, stationID)
+func (s *FavoriteService) IsFavorite(ctx context.Context, userID, stationID string) (bool, error) {
+	return s.favoriteRepo.IsFavorite(ctx, userID, stationID)
 }
