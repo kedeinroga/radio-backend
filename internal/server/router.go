@@ -84,7 +84,6 @@ func (r *Router) Setup() *gin.Engine {
 	r.engine.Use(middleware.LoggingMiddleware())
 	r.engine.Use(middleware.LanguageDetector()) // NUEVO: Middleware de detección de idioma
 	r.engine.Use(r.rateLimiter.Middleware())    // NUEVO: Global rate limiting
-	r.engine.Use(middleware.UserAgentFilter())  // Block axios clients (403), allow node clients
 	r.engine.Use(r.analyticsMiddleware.Track())
 
 	// Health check
