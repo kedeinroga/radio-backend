@@ -75,8 +75,8 @@ output "github_actions_secrets" {
 
 # Secrets
 output "secret_names" {
-  description = "Names of secrets in Secret Manager"
-  value       = var.secrets
+  description = "Name of the consolidated JSON secret bundle in Secret Manager"
+  value       = var.app_secrets_name
 }
 
 # Configuration Summary
@@ -113,7 +113,7 @@ output "infrastructure_summary" {
        Repository: ${var.github_repository}
 
     🔒 Secrets (Secret Manager):
-       - ${join("\n       - ", values(var.secrets))}
+       - ${var.app_secrets_name} (JSON bundle)
 
     ═══════════════════════════════════════════════════════════════
 

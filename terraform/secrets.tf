@@ -1,11 +1,14 @@
 # Secret Manager Configuration
 # Free Tier: 6 active secret versions, 10,000 access operations/month
+#
+# Strategy: ONE single secret "app-secrets" containing a JSON bundle
+# with all sensitive key-value pairs. This reduces:
+#   - Active secret versions:  5 → 1
+#   - IAM bindings:            5 → 1
+#   - Secret access ops/startup: 5 → 1
 
-# Create secrets in Secret Manager
-resource "google_secret_manager_secret" "secrets" {
-  for_each = var.secrets
-
-  secret_id = each.value
+resource "google_secret_manager_secret" "app_secrets" {
+  secret_id = var.app_secrets_name
 
   replication {
     auto {}
@@ -18,59 +21,51 @@ resource "google_secret_manager_secret" "secrets" {
   }
 }
 
-# Create initial secret versions with placeholder values
-# This allows the infrastructure to be created without failing
-# You MUST update these values before deploying the application
-#
+# Create initial secret version with placeholder JSON.
 # IMPORTANT: This resource only creates the INITIAL version.
 # After you manually update the secret values, Terraform will NOT overwrite them.
 # The lifecycle block prevents Terraform from recreating or modifying versions.
-resource "google_secret_manager_secret_version" "secret_versions" {
-  for_each = var.secrets
+resource "google_secret_manager_secret_version" "app_secrets_version" {
+  secret = google_secret_manager_secret.app_secrets.id
 
-  secret = google_secret_manager_secret.secrets[each.key].id
-
-  # Placeholder value - only used for initial creation
-  secret_data = "CHANGE_ME_${upper(replace(each.key, "_", "-"))}"
+  # Placeholder JSON — only used for initial creation.
+  # Update the real values using:
+  #   gcloud secrets versions add app-secrets --data-file=secrets.json
+  # or via the Google Cloud Console.
+  secret_data = jsonencode({
+    DATABASE_URL               = "CHANGE_ME"
+    REDIS_URL                  = "CHANGE_ME"
+    JWT_PRIVATE_KEY            = "CHANGE_ME"
+    JWT_PUBLIC_KEY             = "CHANGE_ME"
+    AD_IMPRESSION_TOKEN_SECRET = "CHANGE_ME"
+    API_SECRET_KEY             = "CHANGE_ME"
+  })
 
   lifecycle {
-    # Prevent Terraform from ever recreating this resource
-    # This ensures manually updated secret values are preserved
+    # Prevent Terraform from ever recreating this resource.
+    # This ensures manually updated secret values are preserved.
     ignore_changes = all
   }
 }
 
-# Note: Secret values are created with placeholder "CHANGE_ME" values.
-# The lifecycle.ignore_changes prevents Terraform from overwriting your real values.
-# You must manually update secret versions using:
-# - gcloud secrets versions add <secret-name> --data-file=<file>
-# - Google Cloud Console
-# - Your existing setup-secrets.sh script
-#
-# FREE TIER OPTIMIZATION:
-# Keep only 1 active version per secret (5 secrets = 5 versions, within 6 free limit)
-# When rotating secrets, destroy old version immediately:
-#   gcloud secrets versions destroy VERSION --secret=SECRET_NAME
-
-# Output instructions for adding secret values
 output "secret_instructions" {
-  description = "Instructions for adding secret values"
-  value = <<-EOT
-    Secrets have been created in Secret Manager. Add values using:
+  description = "Instructions for updating the secrets bundle"
+  value       = <<-EOT
+    One secret has been created: "${var.app_secrets_name}"
+    Update all sensitive values at once using a local JSON file:
 
-    # Database URL (Supabase)
-    printf "your-database-url" | gcloud secrets versions add ${var.secrets.database_url} --data-file=-
+    cat > /tmp/secrets.json <<'EOF'
+    {
+      "DATABASE_URL":               "your-supabase-url",
+      "REDIS_URL":                  "your-upstash-url",
+      "JWT_PRIVATE_KEY":            "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----",
+      "JWT_PUBLIC_KEY":             "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+      "AD_IMPRESSION_TOKEN_SECRET": "your-ad-token-secret",
+      "API_SECRET_KEY":             "your-shared-api-secret"
+    }
+    EOF
 
-    # Redis URL (Upstash)
-    printf "your-redis-url" | gcloud secrets versions add ${var.secrets.redis_url} --data-file=-
-
-    # JWT Private Key
-    cat keys/jwt-private.pem | gcloud secrets versions add ${var.secrets.jwt_private_key} --data-file=-
-
-    # JWT Public Key
-    cat keys/jwt-public.pem | gcloud secrets versions add ${var.secrets.jwt_public_key} --data-file=-
-
-    # Ad Impression Token Secret
-    printf "your-ad-token-secret" | gcloud secrets versions add ${var.secrets.ad_impression_token_secret} --data-file=-
+    gcloud secrets versions add ${var.app_secrets_name} --data-file=/tmp/secrets.json
+    rm /tmp/secrets.json
   EOT
 }
