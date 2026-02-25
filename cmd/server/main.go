@@ -12,6 +12,7 @@
 // @description - 📝 Security event logging (failed attempts with metadata)
 // @description - ⚡ Rate limiting (5 attempts/15min per IP)
 // @description - 🔐 JWT with RS256 + token revocation
+// @description - 🤖 Bot protection via shared secret (X-Rradio-Secret header)
 // @description
 // @description **Internationalization:**
 // @description Supported languages: Spanish (es), English (en), French (fr), German (de).
@@ -33,6 +34,11 @@
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
+
+// @securityDefinitions.apikey SharedSecret
+// @in header
+// @name X-Rradio-Secret
+// @description Shared secret key required for public station and SEO endpoints (bot protection).
 
 package main
 
@@ -205,13 +211,17 @@ func main() {
 	monitoringHandler := handlers.NewMonitoringHandler(monitoringService)    // NUEVO: Handler de monitoring
 
 	// Setup router
+	if cfg.Security.APISecretKey == "" {
+		logger.Warn("API_SECRET_KEY is not set — shared secret middleware is DISABLED. Set it in production.")
+	}
 	router := server.NewRouter(
 		authMiddleware,
 		analyticsMiddleware,
 		corsMiddleware,
-		rateLimiter,        // NUEVO: Rate limiter general
-		authRateLimiter,    // NUEVO: Rate limiter para auth
-		cfg.IsProduction(), // NUEVO: Flag de producción
+		rateLimiter,               // NUEVO: Rate limiter general
+		authRateLimiter,           // NUEVO: Rate limiter para auth
+		cfg.IsProduction(),        // NUEVO: Flag de producción
+		cfg.Security.APISecretKey, // NUEVO: Shared secret for bot protection
 		authHandler,
 		stationHandler,
 		analyticsHandler,

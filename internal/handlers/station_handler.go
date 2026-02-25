@@ -59,9 +59,12 @@ type StationListResponse struct {
 // @Tags Stations
 // @Accept json
 // @Produce json
+// @Security SharedSecret
+// @Param X-Rradio-Secret header string true "Shared API secret for bot protection"
 // @Param id path string true "Station ID"
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationDetailResponse "Station detail with SEO metadata"
+// @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
 // @Failure 404 {object} map[string]interface{} "Station not found"
 // @Failure 403 {object} map[string]interface{} "Access denied - Premium only station"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
@@ -122,10 +125,13 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 // @Tags Stations
 // @Accept json
 // @Produce json
+// @Security SharedSecret
+// @Param X-Rradio-Secret header string true "Shared API secret for bot protection"
 // @Param limit query int false "Maximum number of stations" default(20)
 // @Param country query string false "Filter by country code"
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationListResponse "List of popular stations with SEO metadata"
+// @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
 // @Router /stations/popular [get]
@@ -172,11 +178,14 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 // @Tags Stations
 // @Accept json
 // @Produce json
+// @Security SharedSecret
+// @Param X-Rradio-Secret header string true "Shared API secret for bot protection"
 // @Param q query string true "Search term"
 // @Param limit query int false "Maximum number of results" default(20)
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationListResponse "Search results with SEO metadata"
 // @Failure 400 {object} map[string]interface{} "Search parameter required"
+// @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
 // @Router /stations/search [get]

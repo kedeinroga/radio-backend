@@ -1153,10 +1153,11 @@ info:
     chars + 47 common passwords blocked)\n- \U0001F6E1️ Session hijacking protection
     (User-Agent validation)\n- \U0001F4DD Security event logging (failed attempts
     with metadata)\n- ⚡ Rate limiting (5 attempts/15min per IP)\n- \U0001F510 JWT
-    with RS256 + token revocation\n\n**Internationalization:**\nSupported languages:
-    Spanish (es), English (en), French (fr), German (de).\nUse the 'lang' parameter
-    or 'Accept-Language' header to specify the desired language.\n\n**Security Score:**
-    100/100 (audited Dec 2025)"
+    with RS256 + token revocation\n- \U0001F916 Bot protection via shared secret (X-Rradio-Secret
+    header)\n\n**Internationalization:**\nSupported languages: Spanish (es), English
+    (en), French (fr), German (de).\nUse the 'lang' parameter or 'Accept-Language'
+    header to specify the desired language.\n\n**Security Score:** 100/100 (audited
+    Dec 2025)"
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -3806,6 +3807,11 @@ paths:
       description: Gets detailed information for a station by its ID with enriched
         SEO metadata. May return 503 if external service is temporarily unavailable.
       parameters:
+      - description: Shared API secret for bot protection
+        in: header
+        name: X-Rradio-Secret
+        required: true
+        type: string
       - description: Station ID
         in: path
         name: id
@@ -3823,6 +3829,11 @@ paths:
           description: Station detail with SEO metadata
           schema:
             $ref: '#/definitions/internal_handlers.StationDetailResponse'
+        "401":
+          description: Unauthorized – missing or invalid X-Rradio-Secret
+          schema:
+            additionalProperties: true
+            type: object
         "403":
           description: Access denied - Premium only station
           schema:
@@ -3843,6 +3854,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - SharedSecret: []
       summary: Get station detail
       tags:
       - Stations
@@ -3853,6 +3866,11 @@ paths:
       description: List of popular radio stations with optional filters and SEO metadata.
         May return 503 if external service is temporarily unavailable.
       parameters:
+      - description: Shared API secret for bot protection
+        in: header
+        name: X-Rradio-Secret
+        required: true
+        type: string
       - default: 20
         description: Maximum number of stations
         in: query
@@ -3874,6 +3892,11 @@ paths:
           description: List of popular stations with SEO metadata
           schema:
             $ref: '#/definitions/internal_handlers.StationListResponse'
+        "401":
+          description: Unauthorized – missing or invalid X-Rradio-Secret
+          schema:
+            additionalProperties: true
+            type: object
         "500":
           description: Internal server error
           schema:
@@ -3884,6 +3907,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - SharedSecret: []
       summary: Get popular stations
       tags:
       - Stations
@@ -3895,6 +3920,11 @@ paths:
         May return 503 if external service is temporarily unavailable (Circuit Breaker
         open).
       parameters:
+      - description: Shared API secret for bot protection
+        in: header
+        name: X-Rradio-Secret
+        required: true
+        type: string
       - description: Search term
         in: query
         name: q
@@ -3922,6 +3952,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "401":
+          description: Unauthorized – missing or invalid X-Rradio-Secret
+          schema:
+            additionalProperties: true
+            type: object
         "500":
           description: Internal server error
           schema:
@@ -3932,6 +3967,8 @@ paths:
           schema:
             additionalProperties: true
             type: object
+      security:
+      - SharedSecret: []
       summary: Search stations
       tags:
       - Stations
@@ -4180,5 +4217,11 @@ securityDefinitions:
     description: Type "Bearer" followed by a space and JWT token.
     in: header
     name: Authorization
+    type: apiKey
+  SharedSecret:
+    description: Shared secret key required for public station and SEO endpoints (bot
+      protection).
+    in: header
+    name: X-Rradio-Secret
     type: apiKey
 swagger: "2.0"

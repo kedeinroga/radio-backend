@@ -85,6 +85,7 @@ type SecurityConfig struct {
 	BcryptCost      int
 	RateLimitReqs   int
 	RateLimitWindow time.Duration
+	APISecretKey    string // Shared secret for X-Rradio-Secret header validation
 }
 
 // CORSConfig holds CORS configuration
@@ -189,6 +190,7 @@ func Load() (*Config, error) {
 			BcryptCost:      getIntEnv("BCRYPT_COST", 12),
 			RateLimitReqs:   getIntEnv("RATE_LIMIT_REQUESTS", 100),
 			RateLimitWindow: getDurationEnv("RATE_LIMIT_WINDOW", 1*time.Minute),
+			APISecretKey:    getEnv("API_SECRET_KEY", ""),
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: getSliceEnv("CORS_ALLOWED_ORIGINS", []string{"*"}),
