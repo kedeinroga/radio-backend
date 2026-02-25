@@ -161,23 +161,11 @@ variable "server_base_url" {
 }
 
 # Secrets Configuration
-variable "secrets" {
-  description = "Secret names in Secret Manager"
-  type = object({
-    database_url              = string
-    redis_url                 = string
-    jwt_private_key           = string
-    jwt_public_key            = string
-    ad_impression_token_secret = string
-  })
-
-  default = {
-    database_url              = "database-url"
-    redis_url                 = "redis-url"
-    jwt_private_key           = "jwt-private-key"
-    jwt_public_key            = "jwt-public-key"
-    ad_impression_token_secret = "ad-impression-token-secret"
-  }
+# Single JSON secret bundle — all sensitive values in one Secret Manager secret.
+variable "app_secrets_name" {
+  description = "Name of the single JSON secret bundle in Secret Manager"
+  type        = string
+  default     = "app-secrets"
 }
 
 # Container Image

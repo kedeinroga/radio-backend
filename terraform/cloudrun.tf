@@ -99,52 +99,12 @@ resource "google_cloud_run_v2_service" "service" {
         }
       }
 
-      # Secrets from Secret Manager
+      # Single JSON secret bundle — all sensitive secrets in one Secret Manager entry
       env {
-        name = "DATABASE_URL"
+        name = "APP_SECRETS_JSON"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.secrets["database_url"].secret_id
-            version = "latest"
-          }
-        }
-      }
-
-      env {
-        name = "REDIS_URL"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.secrets["redis_url"].secret_id
-            version = "latest"
-          }
-        }
-      }
-
-      env {
-        name = "JWT_PRIVATE_KEY"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.secrets["jwt_private_key"].secret_id
-            version = "latest"
-          }
-        }
-      }
-
-      env {
-        name = "JWT_PUBLIC_KEY"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.secrets["jwt_public_key"].secret_id
-            version = "latest"
-          }
-        }
-      }
-
-      env {
-        name = "AD_IMPRESSION_TOKEN_SECRET"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.secrets["ad_impression_token_secret"].secret_id
+            secret  = google_secret_manager_secret.app_secrets.secret_id
             version = "latest"
           }
         }
@@ -185,7 +145,7 @@ resource "google_cloud_run_v2_service" "service" {
   depends_on = [
     google_project_service.apis,
     google_service_account.cloudrun,
-    google_secret_manager_secret.secrets,
+    google_secret_manager_secret.app_secrets,
   ]
 }
 

@@ -22,14 +22,13 @@ resource "google_project_iam_member" "cloudrun_roles" {
 }
 
 # Secret Manager access for Cloud Run Service Account
+# Single binding for the consolidated app-secrets JSON bundle
 resource "google_secret_manager_secret_iam_member" "cloudrun_secret_access" {
-  for_each = var.secrets
-
-  secret_id = each.value
+  secret_id = google_secret_manager_secret.app_secrets.secret_id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.cloudrun.email}"
 
-  depends_on = [google_secret_manager_secret.secrets]
+  depends_on = [google_secret_manager_secret.app_secrets]
 }
 
 # Service Account for GitHub Actions (Workload Identity)

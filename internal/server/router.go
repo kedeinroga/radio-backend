@@ -22,6 +22,7 @@ type Router struct {
 	rateLimiter         *middleware.RateLimiter // NUEVO: Rate limiter
 	authRateLimiter     *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
 	isProduction        bool                    // NUEVO: Flag para producción
+	sharedSecretKey     string                  // NUEVO: Shared secret for bot protection
 
 	// Handlers
 	authHandler        *handlers.AuthHandler
@@ -43,6 +44,7 @@ func NewRouter(
 	rateLimiter *middleware.RateLimiter, // NUEVO
 	authRateLimiter *middleware.RateLimiter, // NUEVO
 	isProduction bool, // NUEVO
+	sharedSecretKey string, // NUEVO: bot protection
 	authHandler *handlers.AuthHandler,
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
@@ -61,6 +63,7 @@ func NewRouter(
 		rateLimiter:         rateLimiter,     // NUEVO
 		authRateLimiter:     authRateLimiter, // NUEVO
 		isProduction:        isProduction,    // NUEVO
+		sharedSecretKey:     sharedSecretKey, // NUEVO
 		authHandler:         authHandler,
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
@@ -112,6 +115,7 @@ func (r *Router) Setup() *gin.Engine {
 
 		// Station routes (public with optional auth)
 		stations := v1.Group("/stations")
+		stations.Use(middleware.SharedSecretAuth(r.sharedSecretKey)) // NUEVO: Bot protection
 		stations.Use(r.authMiddleware.Optional())
 		{
 			stations.GET("/popular", r.stationHandler.GetPopular)
@@ -140,6 +144,7 @@ func (r *Router) Setup() *gin.Engine {
 
 		// SEO routes (public, no auth required)
 		seo := v1.Group("/seo")
+		seo.Use(middleware.SharedSecretAuth(r.sharedSecretKey)) // NUEVO: Bot protection
 		{
 			seo.GET("/sitemap-data", r.seoHandler.GetSitemapData)
 			seo.GET("/popular-tags", r.seoHandler.GetPopularTags)

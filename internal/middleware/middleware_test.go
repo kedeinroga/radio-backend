@@ -218,3 +218,52 @@ func TestMaxRequestSize(t *testing.T) {
 	// Note: Testing actual size rejection is complex with httptest
 	// In production, http.MaxBytesReader will handle this
 }
+
+func TestSharedSecretAuth(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	const validSecret = "super-secret-api-key"
+
+	makeRouter := func(secret string) *gin.Engine {
+		router := gin.New()
+		router.Use(SharedSecretAuth(secret))
+		router.GET("/test", func(c *gin.Context) {
+			c.JSON(200, gin.H{"ok": true})
+		})
+		return router
+	}
+
+	t.Run("allows request with valid secret", func(t *testing.T) {
+		router := makeRouter(validSecret)
+		req := httptest.NewRequest("GET", "/test", nil)
+		req.Header.Set("X-Rradio-Secret", validSecret)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
+	})
+
+	t.Run("rejects request with wrong secret", func(t *testing.T) {
+		router := makeRouter(validSecret)
+		req := httptest.NewRequest("GET", "/test", nil)
+		req.Header.Set("X-Rradio-Secret", "wrong-secret")
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, 401, w.Code)
+	})
+
+	t.Run("rejects request with missing header", func(t *testing.T) {
+		router := makeRouter(validSecret)
+		req := httptest.NewRequest("GET", "/test", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, 401, w.Code)
+	})
+
+	t.Run("passes through when secret is disabled (empty)", func(t *testing.T) {
+		router := makeRouter("") // disabled
+		req := httptest.NewRequest("GET", "/test", nil)
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+		assert.Equal(t, 200, w.Code)
+	})
+}

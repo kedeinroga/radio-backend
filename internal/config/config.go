@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -85,6 +86,7 @@ type SecurityConfig struct {
 	BcryptCost      int
 	RateLimitReqs   int
 	RateLimitWindow time.Duration
+	APISecretKey    string // Shared secret for X-Rradio-Secret header validation
 }
 
 // CORSConfig holds CORS configuration
@@ -144,7 +146,13 @@ type StripeConfig struct {
 
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
-	// Load .env file if it exists (ignore error in production)
+	// 1. Expand the JSON secrets bundle from Secret Manager (Cloud Run production)
+	//    This must run BEFORE godotenv so that .env values take precedence locally.
+	if err := expandSecretsBundle(); err != nil {
+		return nil, fmt.Errorf("failed to expand secrets bundle: %w", err)
+	}
+
+	// 2. Load .env file if it exists (ignore error in production)
 	_ = godotenv.Load()
 
 	cfg := &Config{
@@ -189,6 +197,7 @@ func Load() (*Config, error) {
 			BcryptCost:      getIntEnv("BCRYPT_COST", 12),
 			RateLimitReqs:   getIntEnv("RATE_LIMIT_REQUESTS", 100),
 			RateLimitWindow: getDurationEnv("RATE_LIMIT_WINDOW", 1*time.Minute),
+			APISecretKey:    getEnv("API_SECRET_KEY", ""),
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: getSliceEnv("CORS_ALLOWED_ORIGINS", []string{"*"}),
@@ -319,4 +328,34 @@ func getFloat64Env(key string, defaultValue float64) float64 {
 		}
 	}
 	return defaultValue
+}
+
+// expandSecretsBundle reads APP_SECRETS_JSON (set by Cloud Run from Secret Manager)
+// and expands each key as an environment variable.
+// Existing env vars always take precedence — this allows .env overrides in local dev.
+func expandSecretsBundle() error {
+	raw := os.Getenv("APP_SECRETS_JSON")
+	if raw == "" {
+		// Not set — running locally with a .env file, nothing to do.
+		return nil
+	}
+
+	var secrets map[string]string
+	if err := json.Unmarshal([]byte(raw), &secrets); err != nil {
+		return fmt.Errorf("invalid APP_SECRETS_JSON format: %w", err)
+	}
+
+	for k, v := range secrets {
+		// Skip placeholder values
+		if strings.HasPrefix(v, "CHANGE_ME") {
+			continue
+		}
+		// Do not overwrite vars already set in the environment
+		if os.Getenv(k) == "" {
+			if err := os.Setenv(k, v); err != nil {
+				return fmt.Errorf("failed to set env var %s: %w", k, err)
+			}
+		}
+	}
+	return nil
 }

@@ -3846,6 +3846,11 @@ const docTemplate = `{
         },
         "/stations/popular": {
             "get": {
+                "security": [
+                    {
+                        "SharedSecret": []
+                    }
+                ],
                 "description": "List of popular radio stations with optional filters and SEO metadata. May return 503 if external service is temporarily unavailable.",
                 "consumes": [
                     "application/json"
@@ -3858,6 +3863,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get popular stations",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shared API secret for bot protection",
+                        "name": "X-Rradio-Secret",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "default": 20,
@@ -3886,6 +3898,13 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.StationListResponse"
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized – missing or invalid X-Rradio-Secret",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -3905,6 +3924,11 @@ const docTemplate = `{
         },
         "/stations/search": {
             "get": {
+                "security": [
+                    {
+                        "SharedSecret": []
+                    }
+                ],
                 "description": "Searches for radio stations by name or tags with enriched SEO metadata. May return 503 if external service is temporarily unavailable (Circuit Breaker open).",
                 "consumes": [
                     "application/json"
@@ -3917,6 +3941,13 @@ const docTemplate = `{
                 ],
                 "summary": "Search stations",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shared API secret for bot protection",
+                        "name": "X-Rradio-Secret",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Search term",
@@ -3953,6 +3984,13 @@ const docTemplate = `{
                             "additionalProperties": true
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized – missing or invalid X-Rradio-Secret",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -3972,6 +4010,11 @@ const docTemplate = `{
         },
         "/stations/{id}": {
             "get": {
+                "security": [
+                    {
+                        "SharedSecret": []
+                    }
+                ],
                 "description": "Gets detailed information for a station by its ID with enriched SEO metadata. May return 503 if external service is temporarily unavailable.",
                 "consumes": [
                     "application/json"
@@ -3984,6 +4027,13 @@ const docTemplate = `{
                 ],
                 "summary": "Get station detail",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Shared API secret for bot protection",
+                        "name": "X-Rradio-Secret",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Station ID",
@@ -4004,6 +4054,13 @@ const docTemplate = `{
                         "description": "Station detail with SEO metadata",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StationDetailResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized – missing or invalid X-Rradio-Secret",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "403": {
@@ -6048,6 +6105,12 @@ const docTemplate = `{
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
+        },
+        "SharedSecret": {
+            "description": "Shared secret key required for public station and SEO endpoints (bot protection).",
+            "type": "apiKey",
+            "name": "X-Rradio-Secret",
+            "in": "header"
         }
     }
 }`
@@ -6059,7 +6122,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Radio Backend API",
-	Description:      "Radio streaming API with JWT authentication, analytics and multi-language support (i18n).\n\n**Security Features (v2.1):**\n- 🔐 Timing attack prevention (constant-time operations)\n- 🔒 HTTPS enforcement (production)\n- 🚫 Account lockout (10 attempts = 30 min lockout)\n- 📧 Email rate limiting (10 attempts/hour per email)\n- 🔑 Password strength enforcement (special chars + 47 common passwords blocked)\n- 🛡️ Session hijacking protection (User-Agent validation)\n- 📝 Security event logging (failed attempts with metadata)\n- ⚡ Rate limiting (5 attempts/15min per IP)\n- 🔐 JWT with RS256 + token revocation\n\n**Internationalization:**\nSupported languages: Spanish (es), English (en), French (fr), German (de).\nUse the 'lang' parameter or 'Accept-Language' header to specify the desired language.\n\n**Security Score:** 100/100 (audited Dec 2025)",
+	Description:      "Radio streaming API with JWT authentication, analytics and multi-language support (i18n).\n\n**Security Features (v2.1):**\n- 🔐 Timing attack prevention (constant-time operations)\n- 🔒 HTTPS enforcement (production)\n- 🚫 Account lockout (10 attempts = 30 min lockout)\n- 📧 Email rate limiting (10 attempts/hour per email)\n- 🔑 Password strength enforcement (special chars + 47 common passwords blocked)\n- 🛡️ Session hijacking protection (User-Agent validation)\n- 📝 Security event logging (failed attempts with metadata)\n- ⚡ Rate limiting (5 attempts/15min per IP)\n- 🔐 JWT with RS256 + token revocation\n- 🤖 Bot protection via shared secret (X-Rradio-Secret header)\n\n**Internationalization:**\nSupported languages: Spanish (es), English (en), French (fr), German (de).\nUse the 'lang' parameter or 'Accept-Language' header to specify the desired language.\n\n**Security Score:** 100/100 (audited Dec 2025)",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
