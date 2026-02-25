@@ -14,77 +14,85 @@ func TestExpandSecretsBundle(t *testing.T) {
 		}
 	}
 
+	// Use unique test-only key names to avoid collisions with real .env values
+	const (
+		testDBKey     = "TEST_SECRETS_DATABASE_URL"
+		testRedisKey  = "TEST_SECRETS_REDIS_URL"
+		testSecretKey = "TEST_SECRETS_API_KEY"
+		testBundleKey = "APP_SECRETS_JSON"
+	)
+
 	t.Run("no-op when APP_SECRETS_JSON is not set", func(t *testing.T) {
-		os.Unsetenv("APP_SECRETS_JSON")
+		os.Unsetenv(testBundleKey)
 		if err := expandSecretsBundle(); err != nil {
 			t.Fatalf("expected no error, got %v", err)
 		}
 	})
 
 	t.Run("sets env vars from valid JSON bundle", func(t *testing.T) {
-		defer cleanup("DATABASE_URL", "REDIS_URL", "APP_SECRETS_JSON")
+		defer cleanup(testDBKey, testRedisKey, testBundleKey)
 
 		bundle := map[string]string{
-			"DATABASE_URL": "postgres://user:pass@host/db",
-			"REDIS_URL":    "redis://host:6379",
+			testDBKey:    "postgres://user:pass@host/db",
+			testRedisKey: "redis://host:6379",
 		}
 		raw, _ := json.Marshal(bundle)
-		os.Setenv("APP_SECRETS_JSON", string(raw))
+		os.Setenv(testBundleKey, string(raw))
 
 		if err := expandSecretsBundle(); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if got := os.Getenv("DATABASE_URL"); got != "postgres://user:pass@host/db" {
-			t.Errorf("DATABASE_URL = %q, want %q", got, "postgres://user:pass@host/db")
+		if got := os.Getenv(testDBKey); got != "postgres://user:pass@host/db" {
+			t.Errorf("%s = %q, want %q", testDBKey, got, "postgres://user:pass@host/db")
 		}
-		if got := os.Getenv("REDIS_URL"); got != "redis://host:6379" {
-			t.Errorf("REDIS_URL = %q, want %q", got, "redis://host:6379")
+		if got := os.Getenv(testRedisKey); got != "redis://host:6379" {
+			t.Errorf("%s = %q, want %q", testRedisKey, got, "redis://host:6379")
 		}
 	})
 
 	t.Run("does not overwrite existing env vars (local .env takes precedence)", func(t *testing.T) {
-		defer cleanup("DATABASE_URL", "APP_SECRETS_JSON")
+		defer cleanup(testDBKey, testBundleKey)
 
-		os.Setenv("DATABASE_URL", "original-value") // already set (e.g. from .env)
+		os.Setenv(testDBKey, "original-value") // already set (e.g. from .env)
 
 		bundle := map[string]string{
-			"DATABASE_URL": "secret-manager-value",
+			testDBKey: "secret-manager-value",
 		}
 		raw, _ := json.Marshal(bundle)
-		os.Setenv("APP_SECRETS_JSON", string(raw))
+		os.Setenv(testBundleKey, string(raw))
 
 		if err := expandSecretsBundle(); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if got := os.Getenv("DATABASE_URL"); got != "original-value" {
-			t.Errorf("DATABASE_URL = %q, want %q (should not be overwritten)", got, "original-value")
+		if got := os.Getenv(testDBKey); got != "original-value" {
+			t.Errorf("%s = %q, want %q (should not be overwritten)", testDBKey, got, "original-value")
 		}
 	})
 
 	t.Run("skips CHANGE_ME placeholder values", func(t *testing.T) {
-		defer cleanup("API_SECRET_KEY", "APP_SECRETS_JSON")
+		defer cleanup(testSecretKey, testBundleKey)
 
 		bundle := map[string]string{
-			"API_SECRET_KEY": "CHANGE_ME",
+			testSecretKey: "CHANGE_ME",
 		}
 		raw, _ := json.Marshal(bundle)
-		os.Setenv("APP_SECRETS_JSON", string(raw))
+		os.Setenv(testBundleKey, string(raw))
 
 		if err := expandSecretsBundle(); err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if got := os.Getenv("API_SECRET_KEY"); got != "" {
-			t.Errorf("API_SECRET_KEY should remain empty, got %q", got)
+		if got := os.Getenv(testSecretKey); got != "" {
+			t.Errorf("%s should remain empty, got %q", testSecretKey, got)
 		}
 	})
 
 	t.Run("returns error on invalid JSON", func(t *testing.T) {
-		defer cleanup("APP_SECRETS_JSON")
+		defer cleanup(testBundleKey)
 
-		os.Setenv("APP_SECRETS_JSON", "not-valid-json{{{")
+		os.Setenv(testBundleKey, "not-valid-json{{{")
 
 		if err := expandSecretsBundle(); err == nil {
 			t.Fatal("expected error for invalid JSON, got nil")

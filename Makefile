@@ -39,7 +39,8 @@ dev: ## Run with live reload (requires air)
 
 test: ## Run unit tests with coverage
 	@echo "${GREEN}Running tests...${NC}"
-	@go test -v -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic ./...
+	@go test -v -race -coverprofile=$(COVERAGE_FILE) -covermode=atomic \
+		$(shell go list ./... | grep -v 'tests/fixtures\|tests/helpers\|tests/integration\|tests/e2e')
 	@go tool cover -html=$(COVERAGE_FILE) -o coverage.html
 	@echo "${GREEN}Coverage report generated: coverage.html${NC}"
 
