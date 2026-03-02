@@ -146,6 +146,7 @@ resource "google_cloud_run_v2_service" "service" {
     google_project_service.apis,
     google_service_account.cloudrun,
     google_secret_manager_secret.app_secrets,
+    google_project_iam_member.cloudrun_secret_access,
   ]
 }
 
