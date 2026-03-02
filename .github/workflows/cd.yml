@@ -107,7 +107,7 @@ jobs:
             --port 8080 \
             --set-env-vars "ENV=staging,SERVER_PORT=8080" \
             --service-account "${{ env.SERVICE_NAME }}-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
-            --update-secrets "DATABASE_URL=database-url-staging:latest,REDIS_URL=redis-url-staging:latest,JWT_PRIVATE_KEY=jwt-private-key:latest,JWT_PUBLIC_KEY=jwt-public-key:latest"
+            --update-secrets "APP_SECRETS_JSON=app-secrets:latest"
 
           URL=$(gcloud run services describe ${{ env.SERVICE_NAME }}-staging --platform managed --region ${{ env.REGION }} --format 'value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -121,8 +121,8 @@ jobs:
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
           sudo mv migrate /usr/local/bin/migrate
 
-          echo "Fetching DATABASE_URL from Secret Manager..."
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="database-url-staging" --project=${{ env.PROJECT_ID }})
+          echo "Fetching DATABASE_URL from app-secrets bundle..."
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
 
           echo "Running migrations..."
           migrate -path ./migrations -database "$DATABASE_URL" up
@@ -204,7 +204,7 @@ jobs:
             --port 8080 \
             --set-env-vars "ENV=production,SERVER_PORT=8080" \
             --service-account "${{ env.SERVICE_NAME }}-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com" \
-            --update-secrets "DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,JWT_PRIVATE_KEY=jwt-private-key:latest,JWT_PUBLIC_KEY=jwt-public-key:latest"
+            --update-secrets "APP_SECRETS_JSON=app-secrets:latest"
 
           URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} --platform managed --region ${{ env.REGION }} --format 'value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -221,8 +221,8 @@ jobs:
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
           sudo mv migrate /usr/local/bin/migrate
 
-          echo "Fetching DATABASE_URL from Secret Manager..."
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="database-url" --project=${{ env.PROJECT_ID }})
+          echo "Fetching DATABASE_URL from app-secrets bundle..."
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
 
           echo "Running migrations..."
           migrate -path ./migrations -database "$DATABASE_URL" up

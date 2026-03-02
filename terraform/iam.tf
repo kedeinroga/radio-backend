@@ -21,14 +21,13 @@ resource "google_project_iam_member" "cloudrun_roles" {
   member  = "serviceAccount:${google_service_account.cloudrun.email}"
 }
 
-# Secret Manager access for Cloud Run Service Account
-# Single binding for the consolidated app-secrets JSON bundle
-resource "google_secret_manager_secret_iam_member" "cloudrun_secret_access" {
-  secret_id = google_secret_manager_secret.app_secrets.secret_id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.cloudrun.email}"
-
-  depends_on = [google_secret_manager_secret.app_secrets]
+# Secret Manager access for Cloud Run Service Account (project-level)
+# Using project_iam_member instead of secret_iam_member avoids needing
+# secretmanager.secrets.setIamPolicy, which would require secretmanager.admin.
+resource "google_project_iam_member" "cloudrun_secret_access" {
+  project = var.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${google_service_account.cloudrun.email}"
 }
 
 # Service Account for GitHub Actions (Workload Identity)
@@ -44,7 +43,7 @@ resource "google_project_iam_member" "github_actions_roles" {
     "roles/run.admin",                    # Manage Cloud Run services
     "roles/iam.serviceAccountUser",       # Use service accounts
     "roles/artifactregistry.writer",      # Push container images
-    "roles/secretmanager.secretAccessor", # Access secrets
+    "roles/secretmanager.secretAccessor", # Read secrets (for validation/audit)
   ])
 
   project = var.project_id
