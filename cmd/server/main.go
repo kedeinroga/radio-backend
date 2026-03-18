@@ -98,6 +98,12 @@ func main() {
 	defer db.Close()
 	logger.Info("Database connected successfully")
 
+	// Run pending migrations before starting the server
+	if err := database.RunMigrations(cfg.Database.URL, database.DefaultMigrateConfig()); err != nil {
+		logger.Error("Database migrations failed", "error", err)
+		log.Fatalf("Migration failed: %v", err)
+	}
+
 	// Initialize Redis
 	redisClient, err := cache.NewRedisClient(
 		cfg.Redis.URL,
