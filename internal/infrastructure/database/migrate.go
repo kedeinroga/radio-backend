@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -49,25 +51,23 @@ func RunMigrations(databaseURL string, cfg MigrateConfig) error {
 	}
 
 	if dirty {
-		// La migración anterior falló en una transacción PostgreSQL, por lo que los
-		// cambios DDL fueron revertidos automáticamente. Es seguro forzar a la
-		// versión anterior limpia y volver a aplicar la migración corregida.
+		// La migración anterior falló en una transacción PostgreSQL — los cambios DDL
+		// fueron revertidos. Forzar a la versión anterior limpia para poder re-aplicar.
 		prevVersion := int(version) - 1
 		slog.Warn("migraciones", "advertencia", fmt.Sprintf(
 			"dirty state en versión %d — forzando a versión %d y reintentando", version, prevVersion,
 		))
-		if err := m.Force(prevVersion); err != nil {
+		if err := retryOnLock(func() error { return m.Force(prevVersion) }); err != nil {
 			return fmt.Errorf("forzando versión %d para salir de dirty state: %w", prevVersion, err)
 		}
-		// Re-leer la versión tras el force
 		version, dirty, _ = m.Version()
 		slog.Info("migraciones", "version_tras_force", version, "dirty", dirty)
 	}
 
 	slog.Info("migraciones", "version_actual", version, "dirty", dirty)
 
-	// Aplicar migraciones pendientes
-	if err = m.Up(); err != nil {
+	// Aplicar migraciones pendientes (con retry si otra instancia tiene el lock)
+	if err = retryOnLock(func() error { return m.Up() }); err != nil {
 		if errors.Is(err, migrate.ErrNoChange) {
 			slog.Info("migraciones", "estado", "sin cambios pendientes")
 			return nil
@@ -79,6 +79,41 @@ func RunMigrations(databaseURL string, cfg MigrateConfig) error {
 	slog.Info("migraciones", "estado", "aplicadas correctamente", "nueva_version", newVersion)
 
 	return nil
+}
+
+// retryOnLock reintenta fn hasta 6 veces (espera exponencial de 5–30s) cuando
+// golang-migrate no puede adquirir el advisory lock porque otra instancia está
+// migrando. Esto evita que Cloud Run falle el deploy por race entre instancias.
+func retryOnLock(fn func() error) error {
+	const maxRetries = 6
+	delay := 5 * time.Second
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		err := fn()
+		if err == nil {
+			return nil
+		}
+		if !isLockError(err) {
+			return err
+		}
+		slog.Warn("migraciones", "advertencia", fmt.Sprintf(
+			"lock en uso (intento %d/%d), reintentando en %s…", attempt, maxRetries, delay,
+		))
+		time.Sleep(delay)
+		if delay < 30*time.Second {
+			delay += 5 * time.Second
+		}
+	}
+	return fmt.Errorf("no se pudo adquirir el lock de migraciones tras %d intentos", maxRetries)
+}
+
+func isLockError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return errors.Is(err, migrate.ErrLocked) ||
+		strings.Contains(err.Error(), "try lock failed") ||
+		strings.Contains(err.Error(), "lock")
 }
 
 // MigrationVersion retorna la versión actual sin ejecutar nada.
