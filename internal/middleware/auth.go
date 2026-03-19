@@ -122,7 +122,13 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 
 		// Check if token is revoked (legacy check)
 		revoked, err := m.tokenBlacklist.IsTokenRevoked(claims.TokenID)
-		if err != nil || revoked {
+		if err != nil {
+			logger.Error("Failed to check token revocation", "error", err)
+			c.JSON(500, gin.H{"error": "internal server error"})
+			c.Abort()
+			return
+		}
+		if revoked {
 			c.JSON(401, gin.H{"error": "token revoked"})
 			c.Abort()
 			return
