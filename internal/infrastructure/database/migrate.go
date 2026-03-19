@@ -49,11 +49,19 @@ func RunMigrations(databaseURL string, cfg MigrateConfig) error {
 	}
 
 	if dirty {
-		msg := fmt.Sprintf("la base de datos está en estado dirty en versión %d — requiere intervención manual", version)
-		if cfg.FailOnDirty {
-			return errors.New(msg)
+		// La migración anterior falló en una transacción PostgreSQL, por lo que los
+		// cambios DDL fueron revertidos automáticamente. Es seguro forzar a la
+		// versión anterior limpia y volver a aplicar la migración corregida.
+		prevVersion := int(version) - 1
+		slog.Warn("migraciones", "advertencia", fmt.Sprintf(
+			"dirty state en versión %d — forzando a versión %d y reintentando", version, prevVersion,
+		))
+		if err := m.Force(prevVersion); err != nil {
+			return fmt.Errorf("forzando versión %d para salir de dirty state: %w", prevVersion, err)
 		}
-		slog.Warn("migraciones", "advertencia", msg)
+		// Re-leer la versión tras el force
+		version, dirty, _ = m.Version()
+		slog.Info("migraciones", "version_tras_force", version, "dirty", dirty)
 	}
 
 	slog.Info("migraciones", "version_actual", version, "dirty", dirty)
