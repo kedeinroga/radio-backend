@@ -159,14 +159,14 @@ func Load() (*Config, error) {
 		Server: ServerConfig{
 			Port:    getEnv("SERVER_PORT", "8080"),
 			Host:    getEnv("SERVER_HOST", "0.0.0.0"),
-			Env:     getEnv("SERVER_ENV", "development"),
+			Env:     getEnv("SERVER_ENV", getEnv("ENV", "development")),
 			Timeout: getDurationEnv("SERVER_TIMEOUT", 30*time.Second),
 			BaseURL: getEnv("SERVER_BASE_URL", "http://localhost:8080"), // NUEVO: URL base
 		},
 		Database: DatabaseConfig{
 			URL:                getEnv("DATABASE_URL", ""),
-			MaxConnections:     getIntEnv("DATABASE_MAX_CONNECTIONS", 25),
-			MaxIdleConnections: getIntEnv("DATABASE_MAX_IDLE_CONNECTIONS", 5),
+			MaxConnections:     getIntEnv("DATABASE_MAX_CONNECTIONS", 5),
+			MaxIdleConnections: getIntEnv("DATABASE_MAX_IDLE_CONNECTIONS", 2),
 		},
 		Redis: RedisConfig{
 			URL:      getEnv("REDIS_URL", "redis://localhost:6379/0"),
