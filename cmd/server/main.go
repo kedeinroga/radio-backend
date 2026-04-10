@@ -194,6 +194,7 @@ func main() {
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(tokenManager, tokenBlacklistRepo, sessionRepo) // Pass tokenBlacklistRepo for validation
 	analyticsMiddleware := middleware.NewAnalyticsMiddleware(analyticsService)
+	fingerprintMiddleware := middleware.RequestFingerprintMiddleware(securityRepo, cfg.CORS.AllowedOrigins)
 	corsMiddleware := middleware.CORSMiddleware(
 		cfg.CORS.AllowedOrigins,
 		cfg.CORS.AllowedMethods,
@@ -228,6 +229,7 @@ func main() {
 		authRateLimiter,           // NUEVO: Rate limiter para auth
 		cfg.IsProduction(),        // NUEVO: Flag de producción
 		cfg.Security.APISecretKey, // NUEVO: Shared secret for bot protection
+		fingerprintMiddleware,     // NUEVO: Request source classifier
 		authHandler,
 		stationHandler,
 		analyticsHandler,

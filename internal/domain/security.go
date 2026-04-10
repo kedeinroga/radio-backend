@@ -52,6 +52,34 @@ type SecurityLogResult struct {
 	Limit int            `json:"limit"`
 }
 
+// SuspiciousSourceStats aggregates request-source anomaly data for a period.
+type SuspiciousSourceStats struct {
+	Period     string        `json:"period"`
+	TotalCount int64         `json:"total_count"`
+	BySouce    []SourceCount `json:"by_source"`
+	TopIPs     []IPCount     `json:"top_ips"`
+	TopPaths   []PathCount   `json:"top_paths"`
+}
+
+// SourceCount is a breakdown of suspicious events by classified source.
+type SourceCount struct {
+	Source string `json:"source"`
+	Count  int64  `json:"count"`
+}
+
+// IPCount is a breakdown of suspicious events by originating IP.
+type IPCount struct {
+	IP       string `json:"ip"`
+	Count    int64  `json:"count"`
+	LastSeen string `json:"last_seen"`
+}
+
+// PathCount is a breakdown of suspicious events by targeted path.
+type PathCount struct {
+	Path  string `json:"path"`
+	Count int64  `json:"count"`
+}
+
 // SecurityRepository defines the interface for security data access
 type SecurityRepository interface {
 	// GetMetrics retrieves security metrics for a given period
@@ -62,4 +90,7 @@ type SecurityRepository interface {
 
 	// LogSecurityEvent logs a security event
 	LogSecurityEvent(event *SecurityEvent) error
+
+	// GetSuspiciousSourceStats returns aggregated stats for suspicious_request_source events.
+	GetSuspiciousSourceStats(period string) (*SuspiciousSourceStats, error)
 }

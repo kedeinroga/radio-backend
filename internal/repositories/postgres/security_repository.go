@@ -343,3 +343,116 @@ func (r *SecurityRepository) LogSecurityEvent(event *domain.SecurityEvent) error
 
 	return nil
 }
+
+// GetSuspiciousSourceStats returns aggregated statistics for suspicious_request_source events.
+// period must be one of: "24h", "7d", "30d".
+func (r *SecurityRepository) GetSuspiciousSourceStats(period string) (*domain.SuspiciousSourceStats, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var since string
+	switch period {
+	case "24h":
+		since = "24 hours"
+	case "7d":
+		since = "7 days"
+	case "30d":
+		since = "30 days"
+	default:
+		return nil, fmt.Errorf("invalid period: %s (allowed: 24h, 7d, 30d)", period)
+	}
+
+	stats := &domain.SuspiciousSourceStats{Period: period}
+
+	// Total count
+	err := r.db.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM security_events
+		 WHERE event_type = 'suspicious_request_source'
+		   AND timestamp >= NOW() - $1::interval`,
+		since,
+	).Scan(&stats.TotalCount)
+	if err != nil {
+		return nil, fmt.Errorf("failed to count suspicious events: %w", err)
+	}
+
+	// Breakdown by source
+	rows, err := r.db.QueryContext(ctx,
+		`SELECT COALESCE(metadata->>'source', 'unknown') AS source, COUNT(*) AS cnt
+		 FROM security_events
+		 WHERE event_type = 'suspicious_request_source'
+		   AND timestamp >= NOW() - $1::interval
+		 GROUP BY source
+		 ORDER BY cnt DESC`,
+		since,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query by source: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var sc domain.SourceCount
+		if err := rows.Scan(&sc.Source, &sc.Count); err != nil {
+			return nil, fmt.Errorf("failed to scan source row: %w", err)
+		}
+		stats.BySouce = append(stats.BySouce, sc)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating source rows: %w", err)
+	}
+
+	// Top IPs (up to 10)
+	ipRows, err := r.db.QueryContext(ctx,
+		`SELECT COALESCE(ip_address, 'unknown'), COUNT(*) AS cnt, MAX(timestamp)
+		 FROM security_events
+		 WHERE event_type = 'suspicious_request_source'
+		   AND timestamp >= NOW() - $1::interval
+		 GROUP BY ip_address
+		 ORDER BY cnt DESC
+		 LIMIT 10`,
+		since,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query top IPs: %w", err)
+	}
+	defer ipRows.Close()
+	for ipRows.Next() {
+		var ic domain.IPCount
+		var lastSeen time.Time
+		if err := ipRows.Scan(&ic.IP, &ic.Count, &lastSeen); err != nil {
+			return nil, fmt.Errorf("failed to scan IP row: %w", err)
+		}
+		ic.LastSeen = lastSeen.UTC().Format(time.RFC3339)
+		stats.TopIPs = append(stats.TopIPs, ic)
+	}
+	if err := ipRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating IP rows: %w", err)
+	}
+
+	// Top targeted paths (up to 10)
+	pathRows, err := r.db.QueryContext(ctx,
+		`SELECT COALESCE(metadata->>'path', 'unknown') AS path, COUNT(*) AS cnt
+		 FROM security_events
+		 WHERE event_type = 'suspicious_request_source'
+		   AND timestamp >= NOW() - $1::interval
+		 GROUP BY path
+		 ORDER BY cnt DESC
+		 LIMIT 10`,
+		since,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query top paths: %w", err)
+	}
+	defer pathRows.Close()
+	for pathRows.Next() {
+		var pc domain.PathCount
+		if err := pathRows.Scan(&pc.Path, &pc.Count); err != nil {
+			return nil, fmt.Errorf("failed to scan path row: %w", err)
+		}
+		stats.TopPaths = append(stats.TopPaths, pc)
+	}
+	if err := pathRows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating path rows: %w", err)
+	}
+
+	return stats, nil
+}

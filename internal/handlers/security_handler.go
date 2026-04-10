@@ -229,3 +229,85 @@ func (h *SecurityHandler) GetLogs(c *gin.Context) {
 
 	RespondWithSuccess(c, http.StatusOK, response)
 }
+
+// SuspiciousSourceStatsResponse is the response for the suspicious sources endpoint.
+type SuspiciousSourceStatsResponse struct {
+	Period     string            `json:"period"`
+	TotalCount int64             `json:"total_count"`
+	BySource   []SourceCountItem `json:"by_source"`
+	TopIPs     []IPCountItem     `json:"top_ips"`
+	TopPaths   []PathCountItem   `json:"top_paths"`
+}
+
+// SourceCountItem is one row of the by_source breakdown.
+type SourceCountItem struct {
+	Source string `json:"source" example:"postman"`
+	Count  int64  `json:"count"  example:"42"`
+}
+
+// IPCountItem is one row of the top_ips breakdown.
+type IPCountItem struct {
+	IP       string `json:"ip"        example:"203.0.113.5"`
+	Count    int64  `json:"count"     example:"17"`
+	LastSeen string `json:"last_seen" example:"2026-04-10T15:04:05Z"`
+}
+
+// PathCountItem is one row of the top_paths breakdown.
+type PathCountItem struct {
+	Path  string `json:"path"  example:"/api/v1/auth/login"`
+	Count int64  `json:"count" example:"30"`
+}
+
+// GetSuspiciousSources returns aggregated stats for non-browser access attempts.
+// @Summary Get suspicious request source stats
+// @Description Returns count breakdowns by source type, top IPs, and top targeted paths for non-browser requests to sensitive endpoints.
+// @Tags Admin Security
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param period query string false "Time period" default(24h) Enums(24h, 7d, 30d)
+// @Success 200 {object} SuspiciousSourceStatsResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 401 {object} ErrorResponse
+// @Failure 403 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /api/v1/admin/security/suspicious-sources [get]
+func (h *SecurityHandler) GetSuspiciousSources(c *gin.Context) {
+	userType, exists := c.Get("user_type")
+	if !exists {
+		RespondWithError(c, http.StatusForbidden, "ADMIN_ACCESS_REQUIRED", "admin access required")
+		return
+	}
+	ut, ok := userType.(domain.UserType)
+	if !ok || ut.String() != "admin" {
+		RespondWithError(c, http.StatusForbidden, "ADMIN_ACCESS_REQUIRED", "admin access required")
+		return
+	}
+
+	period := c.DefaultQuery("period", "24h")
+
+	stats, err := h.securityService.GetSuspiciousSourceStats(period)
+	if err != nil {
+		RespondWithError(c, http.StatusBadRequest, "INVALID_PERIOD", err.Error())
+		return
+	}
+
+	resp := SuspiciousSourceStatsResponse{
+		Period:     stats.Period,
+		TotalCount: stats.TotalCount,
+		BySource:   make([]SourceCountItem, 0, len(stats.BySouce)),
+		TopIPs:     make([]IPCountItem, 0, len(stats.TopIPs)),
+		TopPaths:   make([]PathCountItem, 0, len(stats.TopPaths)),
+	}
+	for _, s := range stats.BySouce {
+		resp.BySource = append(resp.BySource, SourceCountItem{Source: s.Source, Count: s.Count})
+	}
+	for _, ip := range stats.TopIPs {
+		resp.TopIPs = append(resp.TopIPs, IPCountItem{IP: ip.IP, Count: ip.Count, LastSeen: ip.LastSeen})
+	}
+	for _, p := range stats.TopPaths {
+		resp.TopPaths = append(resp.TopPaths, PathCountItem{Path: p.Path, Count: p.Count})
+	}
+
+	RespondWithSuccess(c, http.StatusOK, resp)
+}

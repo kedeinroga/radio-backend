@@ -220,6 +220,18 @@ definitions:
     required:
     - session_id
     type: object
+  internal_handlers.IPCountItem:
+    properties:
+      count:
+        example: 17
+        type: integer
+      ip:
+        example: 203.0.113.5
+        type: string
+      last_seen:
+        example: "2026-04-10T15:04:05Z"
+        type: string
+    type: object
   internal_handlers.Location:
     properties:
       city:
@@ -264,6 +276,15 @@ definitions:
         type: string
       token_type:
         example: Bearer
+        type: string
+    type: object
+  internal_handlers.PathCountItem:
+    properties:
+      count:
+        example: 30
+        type: integer
+      path:
+        example: /api/v1/auth/login
         type: string
     type: object
   internal_handlers.PremiumStatusResponse:
@@ -467,6 +488,15 @@ definitions:
         example: Mozilla/5.0...
         type: string
     type: object
+  internal_handlers.SourceCountItem:
+    properties:
+      count:
+        example: 42
+        type: integer
+      source:
+        example: postman
+        type: string
+    type: object
   internal_handlers.StartSessionRequest:
     properties:
       ad_id:
@@ -561,6 +591,25 @@ definitions:
       message:
         example: Operation completed successfully
         type: string
+    type: object
+  internal_handlers.SuspiciousSourceStatsResponse:
+    properties:
+      by_source:
+        items:
+          $ref: '#/definitions/internal_handlers.SourceCountItem'
+        type: array
+      period:
+        type: string
+      top_ips:
+        items:
+          $ref: '#/definitions/internal_handlers.IPCountItem'
+        type: array
+      top_paths:
+        items:
+          $ref: '#/definitions/internal_handlers.PathCountItem'
+        type: array
+      total_count:
+        type: integer
     type: object
   internal_handlers.UpdateAdvertisementRequest:
     properties:
@@ -865,7 +914,8 @@ definitions:
   radio-backend_internal_domain.ExternalAPIHealth:
     properties:
       avg_response_time_ms:
-        $ref: '#/definitions/time.Duration'
+        format: int64
+        type: integer
       circuit_breaker:
         description: closed, open, half-open
         type: string
@@ -1106,17 +1156,16 @@ definitions:
     type: object
   radio-backend_internal_services.StreamInfo:
     properties:
-      bitrateKbps:
-        format: float64
+      bitrate_kbps:
         type: number
-      bytesStreamed:
+      bytes_streamed:
+        type: integer
+      duration_ns:
         format: int64
         type: integer
-      duration:
-        $ref: '#/definitions/time.Duration'
-      lastUpdate:
+      last_update:
         type: string
-      sessionID:
+      session_id:
         type: string
     type: object
   time.Duration:
@@ -2130,6 +2179,50 @@ paths:
       security:
       - BearerAuth: []
       summary: Get security metrics
+      tags:
+      - Admin Security
+  /api/v1/admin/security/suspicious-sources:
+    get:
+      consumes:
+      - application/json
+      description: Returns count breakdowns by source type, top IPs, and top targeted
+        paths for non-browser requests to sensitive endpoints.
+      parameters:
+      - default: 24h
+        description: Time period
+        enum:
+        - 24h
+        - 7d
+        - 30d
+        in: query
+        name: period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.SuspiciousSourceStatsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get suspicious request source stats
       tags:
       - Admin Security
   /api/v1/ads:

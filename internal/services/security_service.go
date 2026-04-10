@@ -47,16 +47,17 @@ func (s *SecurityService) GetLogs(filter *domain.SecurityLogFilter) (*domain.Sec
 
 	// Validate event_type if provided
 	validEventTypes := map[string]bool{
-		"login_success":      true,
-		"login_failed":       true,
-		"token.issued":       true,
-		"token.validated":    true,
-		"token.revoked":      true,
-		"session.created":    true,
-		"session.revoked":    true,
-		"session.suspicious": true,
-		"password.reset":     true,
-		"password.changed":   true,
+		"login_success":             true,
+		"login_failed":              true,
+		"token.issued":              true,
+		"token.validated":           true,
+		"token.revoked":             true,
+		"session.created":           true,
+		"session.revoked":           true,
+		"session.suspicious":        true,
+		"password.reset":            true,
+		"password.changed":          true,
+		"suspicious_request_source": true,
 	}
 
 	if filter.EventType != "" && !validEventTypes[filter.EventType] {
@@ -69,4 +70,18 @@ func (s *SecurityService) GetLogs(filter *domain.SecurityLogFilter) (*domain.Sec
 	}
 
 	return logs, nil
+}
+
+// GetSuspiciousSourceStats returns aggregated anomaly stats for non-browser access.
+func (s *SecurityService) GetSuspiciousSourceStats(period string) (*domain.SuspiciousSourceStats, error) {
+	if period != "24h" && period != "7d" && period != "30d" {
+		return nil, fmt.Errorf("invalid period: %s (allowed: 24h, 7d, 30d)", period)
+	}
+
+	stats, err := s.securityRepo.GetSuspiciousSourceStats(period)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get suspicious source stats: %w", err)
+	}
+
+	return stats, nil
 }

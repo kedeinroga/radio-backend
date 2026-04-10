@@ -16,13 +16,14 @@ type Router struct {
 	engine *gin.Engine
 
 	// Middleware
-	authMiddleware      *middleware.AuthMiddleware
-	analyticsMiddleware *middleware.AnalyticsMiddleware
-	corsMiddleware      gin.HandlerFunc
-	rateLimiter         *middleware.RateLimiter // NUEVO: Rate limiter
-	authRateLimiter     *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
-	isProduction        bool                    // NUEVO: Flag para producción
-	sharedSecretKey     string                  // NUEVO: Shared secret for bot protection
+	authMiddleware             *middleware.AuthMiddleware
+	analyticsMiddleware        *middleware.AnalyticsMiddleware
+	corsMiddleware             gin.HandlerFunc
+	rateLimiter                *middleware.RateLimiter // NUEVO: Rate limiter
+	authRateLimiter            *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
+	isProduction               bool                    // NUEVO: Flag para producción
+	sharedSecretKey            string                  // NUEVO: Shared secret for bot protection
+	requestFingerprintMiddleware gin.HandlerFunc        // NUEVO: Request source classifier
 
 	// Handlers
 	authHandler        *handlers.AuthHandler
@@ -45,6 +46,7 @@ func NewRouter(
 	authRateLimiter *middleware.RateLimiter, // NUEVO
 	isProduction bool, // NUEVO
 	sharedSecretKey string, // NUEVO: bot protection
+	requestFingerprintMiddleware gin.HandlerFunc, // NUEVO: request source classifier
 	authHandler *handlers.AuthHandler,
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
@@ -56,14 +58,15 @@ func NewRouter(
 	monitoringHandler *handlers.MonitoringHandler, // NUEVO: Handler de monitoring
 ) *Router {
 	return &Router{
-		engine:              gin.New(),
-		authMiddleware:      authMiddleware,
-		analyticsMiddleware: analyticsMiddleware,
-		corsMiddleware:      corsMiddleware,
-		rateLimiter:         rateLimiter,     // NUEVO
-		authRateLimiter:     authRateLimiter, // NUEVO
-		isProduction:        isProduction,    // NUEVO
-		sharedSecretKey:     sharedSecretKey, // NUEVO
+		engine:                       gin.New(),
+		authMiddleware:               authMiddleware,
+		analyticsMiddleware:          analyticsMiddleware,
+		corsMiddleware:               corsMiddleware,
+		rateLimiter:                  rateLimiter,                  // NUEVO
+		authRateLimiter:              authRateLimiter,              // NUEVO
+		isProduction:                 isProduction,                 // NUEVO
+		sharedSecretKey:              sharedSecretKey,              // NUEVO
+		requestFingerprintMiddleware: requestFingerprintMiddleware, // NUEVO
 		authHandler:         authHandler,
 		stationHandler:      stationHandler,
 		analyticsHandler:    analyticsHandler,
@@ -85,8 +88,9 @@ func (r *Router) Setup() *gin.Engine {
 	r.engine.Use(middleware.MaxRequestSize(10 << 20))        // NUEVO: Limit to 10MB
 	r.engine.Use(r.corsMiddleware)
 	r.engine.Use(middleware.LoggingMiddleware())
-	r.engine.Use(middleware.LanguageDetector()) // NUEVO: Middleware de detección de idioma
-	r.engine.Use(r.rateLimiter.Middleware())    // NUEVO: Global rate limiting
+	r.engine.Use(r.requestFingerprintMiddleware) // NUEVO: Request source classifier
+	r.engine.Use(middleware.LanguageDetector())  // NUEVO: Middleware de detección de idioma
+	r.engine.Use(r.rateLimiter.Middleware())     // NUEVO: Global rate limiting
 	r.engine.Use(r.analyticsMiddleware.Track())
 
 	// Health check
@@ -182,6 +186,7 @@ func (r *Router) Setup() *gin.Engine {
 		{
 			adminSecurity.GET("/metrics", r.securityHandler.GetMetrics)
 			adminSecurity.GET("/logs", r.securityHandler.GetLogs)
+			adminSecurity.GET("/suspicious-sources", r.securityHandler.GetSuspiciousSources)
 		}
 
 		// Admin Maintenance routes
