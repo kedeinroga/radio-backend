@@ -5,6 +5,7 @@ BINARY_NAME=radio-backend
 MAIN_PATH=./cmd/server
 BUILD_DIR=./bin
 COVERAGE_FILE=coverage.out
+GOLANGCI_LINT=$(shell go env GOPATH)/bin/golangci-lint
 
 # Load environment variables from .env if it exists
 ifneq (,$(wildcard ./.env))
@@ -79,7 +80,7 @@ test-clean: ## Clean test artifacts
 
 lint: ## Run linters
 	@echo "${GREEN}Running linters...${NC}"
-	@golangci-lint run --timeout=5m
+	@$(GOLANGCI_LINT) run --timeout=5m
 
 fmt: ## Format code
 	@echo "${GREEN}Formatting code...${NC}"

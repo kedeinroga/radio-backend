@@ -16,14 +16,14 @@ type Router struct {
 	engine *gin.Engine
 
 	// Middleware
-	authMiddleware             *middleware.AuthMiddleware
-	analyticsMiddleware        *middleware.AnalyticsMiddleware
-	corsMiddleware             gin.HandlerFunc
-	rateLimiter                *middleware.RateLimiter // NUEVO: Rate limiter
-	authRateLimiter            *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
-	isProduction               bool                    // NUEVO: Flag para producción
-	sharedSecretKey            string                  // NUEVO: Shared secret for bot protection
-	requestFingerprintMiddleware gin.HandlerFunc        // NUEVO: Request source classifier
+	authMiddleware               *middleware.AuthMiddleware
+	analyticsMiddleware          *middleware.AnalyticsMiddleware
+	corsMiddleware               gin.HandlerFunc
+	rateLimiter                  *middleware.RateLimiter // NUEVO: Rate limiter
+	authRateLimiter              *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
+	isProduction                 bool                    // NUEVO: Flag para producción
+	sharedSecretKey              string                  // NUEVO: Shared secret for bot protection
+	requestFingerprintMiddleware gin.HandlerFunc         // NUEVO: Request source classifier
 
 	// Handlers
 	authHandler        *handlers.AuthHandler
@@ -67,15 +67,15 @@ func NewRouter(
 		isProduction:                 isProduction,                 // NUEVO
 		sharedSecretKey:              sharedSecretKey,              // NUEVO
 		requestFingerprintMiddleware: requestFingerprintMiddleware, // NUEVO
-		authHandler:         authHandler,
-		stationHandler:      stationHandler,
-		analyticsHandler:    analyticsHandler,
-		favoriteHandler:     favoriteHandler,
-		seoHandler:          seoHandler,         // NUEVO
-		translationHandler:  translationHandler, // NUEVO
-		securityHandler:     securityHandler,    // NUEVO
-		maintenanceHandler:  maintenanceHandler, // NUEVO
-		monitoringHandler:   monitoringHandler,  // NUEVO
+		authHandler:                  authHandler,
+		stationHandler:               stationHandler,
+		analyticsHandler:             analyticsHandler,
+		favoriteHandler:              favoriteHandler,
+		seoHandler:                   seoHandler,         // NUEVO
+		translationHandler:           translationHandler, // NUEVO
+		securityHandler:              securityHandler,    // NUEVO
+		maintenanceHandler:           maintenanceHandler, // NUEVO
+		monitoringHandler:            monitoringHandler,  // NUEVO
 	}
 }
 
