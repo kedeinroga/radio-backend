@@ -8,6 +8,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	dbPingMaxRetries = 5
+	dbPingRetryDelay = 3 * time.Second
+)
+
 // Connection represents a database connection
 type Connection struct {
 	DB *sql.DB
@@ -25,9 +30,18 @@ func NewConnection(databaseURL string, maxConns, maxIdleConns int) (*Connection,
 	db.SetMaxIdleConns(maxIdleConns)
 	db.SetConnMaxLifetime(time.Hour)
 
-	// Verify connection
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+	// Verify connection with retries to handle transient pool exhaustion during rolling deploys
+	var pingErr error
+	for i := 0; i < dbPingMaxRetries; i++ {
+		if pingErr = db.Ping(); pingErr == nil {
+			break
+		}
+		if i < dbPingMaxRetries-1 {
+			time.Sleep(dbPingRetryDelay)
+		}
+	}
+	if pingErr != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", pingErr)
 	}
 
 	return &Connection{DB: db}, nil
