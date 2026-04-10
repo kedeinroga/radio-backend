@@ -914,8 +914,7 @@ definitions:
   radio-backend_internal_domain.ExternalAPIHealth:
     properties:
       avg_response_time_ms:
-        format: int64
-        type: integer
+        $ref: '#/definitions/time.Duration'
       circuit_breaker:
         description: closed, open, half-open
         type: string
@@ -1156,16 +1155,17 @@ definitions:
     type: object
   radio-backend_internal_services.StreamInfo:
     properties:
-      bitrate_kbps:
+      bitrateKbps:
+        format: float64
         type: number
-      bytes_streamed:
-        type: integer
-      duration_ns:
+      bytesStreamed:
         format: int64
         type: integer
-      last_update:
+      duration:
+        $ref: '#/definitions/time.Duration'
+      lastUpdate:
         type: string
-      session_id:
+      sessionID:
         type: string
     type: object
   time.Duration:

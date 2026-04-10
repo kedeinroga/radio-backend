@@ -5843,8 +5843,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avg_response_time_ms": {
-                    "type": "integer",
-                    "format": "int64"
+                    "$ref": "#/definitions/time.Duration"
                 },
                 "circuit_breaker": {
                     "description": "closed, open, half-open",
@@ -6194,20 +6193,21 @@ const docTemplate = `{
         "radio-backend_internal_services.StreamInfo": {
             "type": "object",
             "properties": {
-                "bitrate_kbps": {
-                    "type": "number"
+                "bitrateKbps": {
+                    "type": "number",
+                    "format": "float64"
                 },
-                "bytes_streamed": {
-                    "type": "integer"
-                },
-                "duration_ns": {
+                "bytesStreamed": {
                     "type": "integer",
                     "format": "int64"
                 },
-                "last_update": {
+                "duration": {
+                    "$ref": "#/definitions/time.Duration"
+                },
+                "lastUpdate": {
                     "type": "string"
                 },
-                "session_id": {
+                "sessionID": {
                     "type": "string"
                 }
             }

@@ -402,7 +402,7 @@ func (r *SecurityRepository) GetSuspiciousSourceStats(period string) (*domain.Su
 
 	// Top IPs (up to 10)
 	ipRows, err := r.db.QueryContext(ctx,
-		`SELECT COALESCE(ip_address, 'unknown'), COUNT(*) AS cnt, MAX(timestamp)
+		`SELECT COALESCE(ip_address::text, 'unknown'), COUNT(*) AS cnt, MAX(timestamp)
 		 FROM security_events
 		 WHERE event_type = 'suspicious_request_source'
 		   AND timestamp >= NOW() - $1::interval
