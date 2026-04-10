@@ -294,6 +294,8 @@ func main() {
 		adRepo,
 		impressionRepo,
 		authMiddleware,
+		analyticsService,
+		cfg.Security.APISecretKey,
 		adLogger,
 		[]byte(cfg.JWT.Secret), // JWT secret para stream tokens
 	); err != nil {

@@ -280,6 +280,16 @@ func (s *StreamSessionService) CleanupAbandonedSessions(ctx context.Context) (in
 	return count, nil
 }
 
+// GetStationStreamURL returns the direct stream URL for a station without creating a session.
+// Used for guest users who cannot have a StreamSession record.
+func (s *StreamSessionService) GetStationStreamURL(ctx context.Context, stationID string) (string, error) {
+	station, err := s.stationRepo.FindByID(ctx, stationID)
+	if err != nil {
+		return "", fmt.Errorf("station not found: %w", err)
+	}
+	return station.StreamURL, nil
+}
+
 // GetActiveSessions obtiene las sesiones activas de un usuario
 func (s *StreamSessionService) GetActiveSessions(
 	ctx context.Context,
