@@ -24,6 +24,8 @@ func InitializeStreamingSystem(
 	adRepo domain.AdvertisementRepository,
 	impressionRepo domain.AdImpressionRepository,
 	authMiddleware *middleware.AuthMiddleware,
+	analyticsService *services.AnalyticsService,
+	sharedSecretKey string,
 	logger *slog.Logger,
 	jwtSecret []byte,
 ) error {
@@ -59,7 +61,7 @@ func InitializeStreamingSystem(
 	logger.Info("audio proxy service created")
 
 	// Crear handlers
-	sessionHandler := handlers.NewStreamSessionHandler(sessionService, logger)
+	sessionHandler := handlers.NewStreamSessionHandler(sessionService, analyticsService, logger)
 	proxyHandler := handlers.NewAudioProxyHandler(proxyService, logger)
 	logger.Info("stream handlers created")
 
@@ -69,6 +71,7 @@ func InitializeStreamingSystem(
 		sessionHandler,
 		proxyHandler,
 		authMiddleware,
+		sharedSecretKey,
 		logger,
 	)
 
