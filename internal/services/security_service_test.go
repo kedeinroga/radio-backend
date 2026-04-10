@@ -10,8 +10,9 @@ import (
 
 // Mock SecurityRepository
 type mockSecurityRepository struct {
-	getMetricsFunc func(period string) (*domain.SecurityMetrics, error)
-	getLogsFunc    func(filter *domain.SecurityLogFilter) (*domain.SecurityLogResult, error)
+	getMetricsFunc               func(period string) (*domain.SecurityMetrics, error)
+	getLogsFunc                  func(filter *domain.SecurityLogFilter) (*domain.SecurityLogResult, error)
+	getSuspiciousSourceStatsFunc func(period string) (*domain.SuspiciousSourceStats, error)
 }
 
 func (m *mockSecurityRepository) GetMetrics(period string) (*domain.SecurityMetrics, error) {
@@ -30,6 +31,13 @@ func (m *mockSecurityRepository) GetLogs(filter *domain.SecurityLogFilter) (*dom
 
 func (m *mockSecurityRepository) LogSecurityEvent(event *domain.SecurityEvent) error {
 	return nil
+}
+
+func (m *mockSecurityRepository) GetSuspiciousSourceStats(period string) (*domain.SuspiciousSourceStats, error) {
+	if m.getSuspiciousSourceStatsFunc != nil {
+		return m.getSuspiciousSourceStatsFunc(period)
+	}
+	return &domain.SuspiciousSourceStats{Period: period}, nil
 }
 
 func TestSecurityService_GetMetrics(t *testing.T) {
@@ -262,6 +270,83 @@ func TestSecurityService_GetLogs(t *testing.T) {
 				if tt.filter.Limit > 100 && result.Limit > 100 {
 					t.Error("Limit should be capped at 100")
 				}
+			}
+		})
+	}
+}
+
+func TestSecurityService_GetSuspiciousSourceStats(t *testing.T) {
+	tests := []struct {
+		name    string
+		period  string
+		setup   func(*mockSecurityRepository)
+		wantErr bool
+	}{
+		{
+			name:   "Valid 24h period",
+			period: "24h",
+			setup: func(repo *mockSecurityRepository) {
+				repo.getSuspiciousSourceStatsFunc = func(period string) (*domain.SuspiciousSourceStats, error) {
+					return &domain.SuspiciousSourceStats{
+						Period:     period,
+						TotalCount: 10,
+						BySouce:    []domain.SourceCount{{Source: "postman", Count: 7}, {Source: "curl", Count: 3}},
+						TopIPs:     []domain.IPCount{{IP: "1.2.3.4", Count: 5, LastSeen: "2026-04-10T00:00:00Z"}},
+						TopPaths:   []domain.PathCount{{Path: "/api/v1/auth/login", Count: 8}},
+					}, nil
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name:   "Valid 7d period",
+			period: "7d",
+			setup: func(repo *mockSecurityRepository) {
+				repo.getSuspiciousSourceStatsFunc = func(period string) (*domain.SuspiciousSourceStats, error) {
+					return &domain.SuspiciousSourceStats{Period: period, TotalCount: 0}, nil
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name:   "Valid 30d period",
+			period: "30d",
+			setup: func(repo *mockSecurityRepository) {
+				repo.getSuspiciousSourceStatsFunc = func(period string) (*domain.SuspiciousSourceStats, error) {
+					return &domain.SuspiciousSourceStats{Period: period, TotalCount: 0}, nil
+				}
+			},
+			wantErr: false,
+		},
+		{
+			name:    "Invalid period",
+			period:  "90d",
+			setup:   func(repo *mockSecurityRepository) {},
+			wantErr: true,
+		},
+		{
+			name:    "Empty period",
+			period:  "",
+			setup:   func(repo *mockSecurityRepository) {},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := &mockSecurityRepository{}
+			tt.setup(repo)
+
+			service := NewSecurityService(repo)
+			stats, err := service.GetSuspiciousSourceStats(tt.period)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetSuspiciousSourceStats() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && stats == nil {
+				t.Error("GetSuspiciousSourceStats() returned nil stats when no error expected")
 			}
 		})
 	}

@@ -1404,6 +1404,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/security/suspicious-sources": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns count breakdowns by source type, top IPs, and top targeted paths for non-browser requests to sensitive endpoints.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get suspicious request source stats",
+                "parameters": [
+                    {
+                        "enum": [
+                            "24h",
+                            "7d",
+                            "30d"
+                        ],
+                        "type": "string",
+                        "default": "24h",
+                        "description": "Time period",
+                        "name": "period",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SuspiciousSourceStatsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/ads": {
             "post": {
                 "security": [
@@ -4780,6 +4846,23 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.IPCountItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 17
+                },
+                "ip": {
+                    "type": "string",
+                    "example": "203.0.113.5"
+                },
+                "last_seen": {
+                    "type": "string",
+                    "example": "2026-04-10T15:04:05Z"
+                }
+            }
+        },
         "internal_handlers.Location": {
             "type": "object",
             "properties": {
@@ -4842,6 +4925,19 @@ const docTemplate = `{
                 "token_type": {
                     "type": "string",
                     "example": "Bearer"
+                }
+            }
+        },
+        "internal_handlers.PathCountItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 30
+                },
+                "path": {
+                    "type": "string",
+                    "example": "/api/v1/auth/login"
                 }
             }
         },
@@ -5130,6 +5226,19 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.SourceCountItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 42
+                },
+                "source": {
+                    "type": "string",
+                    "example": "postman"
+                }
+            }
+        },
         "internal_handlers.StartSessionRequest": {
             "type": "object",
             "required": [
@@ -5267,6 +5376,35 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Operation completed successfully"
+                }
+            }
+        },
+        "internal_handlers.SuspiciousSourceStatsResponse": {
+            "type": "object",
+            "properties": {
+                "by_source": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.SourceCountItem"
+                    }
+                },
+                "period": {
+                    "type": "string"
+                },
+                "top_ips": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.IPCountItem"
+                    }
+                },
+                "top_paths": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.PathCountItem"
+                    }
+                },
+                "total_count": {
+                    "type": "integer"
                 }
             }
         },
