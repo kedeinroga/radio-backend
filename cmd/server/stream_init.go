@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -31,10 +30,8 @@ func InitializeStreamingSystem(
 ) error {
 	logger.Info("initializing streaming system...")
 
-	// Validar JWT secret
 	if len(jwtSecret) == 0 {
-		logger.Warn("JWT secret not configured, streaming system disabled")
-		return fmt.Errorf("JWT secret required for streaming")
+		logger.Warn("JWT secret not configured — authenticated stream sessions will fail, guest streaming still works")
 	}
 
 	// Crear repositorio de sesiones de streaming

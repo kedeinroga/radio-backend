@@ -297,7 +297,7 @@ func main() {
 		analyticsService,
 		cfg.Security.APISecretKey,
 		adLogger,
-		[]byte(cfg.JWT.Secret), // JWT secret para stream tokens
+		[]byte(cfg.Security.APISecretKey), // JWT secret para stream tokens (reutiliza API_SECRET_KEY)
 	); err != nil {
 		adLogger.Error("Failed to initialize streaming system", "error", err)
 		log.Printf("Warning: Streaming system could not be initialized: %v", err)
@@ -310,7 +310,7 @@ func main() {
 			radioBrowserRepo,
 			adRepo,
 			impressionRepo,
-			[]byte(cfg.JWT.Secret),
+			[]byte(cfg.Security.APISecretKey),
 			5*time.Minute,
 			adLogger,
 		)
