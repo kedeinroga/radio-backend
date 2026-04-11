@@ -205,6 +205,7 @@ func main() {
 	rateLimiter := middleware.NewRateLimiter(cfg.Security.RateLimitReqs)             // General: 100 req/min
 	authRateLimiter := middleware.NewRateLimiter(10)                                 // Auth: 10 req/min (más estricto)
 	emailRateLimiter := middleware.NewEmailRateLimiter(redisClient, 10, 1*time.Hour) // Email: 10 attempts per hour
+	guestIPRateLimiter := middleware.NewGuestIPRateLimiter(redisClient)               // Guest per-IP: 100 req/hour (disabled by default, Redis-backed)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService, emailRateLimiter) // Pass email rate limiter
@@ -213,9 +214,10 @@ func main() {
 	favoriteHandler := handlers.NewFavoriteHandler(favoriteService)
 	seoHandler := handlers.NewSEOHandler(seoService)                         // NUEVO: Handler SEO
 	translationHandler := handlers.NewTranslationHandler(translationService) // NUEVO: Handler de traducciones
-	securityHandler := handlers.NewSecurityHandler(securityService)          // NUEVO: Handler de seguridad
-	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService) // NUEVO: Handler de mantenimiento
-	monitoringHandler := handlers.NewMonitoringHandler(monitoringService)    // NUEVO: Handler de monitoring
+	securityHandler := handlers.NewSecurityHandler(securityService)                    // NUEVO: Handler de seguridad
+	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService)           // NUEVO: Handler de mantenimiento
+	monitoringHandler := handlers.NewMonitoringHandler(monitoringService)              // NUEVO: Handler de monitoring
+	guestRateLimitHandler := handlers.NewGuestRateLimitHandler(guestIPRateLimiter)    // Guest rate-limit toggle
 
 	// Setup router
 	if cfg.Security.APISecretKey == "" {
@@ -227,6 +229,7 @@ func main() {
 		corsMiddleware,
 		rateLimiter,               // NUEVO: Rate limiter general
 		authRateLimiter,           // NUEVO: Rate limiter para auth
+		guestIPRateLimiter,        // Guest per-IP rate limiter (toggleable)
 		cfg.IsProduction(),        // NUEVO: Flag de producción
 		cfg.Security.APISecretKey, // NUEVO: Shared secret for bot protection
 		fingerprintMiddleware,     // NUEVO: Request source classifier
@@ -234,11 +237,12 @@ func main() {
 		stationHandler,
 		analyticsHandler,
 		favoriteHandler,
-		seoHandler,         // NUEVO: Inyectar SEO handler
-		translationHandler, // NUEVO: Inyectar Translation handler
-		securityHandler,    // NUEVO: Inyectar Security handler
-		maintenanceHandler, // NUEVO: Inyectar Maintenance handler
-		monitoringHandler,  // NUEVO: Inyectar Monitoring handler
+		seoHandler,             // NUEVO: Inyectar SEO handler
+		translationHandler,     // NUEVO: Inyectar Translation handler
+		securityHandler,        // NUEVO: Inyectar Security handler
+		maintenanceHandler,     // NUEVO: Inyectar Maintenance handler
+		monitoringHandler,      // NUEVO: Inyectar Monitoring handler
+		guestRateLimitHandler,  // Guest rate-limit toggle handler
 	)
 	engine := router.Setup()
 

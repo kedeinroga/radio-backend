@@ -1570,6 +1570,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/security/guest-rate-limit": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns whether the per-guest-IP rate limiter is currently enabled and the configured limit.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Get guest IP rate limit status",
+                "responses": {
+                    "200": {
+                        "description": "Current status\" example({\"success\":true,\"data\":{\"enabled\":false,\"limit_per_hour\":100}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/security/guest-rate-limit/toggle": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Enables the limiter if it is currently disabled, and vice versa. Returns the new state.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Security"
+                ],
+                "summary": "Toggle guest IP rate limiter",
+                "responses": {
+                    "200": {
+                        "description": "New state\" example({\"success\":true,\"data\":{\"enabled\":true,\"limit_per_hour\":100}})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/security/logs": {
             "get": {
                 "security": [

@@ -19,22 +19,24 @@ type Router struct {
 	authMiddleware               *middleware.AuthMiddleware
 	analyticsMiddleware          *middleware.AnalyticsMiddleware
 	corsMiddleware               gin.HandlerFunc
-	rateLimiter                  *middleware.RateLimiter // NUEVO: Rate limiter
-	authRateLimiter              *middleware.RateLimiter // NUEVO: Rate limiter estricto para auth
-	isProduction                 bool                    // NUEVO: Flag para producción
-	sharedSecretKey              string                  // NUEVO: Shared secret for bot protection
-	requestFingerprintMiddleware gin.HandlerFunc         // NUEVO: Request source classifier
+	rateLimiter                  *middleware.RateLimiter     // NUEVO: Rate limiter
+	authRateLimiter              *middleware.RateLimiter     // NUEVO: Rate limiter estricto para auth
+	guestIPRateLimiter           *middleware.GuestIPRateLimiter // Guest per-IP rate limiter (toggleable)
+	isProduction                 bool                        // NUEVO: Flag para producción
+	sharedSecretKey              string                      // NUEVO: Shared secret for bot protection
+	requestFingerprintMiddleware gin.HandlerFunc             // NUEVO: Request source classifier
 
 	// Handlers
-	authHandler        *handlers.AuthHandler
-	stationHandler     *handlers.StationHandler
-	analyticsHandler   *handlers.AnalyticsHandler
-	favoriteHandler    *handlers.FavoriteHandler
-	seoHandler         *handlers.SEOHandler         // NUEVO: Handler SEO
-	translationHandler *handlers.TranslationHandler // NUEVO: Handler de traducciones
-	securityHandler    *handlers.SecurityHandler    // NUEVO: Handler de seguridad
-	maintenanceHandler *handlers.MaintenanceHandler // NUEVO: Handler de mantenimiento
-	monitoringHandler  *handlers.MonitoringHandler  // NUEVO: Handler de monitoring
+	authHandler            *handlers.AuthHandler
+	stationHandler         *handlers.StationHandler
+	analyticsHandler       *handlers.AnalyticsHandler
+	favoriteHandler        *handlers.FavoriteHandler
+	seoHandler             *handlers.SEOHandler             // NUEVO: Handler SEO
+	translationHandler     *handlers.TranslationHandler     // NUEVO: Handler de traducciones
+	securityHandler        *handlers.SecurityHandler        // NUEVO: Handler de seguridad
+	maintenanceHandler     *handlers.MaintenanceHandler     // NUEVO: Handler de mantenimiento
+	monitoringHandler      *handlers.MonitoringHandler      // NUEVO: Handler de monitoring
+	guestRateLimitHandler  *handlers.GuestRateLimitHandler  // Guest rate-limit toggle handler
 }
 
 // NewRouter creates a new router
@@ -42,40 +44,44 @@ func NewRouter(
 	authMiddleware *middleware.AuthMiddleware,
 	analyticsMiddleware *middleware.AnalyticsMiddleware,
 	corsMiddleware gin.HandlerFunc,
-	rateLimiter *middleware.RateLimiter, // NUEVO
-	authRateLimiter *middleware.RateLimiter, // NUEVO
-	isProduction bool, // NUEVO
-	sharedSecretKey string, // NUEVO: bot protection
-	requestFingerprintMiddleware gin.HandlerFunc, // NUEVO: request source classifier
+	rateLimiter *middleware.RateLimiter,           // NUEVO
+	authRateLimiter *middleware.RateLimiter,        // NUEVO
+	guestIPRateLimiter *middleware.GuestIPRateLimiter, // Guest per-IP rate limiter
+	isProduction bool,                             // NUEVO
+	sharedSecretKey string,                        // NUEVO: bot protection
+	requestFingerprintMiddleware gin.HandlerFunc,  // NUEVO: request source classifier
 	authHandler *handlers.AuthHandler,
 	stationHandler *handlers.StationHandler,
 	analyticsHandler *handlers.AnalyticsHandler,
 	favoriteHandler *handlers.FavoriteHandler,
-	seoHandler *handlers.SEOHandler, // NUEVO: Handler SEO
-	translationHandler *handlers.TranslationHandler, // NUEVO: Handler de traducciones
-	securityHandler *handlers.SecurityHandler, // NUEVO: Handler de seguridad
-	maintenanceHandler *handlers.MaintenanceHandler, // NUEVO: Handler de mantenimiento
-	monitoringHandler *handlers.MonitoringHandler, // NUEVO: Handler de monitoring
+	seoHandler *handlers.SEOHandler,                         // NUEVO: Handler SEO
+	translationHandler *handlers.TranslationHandler,         // NUEVO: Handler de traducciones
+	securityHandler *handlers.SecurityHandler,               // NUEVO: Handler de seguridad
+	maintenanceHandler *handlers.MaintenanceHandler,         // NUEVO: Handler de mantenimiento
+	monitoringHandler *handlers.MonitoringHandler,           // NUEVO: Handler de monitoring
+	guestRateLimitHandler *handlers.GuestRateLimitHandler,   // Guest rate-limit toggle handler
 ) *Router {
 	return &Router{
 		engine:                       gin.New(),
 		authMiddleware:               authMiddleware,
 		analyticsMiddleware:          analyticsMiddleware,
 		corsMiddleware:               corsMiddleware,
-		rateLimiter:                  rateLimiter,                  // NUEVO
-		authRateLimiter:              authRateLimiter,              // NUEVO
-		isProduction:                 isProduction,                 // NUEVO
-		sharedSecretKey:              sharedSecretKey,              // NUEVO
-		requestFingerprintMiddleware: requestFingerprintMiddleware, // NUEVO
+		rateLimiter:                  rateLimiter,
+		authRateLimiter:              authRateLimiter,
+		guestIPRateLimiter:           guestIPRateLimiter,
+		isProduction:                 isProduction,
+		sharedSecretKey:              sharedSecretKey,
+		requestFingerprintMiddleware: requestFingerprintMiddleware,
 		authHandler:                  authHandler,
 		stationHandler:               stationHandler,
 		analyticsHandler:             analyticsHandler,
 		favoriteHandler:              favoriteHandler,
-		seoHandler:                   seoHandler,         // NUEVO
-		translationHandler:           translationHandler, // NUEVO
-		securityHandler:              securityHandler,    // NUEVO
-		maintenanceHandler:           maintenanceHandler, // NUEVO
-		monitoringHandler:            monitoringHandler,  // NUEVO
+		seoHandler:                   seoHandler,
+		translationHandler:           translationHandler,
+		securityHandler:              securityHandler,
+		maintenanceHandler:           maintenanceHandler,
+		monitoringHandler:            monitoringHandler,
+		guestRateLimitHandler:        guestRateLimitHandler,
 	}
 }
 
@@ -90,7 +96,8 @@ func (r *Router) Setup() *gin.Engine {
 	r.engine.Use(middleware.LoggingMiddleware())
 	r.engine.Use(r.requestFingerprintMiddleware) // NUEVO: Request source classifier
 	r.engine.Use(middleware.LanguageDetector())  // NUEVO: Middleware de detección de idioma
-	r.engine.Use(r.rateLimiter.Middleware())     // NUEVO: Global rate limiting
+	r.engine.Use(r.rateLimiter.Middleware())          // NUEVO: Global rate limiting
+	r.engine.Use(r.guestIPRateLimiter.Middleware())   // Guest per-IP rate limiter (toggleable)
 	r.engine.Use(r.analyticsMiddleware.Track())
 
 	// Health check
@@ -188,6 +195,8 @@ func (r *Router) Setup() *gin.Engine {
 			adminSecurity.GET("/metrics", r.securityHandler.GetMetrics)
 			adminSecurity.GET("/logs", r.securityHandler.GetLogs)
 			adminSecurity.GET("/suspicious-sources", r.securityHandler.GetSuspiciousSources)
+			adminSecurity.GET("/guest-rate-limit", r.guestRateLimitHandler.GetStatus)
+			adminSecurity.POST("/guest-rate-limit/toggle", r.guestRateLimitHandler.Toggle)
 		}
 
 		// Admin Maintenance routes

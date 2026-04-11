@@ -2375,6 +2375,64 @@ paths:
       summary: Get top performing ads
       tags:
       - Admin Analytics
+  /api/v1/admin/security/guest-rate-limit:
+    get:
+      consumes:
+      - application/json
+      description: Returns whether the per-guest-IP rate limiter is currently enabled
+        and the configured limit.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Current status" example({"success":true,"data":{"enabled":false,"limit_per_hour":100}})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get guest IP rate limit status
+      tags:
+      - Admin Security
+  /api/v1/admin/security/guest-rate-limit/toggle:
+    post:
+      consumes:
+      - application/json
+      description: Enables the limiter if it is currently disabled, and vice versa.
+        Returns the new state.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New state" example({"success":true,"data":{"enabled":true,"limit_per_hour":100}})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Toggle guest IP rate limiter
+      tags:
+      - Admin Security
   /api/v1/admin/security/logs:
     get:
       consumes:
