@@ -94,6 +94,7 @@ func (h *PremiumHandler) CreateCheckoutSession(c *gin.Context) {
 // @Tags premium
 // @Security BearerAuth
 // @Success 200 {object} PremiumStatusResponse
+// @Failure 400 {object} gin.H "Invalid user ID format"
 // @Failure 401 {object} gin.H
 // @Failure 500 {object} gin.H
 // @Router /api/v1/premium/status [get]
@@ -134,6 +135,7 @@ func (h *PremiumHandler) GetPremiumStatus(c *gin.Context) {
 // @Tags premium
 // @Security BearerAuth
 // @Success 200 {object} gin.H
+// @Failure 400 {object} gin.H "Invalid user ID format"
 // @Failure 401 {object} gin.H
 // @Failure 500 {object} gin.H
 // @Router /api/v1/premium/cancel [post]
@@ -176,6 +178,7 @@ func (h *PremiumHandler) CancelSubscription(c *gin.Context) {
 // @Tags premium
 // @Security BearerAuth
 // @Success 200 {object} CustomerPortalResponse
+// @Failure 400 {object} gin.H "Invalid user ID format"
 // @Failure 401 {object} gin.H
 // @Failure 500 {object} gin.H
 // @Router /api/v1/premium/portal [get]

@@ -1244,6 +1244,258 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/admin/analytics/campaigns": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns performance metrics (impressions, clicks, CTR, spend) for all active campaigns.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Analytics"
+                ],
+                "summary": "Get campaign performance",
+                "responses": {
+                    "200": {
+                        "description": "List of campaign performance metrics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve campaigns",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a summary of active campaigns, total budget, total spend, impressions, clicks, CTR, and budget utilization percentage.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Analytics"
+                ],
+                "summary": "Get admin dashboard overview",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard overview metrics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve dashboard data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/fraud": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns fraud detection metrics including blocked impressions, blocked clicks, and fraud score distribution.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Analytics"
+                ],
+                "summary": "Get fraud metrics",
+                "responses": {
+                    "200": {
+                        "description": "Fraud detection metrics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/revenue": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns aggregated revenue metrics (impressions, clicks, CPM, CPC, CTR) for a given date range. Defaults to the last 30 days.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Analytics"
+                ],
+                "summary": "Get revenue analytics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"2024-01-01T00:00:00Z\"",
+                        "description": "Start date (RFC3339)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-01-31T23:59:59Z\"",
+                        "description": "End date (RFC3339)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue analytics data",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.RevenueAnalyticsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid date format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/admin/analytics/top-ads": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the top performing advertisements ranked by the specified metric (impressions, clicks, ctr, revenue).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin Analytics"
+                ],
+                "summary": "Get top performing ads",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "impressions",
+                        "description": "Ranking metric: impressions | clicks | ctr | revenue",
+                        "name": "metric",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Top ads list with the applied metric",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid metric value",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/security/logs": {
             "get": {
                 "security": [
@@ -1812,15 +2064,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Advertisement not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -1883,15 +2126,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Advertisement not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -1899,6 +2133,223 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/advertiser/ads/{ad_id}/clicks": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of clicks for the specified advertisement (default limit: 100).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Get clicks by advertisement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "ad_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of clicks with count",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/advertiser/ads/{ad_id}/clicks/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns click statistics for an advertisement since a given timestamp (defaults to last 24 hours).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Get click statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "ad_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-01-15T00:00:00Z\"",
+                        "description": "Start timestamp (RFC3339). Defaults to 24 hours ago.",
+                        "name": "since",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Click statistics",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID or since date format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/advertiser/ads/{ad_id}/impressions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a list of impressions for the specified advertisement. Accepts optional limit query parameter (default: 100).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Get impressions by advertisement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "ad_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Maximum number of records to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of impressions with count and applied limit",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/advertiser/ads/{ad_id}/viewable": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the number of viewable impressions for an advertisement since a given timestamp (defaults to last 24 hours).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Count viewable impressions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Advertisement ID (UUID)",
+                        "name": "ad_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-01-15T00:00:00Z\"",
+                        "description": "Start timestamp (RFC3339). Defaults to 24 hours ago.",
+                        "name": "since",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Viewable impression count with advertisement_id and since timestamp",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid advertisement ID or since date format",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -2335,15 +2786,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Campaign not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -2405,15 +2847,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Campaign not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -2468,15 +2901,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Campaign not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2546,15 +2970,6 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "404": {
-                        "description": "Campaign not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
@@ -2581,6 +2996,12 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID format",
                         "schema": {
                             "$ref": "#/definitions/gin.H"
                         }
@@ -2668,6 +3089,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.CustomerPortalResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -2701,6 +3128,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.PremiumStatusResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -2711,6 +3144,225 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/gin.H"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/clicks": {
+            "post": {
+                "description": "Records an ad click event. Returns 403 for suspicious clicks and 400 for invalid click data.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Track ad click",
+                "parameters": [
+                    {
+                        "description": "Click data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.TrackClickRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Click recorded with click_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body, UUID fields, or click data",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Suspicious click detected",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/clicks/{click_id}/conversion": {
+            "post": {
+                "description": "Records a conversion event associated with a previously tracked click.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Track click conversion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Click ID (UUID)",
+                        "name": "click_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Conversion data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.TrackConversionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversion recorded with click_id and conversion_value_cents",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid click ID or request body",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/impressions": {
+            "post": {
+                "description": "Records an ad impression event. Returns 403 for suspicious activity and 429 when the frequency cap is exceeded.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Track ad impression",
+                "parameters": [
+                    {
+                        "description": "Impression data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.TrackImpressionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Impression recorded with impression_id and impression_token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or UUID fields",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Suspicious activity detected",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "429": {
+                        "description": "Frequency cap exceeded",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/tracking/impressions/validate": {
+            "get": {
+                "description": "Validates an impression token and returns the associated advertisement ID and session ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Ad Tracking"
+                ],
+                "summary": "Validate impression token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Impression token to validate",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token is valid with advertisement_id and session_id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Token query parameter is required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or expired token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -2759,15 +3411,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Profile not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -3509,12 +4152,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Session not found or not owned by user",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Failed to delete session",
                         "schema": {
@@ -3726,6 +4363,13 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Favorite removed successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Station ID is required",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -4122,6 +4766,13 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.StationDetailResponse"
                         }
                     },
+                    "400": {
+                        "description": "Station ID is required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized – missing or invalid X-Rradio-Secret",
                         "schema": {
@@ -4137,7 +4788,7 @@ const docTemplate = `{
                         }
                     },
                     "404": {
-                        "description": "Station not found",
+                        "description": "Station not found or has no stream",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -4198,12 +4849,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -4286,6 +4931,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.ActiveSessionsResponse"
                         }
                     },
+                    "400": {
+                        "description": "Invalid user ID format",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -4342,6 +4993,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Station not found (guest flow)",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -4428,12 +5085,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
-                        }
-                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -4516,7 +5167,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid body, missing/invalid signature, or unparseable event",
+                        "schema": {
+                            "$ref": "#/definitions/gin.H"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to process checkout, subscription update, or deletion",
                         "schema": {
                             "$ref": "#/definitions/gin.H"
                         }
@@ -5007,6 +5664,35 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.RevenueAnalyticsResponse": {
+            "type": "object",
+            "properties": {
+                "average_cpc_cents": {
+                    "type": "number"
+                },
+                "average_cpm_cents": {
+                    "type": "number"
+                },
+                "ctr": {
+                    "type": "number"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "total_clicks": {
+                    "type": "integer"
+                },
+                "total_impressions": {
+                    "type": "integer"
+                },
+                "total_revenue_cents": {
+                    "type": "integer"
+                }
+            }
+        },
         "internal_handlers.RevokeTokenRequest": {
             "type": "object",
             "properties": {
@@ -5402,6 +6088,94 @@ const docTemplate = `{
                 },
                 "total_count": {
                     "type": "integer"
+                }
+            }
+        },
+        "internal_handlers.TrackClickRequest": {
+            "type": "object",
+            "required": [
+                "advertisement_id",
+                "impression_id",
+                "ip_address",
+                "user_agent"
+            ],
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "click_position": {
+                    "type": "string"
+                },
+                "impression_id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "referrer": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.TrackConversionRequest": {
+            "type": "object",
+            "required": [
+                "conversion_value_cents"
+            ],
+            "properties": {
+                "conversion_value_cents": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        "internal_handlers.TrackImpressionRequest": {
+            "type": "object",
+            "required": [
+                "advertisement_id",
+                "device_type",
+                "ip_address",
+                "session_id",
+                "user_agent"
+            ],
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "country_code": {
+                    "type": "string"
+                },
+                "device_type": {
+                    "type": "string",
+                    "enum": [
+                        "mobile",
+                        "tablet",
+                        "desktop"
+                    ]
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },

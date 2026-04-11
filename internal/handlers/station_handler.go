@@ -64,9 +64,10 @@ type StationListResponse struct {
 // @Param id path string true "Station ID"
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationDetailResponse "Station detail with SEO metadata"
+// @Failure 400 {object} map[string]interface{} "Station ID is required"
 // @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
-// @Failure 404 {object} map[string]interface{} "Station not found"
 // @Failure 403 {object} map[string]interface{} "Access denied - Premium only station"
+// @Failure 404 {object} map[string]interface{} "Station not found or has no stream"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
 // @Router /stations/{id} [get]

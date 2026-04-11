@@ -286,7 +286,6 @@ func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 // @Success 204 "Advertisement deleted successfully (no content)"
 // @Failure 400 {object} map[string]string "Invalid advertisement ID format"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Advertisement not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/ads/{id} [delete]
 func (h *AdvertisementHandler) DeleteAdvertisement(c *gin.Context) {
@@ -384,7 +383,6 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Advertisement statistics with impressions, clicks, CTR, spend, and budget info"
 // @Failure 400 {object} map[string]string "Invalid advertisement ID format"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Advertisement not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/ads/{id}/stats [get]
 func (h *AdvertisementHandler) GetAdvertisementStats(c *gin.Context) {

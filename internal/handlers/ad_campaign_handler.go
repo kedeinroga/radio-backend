@@ -225,7 +225,6 @@ func (h *AdCampaignHandler) UpdateCampaign(c *gin.Context) {
 // @Success 204 "Campaign deleted successfully (no content)"
 // @Failure 400 {object} map[string]string "Invalid campaign ID format"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Campaign not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id} [delete]
 func (h *AdCampaignHandler) DeleteCampaign(c *gin.Context) {
@@ -253,7 +252,6 @@ func (h *AdCampaignHandler) DeleteCampaign(c *gin.Context) {
 // @Success 200 {object} domain.AdCampaign "Campaign paused successfully"
 // @Failure 400 {object} map[string]string "Invalid campaign ID or campaign cannot be paused"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Campaign not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id}/pause [post]
 func (h *AdCampaignHandler) PauseCampaign(c *gin.Context) {
@@ -282,7 +280,6 @@ func (h *AdCampaignHandler) PauseCampaign(c *gin.Context) {
 // @Success 200 {object} domain.AdCampaign "Campaign resumed successfully"
 // @Failure 400 {object} map[string]string "Invalid campaign ID or campaign cannot be resumed"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Campaign not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id}/resume [post]
 func (h *AdCampaignHandler) ResumeCampaign(c *gin.Context) {
@@ -311,7 +308,6 @@ func (h *AdCampaignHandler) ResumeCampaign(c *gin.Context) {
 // @Success 200 {object} map[string]interface{} "Campaign statistics"
 // @Failure 400 {object} map[string]string "Invalid campaign ID format"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Campaign not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/campaigns/{id}/stats [get]
 func (h *AdCampaignHandler) GetCampaignStats(c *gin.Context) {

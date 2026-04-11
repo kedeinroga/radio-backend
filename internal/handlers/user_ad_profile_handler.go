@@ -50,7 +50,6 @@ type ActivatePremiumRequest struct {
 // @Success 200 {object} map[string]interface{} "User advertising profile"
 // @Failure 400 {object} map[string]string "Invalid user ID format"
 // @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Profile not found"
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile [get]
 func (h *UserAdProfileHandler) GetUserAdProfile(c *gin.Context) {

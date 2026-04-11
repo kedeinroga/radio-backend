@@ -394,19 +394,7 @@ func (h *AuthHandler) ValidateToken(c *gin.Context) {
 
 	response, err := h.authService.ValidateToken(token, req.IncludeMetadata)
 	if err != nil {
-		reason := "invalid"
-		if err == domain.ErrInvalidToken {
-			reason = "invalid"
-		}
 		RespondWithError(c, http.StatusUnauthorized, "invalid_token", "Token is invalid, expired or revoked")
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"error": gin.H{
-				"code":    "invalid_token",
-				"message": "Token is invalid, expired or revoked",
-				"reason":  reason,
-			},
-		})
 		return
 	}
 
@@ -570,7 +558,6 @@ func (h *AuthHandler) GetSessions(c *gin.Context) {
 // @Success 200 {object} SuccessResponse "Session terminated successfully"
 // @Failure 400 {object} ErrorResponse "Invalid or missing session ID"
 // @Failure 401 {object} ErrorResponse "User not authenticated"
-// @Failure 404 {object} ErrorResponse "Session not found or not owned by user"
 // @Failure 500 {object} ErrorResponse "Failed to delete session"
 // @Router /auth/sessions/{sessionId} [delete]
 func (h *AuthHandler) DeleteSession(c *gin.Context) {
