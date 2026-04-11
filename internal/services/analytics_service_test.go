@@ -56,6 +56,11 @@ func (m *MockAnalyticsRepository) CountGuestUsers(from time.Time) (int64, error)
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockAnalyticsRepository) GetGuestDetails(from time.Time, limit int) ([]domain.GuestDetail, error) {
+	args := m.Called(from, limit)
+	return args.Get(0).([]domain.GuestDetail), args.Error(1)
+}
+
 type MockAnalyticsCache struct {
 	mock.Mock
 }
