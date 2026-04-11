@@ -142,7 +142,7 @@ func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {
 // @Security BearerAuth
 // @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
 // @Param limit query int false "Maximum number of IPs to return" default(50) minimum(1) maximum(500)
-// @Success 200 {object} map[string]interface{} "Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":7,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z"}]})
+// @Success 200 {object} map[string]interface{} "Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":3,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z","endpoints":[{"method":"GET","path":"/api/v1/stations/search","count":25},{"method":"GET","path":"/api/v1/stations/abc123","count":15},{"method":"POST","path":"/api/v1/stream/start","count":2}]}]})
 // @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
 // @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
 // @Failure 500 {object} map[string]interface{} "Internal server error"

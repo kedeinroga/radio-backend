@@ -2180,7 +2180,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":7,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z"}]})
+          description: Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":3,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z","endpoints":[{"method":"GET","path":"/api/v1/stations/search","count":25},{"method":"GET","path":"/api/v1/stations/abc123","count":15},{"method":"POST","path":"/api/v1/stream/start","count":2}]}]})
           schema:
             additionalProperties: true
             type: object

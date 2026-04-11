@@ -37,14 +37,22 @@ type SearchQuery struct {
 	CreatedAt    time.Time
 }
 
+// GuestEndpointStat represents how many times a guest IP called a specific endpoint
+type GuestEndpointStat struct {
+	Method string `json:"method"`
+	Path   string `json:"path"`
+	Count  int64  `json:"count"`
+}
+
 // GuestDetail represents aggregated request details for a single guest IP
 type GuestDetail struct {
-	IPAddress       string    `json:"ip_address"`
-	TotalRequests   int64     `json:"total_requests"`
-	UniqueEndpoints int64     `json:"unique_endpoints"`
-	UserAgent       string    `json:"user_agent"`
-	FirstSeen       time.Time `json:"first_seen"`
-	LastSeen        time.Time `json:"last_seen"`
+	IPAddress       string              `json:"ip_address"`
+	TotalRequests   int64               `json:"total_requests"`
+	UniqueEndpoints int64               `json:"unique_endpoints"`
+	UserAgent       string              `json:"user_agent"`
+	FirstSeen       time.Time           `json:"first_seen"`
+	LastSeen        time.Time           `json:"last_seen"`
+	Endpoints       []GuestEndpointStat `json:"endpoints"`
 }
 
 // AnalyticsRepository defines the interface for analytics data access
