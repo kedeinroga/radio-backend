@@ -334,6 +334,25 @@ definitions:
     - email
     - password
     type: object
+  internal_handlers.RevenueAnalyticsResponse:
+    properties:
+      average_cpc_cents:
+        type: number
+      average_cpm_cents:
+        type: number
+      ctr:
+        type: number
+      from:
+        type: string
+      to:
+        type: string
+      total_clicks:
+        type: integer
+      total_impressions:
+        type: integer
+      total_revenue_cents:
+        type: integer
+    type: object
   internal_handlers.RevokeTokenRequest:
     properties:
       revoke_all:
@@ -610,6 +629,67 @@ definitions:
         type: array
       total_count:
         type: integer
+    type: object
+  internal_handlers.TrackClickRequest:
+    properties:
+      advertisement_id:
+        type: string
+      click_position:
+        type: string
+      impression_id:
+        type: string
+      ip_address:
+        type: string
+      referrer:
+        type: string
+      user_agent:
+        type: string
+      user_id:
+        type: string
+    required:
+    - advertisement_id
+    - impression_id
+    - ip_address
+    - user_agent
+    type: object
+  internal_handlers.TrackConversionRequest:
+    properties:
+      conversion_value_cents:
+        minimum: 0
+        type: integer
+    required:
+    - conversion_value_cents
+    type: object
+  internal_handlers.TrackImpressionRequest:
+    properties:
+      advertisement_id:
+        type: string
+      city:
+        type: string
+      country_code:
+        type: string
+      device_type:
+        enum:
+        - mobile
+        - tablet
+        - desktop
+        type: string
+      ip_address:
+        type: string
+      session_id:
+        type: string
+      station_id:
+        type: string
+      user_agent:
+        type: string
+      user_id:
+        type: string
+    required:
+    - advertisement_id
+    - device_type
+    - ip_address
+    - session_id
+    - user_agent
     type: object
   internal_handlers.UpdateAdvertisementRequest:
     properties:
@@ -2071,6 +2151,230 @@ paths:
       summary: Active guest users
       tags:
       - Analytics
+  /analytics/users/guest/details:
+    get:
+      consumes:
+      - application/json
+      description: Returns request details for each guest (unauthenticated) IP address
+        in the given time range, ordered by total requests descending. Useful for
+        understanding guest behavior patterns.
+      parameters:
+      - default: day
+        description: 'Time range: hour, day, week, month'
+        enum:
+        - hour
+        - day
+        - week
+        - month
+        in: query
+        name: range
+        type: string
+      - default: 50
+        description: Maximum number of IPs to return
+        in: query
+        maximum: 500
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":3,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z","endpoints":[{"method":"GET","path":"/api/v1/stations/search","count":25},{"method":"GET","path":"/api/v1/stations/abc123","count":15},{"method":"POST","path":"/api/v1/stream/start","count":2}]}]})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Guest users details
+      tags:
+      - Analytics
+  /api/v1/admin/analytics/campaigns:
+    get:
+      description: Returns performance metrics (impressions, clicks, CTR, spend) for
+        all active campaigns.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of campaign performance metrics
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to retrieve campaigns
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get campaign performance
+      tags:
+      - Admin Analytics
+  /api/v1/admin/analytics/dashboard:
+    get:
+      description: Returns a summary of active campaigns, total budget, total spend,
+        impressions, clicks, CTR, and budget utilization percentage.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dashboard overview metrics
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to retrieve dashboard data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get admin dashboard overview
+      tags:
+      - Admin Analytics
+  /api/v1/admin/analytics/fraud:
+    get:
+      description: Returns fraud detection metrics including blocked impressions,
+        blocked clicks, and fraud score distribution.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Fraud detection metrics
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get fraud metrics
+      tags:
+      - Admin Analytics
+  /api/v1/admin/analytics/revenue:
+    get:
+      description: Returns aggregated revenue metrics (impressions, clicks, CPM, CPC,
+        CTR) for a given date range. Defaults to the last 30 days.
+      parameters:
+      - description: Start date (RFC3339)
+        example: '"2024-01-01T00:00:00Z"'
+        in: query
+        name: from
+        type: string
+      - description: End date (RFC3339)
+        example: '"2024-01-31T23:59:59Z"'
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Revenue analytics data
+          schema:
+            $ref: '#/definitions/internal_handlers.RevenueAnalyticsResponse'
+        "400":
+          description: Invalid date format
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get revenue analytics
+      tags:
+      - Admin Analytics
+  /api/v1/admin/analytics/top-ads:
+    get:
+      description: Returns the top performing advertisements ranked by the specified
+        metric (impressions, clicks, ctr, revenue).
+      parameters:
+      - default: impressions
+        description: 'Ranking metric: impressions | clicks | ctr | revenue'
+        in: query
+        name: metric
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Top ads list with the applied metric
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid metric value
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Admin access required
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get top performing ads
+      tags:
+      - Admin Analytics
   /api/v1/admin/security/logs:
     get:
       consumes:
@@ -2296,12 +2600,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Advertisement not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal server error
           schema:
@@ -2444,12 +2742,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Advertisement not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal server error
           schema:
@@ -2520,6 +2812,153 @@ paths:
       summary: Get eligible advertisements for user
       tags:
       - Advertisements
+  /api/v1/advertiser/ads/{ad_id}/clicks:
+    get:
+      description: 'Returns a list of clicks for the specified advertisement (default
+        limit: 100).'
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: ad_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of clicks with count
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid advertisement ID format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get clicks by advertisement
+      tags:
+      - Ad Tracking
+  /api/v1/advertiser/ads/{ad_id}/clicks/stats:
+    get:
+      description: Returns click statistics for an advertisement since a given timestamp
+        (defaults to last 24 hours).
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: ad_id
+        required: true
+        type: string
+      - description: Start timestamp (RFC3339). Defaults to 24 hours ago.
+        example: '"2024-01-15T00:00:00Z"'
+        in: query
+        name: since
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Click statistics
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid advertisement ID or since date format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get click statistics
+      tags:
+      - Ad Tracking
+  /api/v1/advertiser/ads/{ad_id}/impressions:
+    get:
+      description: 'Returns a list of impressions for the specified advertisement.
+        Accepts optional limit query parameter (default: 100).'
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: ad_id
+        required: true
+        type: string
+      - default: 100
+        description: Maximum number of records to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of impressions with count and applied limit
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid advertisement ID format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get impressions by advertisement
+      tags:
+      - Ad Tracking
+  /api/v1/advertiser/ads/{ad_id}/viewable:
+    get:
+      description: Returns the number of viewable impressions for an advertisement
+        since a given timestamp (defaults to last 24 hours).
+      parameters:
+      - description: Advertisement ID (UUID)
+        in: path
+        name: ad_id
+        required: true
+        type: string
+      - description: Start timestamp (RFC3339). Defaults to 24 hours ago.
+        example: '"2024-01-15T00:00:00Z"'
+        in: query
+        name: since
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Viewable impression count with advertisement_id and since timestamp
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid advertisement ID or since date format
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Count viewable impressions
+      tags:
+      - Ad Tracking
   /api/v1/advertisers/{advertiser_id}/campaigns:
     get:
       description: Retrieves all advertising campaigns belonging to a specific advertiser.
@@ -2675,12 +3114,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Campaign not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal server error
           schema:
@@ -2820,12 +3253,6 @@ paths:
             additionalProperties:
               type: string
             type: object
-        "404":
-          description: Campaign not found
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal server error
           schema:
@@ -2863,12 +3290,6 @@ paths:
             type: object
         "401":
           description: Unauthorized - JWT token required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Campaign not found
           schema:
             additionalProperties:
               type: string
@@ -2911,12 +3332,6 @@ paths:
             type: object
         "401":
           description: Unauthorized - JWT token required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Campaign not found
           schema:
             additionalProperties:
               type: string
@@ -2967,6 +3382,10 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            $ref: '#/definitions/gin.H'
+        "400":
+          description: Invalid user ID format
           schema:
             $ref: '#/definitions/gin.H'
         "401":
@@ -3020,6 +3439,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_handlers.CustomerPortalResponse'
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/gin.H'
         "401":
           description: Unauthorized
           schema:
@@ -3040,6 +3463,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_handlers.PremiumStatusResponse'
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/gin.H'
         "401":
           description: Unauthorized
           schema:
@@ -3053,6 +3480,159 @@ paths:
       summary: Get premium status
       tags:
       - premium
+  /api/v1/tracking/clicks:
+    post:
+      consumes:
+      - application/json
+      description: Records an ad click event. Returns 403 for suspicious clicks and
+        400 for invalid click data.
+      parameters:
+      - description: Click data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.TrackClickRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Click recorded with click_id
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body, UUID fields, or click data
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Suspicious click detected
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Track ad click
+      tags:
+      - Ad Tracking
+  /api/v1/tracking/clicks/{click_id}/conversion:
+    post:
+      consumes:
+      - application/json
+      description: Records a conversion event associated with a previously tracked
+        click.
+      parameters:
+      - description: Click ID (UUID)
+        in: path
+        name: click_id
+        required: true
+        type: string
+      - description: Conversion data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.TrackConversionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversion recorded with click_id and conversion_value_cents
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid click ID or request body
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Track click conversion
+      tags:
+      - Ad Tracking
+  /api/v1/tracking/impressions:
+    post:
+      consumes:
+      - application/json
+      description: Records an ad impression event. Returns 403 for suspicious activity
+        and 429 when the frequency cap is exceeded.
+      parameters:
+      - description: Impression data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.TrackImpressionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Impression recorded with impression_id and impression_token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body or UUID fields
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Suspicious activity detected
+          schema:
+            additionalProperties: true
+            type: object
+        "429":
+          description: Frequency cap exceeded
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Track ad impression
+      tags:
+      - Ad Tracking
+  /api/v1/tracking/impressions/validate:
+    get:
+      description: Validates an impression token and returns the associated advertisement
+        ID and session ID.
+      parameters:
+      - description: Impression token to validate
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token is valid with advertisement_id and session_id
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Token query parameter is required
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or expired token
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Validate impression token
+      tags:
+      - Ad Tracking
   /api/v1/users/{user_id}/ad-profile:
     get:
       description: Retrieves the user's advertising profile including premium status,
@@ -3079,12 +3659,6 @@ paths:
             type: object
         "401":
           description: Unauthorized - JWT token required
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "404":
-          description: Profile not found
           schema:
             additionalProperties:
               type: string
@@ -3619,10 +4193,6 @@ paths:
           description: User not authenticated
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
-        "404":
-          description: Session not found or not owned by user
-          schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Failed to delete session
           schema:
@@ -3763,6 +4333,11 @@ paths:
       responses:
         "200":
           description: Favorite removed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Station ID is required
           schema:
             additionalProperties: true
             type: object
@@ -3922,6 +4497,11 @@ paths:
           description: Station detail with SEO metadata
           schema:
             $ref: '#/definitions/internal_handlers.StationDetailResponse'
+        "400":
+          description: Station ID is required
+          schema:
+            additionalProperties: true
+            type: object
         "401":
           description: Unauthorized – missing or invalid X-Rradio-Secret
           schema:
@@ -3933,7 +4513,7 @@ paths:
             additionalProperties: true
             type: object
         "404":
-          description: Station not found
+          description: Station not found or has no stream
           schema:
             additionalProperties: true
             type: object
@@ -4088,10 +4668,6 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -4143,6 +4719,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/internal_handlers.ActiveSessionsResponse'
+        "400":
+          description: Invalid user ID format
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
@@ -4178,6 +4758,10 @@ paths:
             $ref: '#/definitions/internal_handlers.StartSessionResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "404":
+          description: Station not found (guest flow)
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
@@ -4231,10 +4815,6 @@ paths:
             $ref: '#/definitions/internal_handlers.SuccessResponse'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
@@ -4296,7 +4876,11 @@ paths:
           schema:
             $ref: '#/definitions/gin.H'
         "400":
-          description: Bad Request
+          description: Invalid body, missing/invalid signature, or unparseable event
+          schema:
+            $ref: '#/definitions/gin.H'
+        "500":
+          description: Failed to process checkout, subscription update, or deletion
           schema:
             $ref: '#/definitions/gin.H'
       summary: Handle Stripe webhook

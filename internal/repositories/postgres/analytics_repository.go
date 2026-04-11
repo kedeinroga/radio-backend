@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -185,6 +186,96 @@ func (r *AnalyticsRepository) CountGuestUsers(from time.Time) (int64, error) {
 	}
 
 	return count, nil
+}
+
+// GetGuestDetails returns request details grouped by IP for guest users since the given time,
+// including a breakdown of each endpoint called and how many times.
+func (r *AnalyticsRepository) GetGuestDetails(from time.Time, limit int) ([]domain.GuestDetail, error) {
+	query := `
+		WITH ip_stats AS (
+			SELECT
+				ip_address,
+				COUNT(*) AS total_requests,
+				COUNT(DISTINCT path) AS unique_endpoints,
+				MAX(user_agent) AS user_agent,
+				MIN(created_at) AS first_seen,
+				MAX(created_at) AS last_seen
+			FROM request_logs
+			WHERE user_type = 'guest'
+			AND ip_address IS NOT NULL
+			AND created_at >= $1
+			GROUP BY ip_address
+			ORDER BY total_requests DESC
+			LIMIT $2
+		),
+		endpoint_stats AS (
+			SELECT
+				rl.ip_address,
+				rl.method,
+				rl.path,
+				COUNT(*) AS count
+			FROM request_logs rl
+			INNER JOIN ip_stats i ON rl.ip_address = i.ip_address
+			WHERE rl.user_type = 'guest'
+			AND rl.ip_address IS NOT NULL
+			AND rl.created_at >= $1
+			GROUP BY rl.ip_address, rl.method, rl.path
+		)
+		SELECT
+			i.ip_address,
+			i.total_requests,
+			i.unique_endpoints,
+			i.user_agent,
+			i.first_seen,
+			i.last_seen,
+			json_agg(
+				json_build_object('method', e.method, 'path', e.path, 'count', e.count)
+				ORDER BY e.count DESC
+			) AS endpoints
+		FROM ip_stats i
+		LEFT JOIN endpoint_stats e ON i.ip_address = e.ip_address
+		GROUP BY i.ip_address, i.total_requests, i.unique_endpoints, i.user_agent, i.first_seen, i.last_seen
+		ORDER BY i.total_requests DESC
+	`
+
+	rows, err := r.db.DB.Query(query, from, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get guest details: %w", err)
+	}
+	defer rows.Close()
+
+	var details []domain.GuestDetail
+	for rows.Next() {
+		var d domain.GuestDetail
+		var userAgent sql.NullString
+		var endpointsJSON []byte
+		if err := rows.Scan(
+			&d.IPAddress,
+			&d.TotalRequests,
+			&d.UniqueEndpoints,
+			&userAgent,
+			&d.FirstSeen,
+			&d.LastSeen,
+			&endpointsJSON,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan guest detail row: %w", err)
+		}
+		if userAgent.Valid {
+			d.UserAgent = userAgent.String
+		}
+		if len(endpointsJSON) > 0 {
+			if err := json.Unmarshal(endpointsJSON, &d.Endpoints); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal endpoints: %w", err)
+			}
+		}
+		details = append(details, d)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate guest detail rows: %w", err)
+	}
+
+	return details, nil
 }
 
 // GetTrendingSearches returns the most trending searches in a time range

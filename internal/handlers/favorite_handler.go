@@ -129,6 +129,7 @@ func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 // @Security BearerAuth
 // @Param stationId path string true "Station ID"
 // @Success 200 {object} map[string]interface{} "Favorite removed successfully"
+// @Failure 400 {object} map[string]interface{} "Station ID is required"
 // @Failure 401 {object} map[string]interface{} "Not authenticated"
 // @Failure 404 {object} map[string]interface{} "Favorite not found"
 // @Failure 500 {object} map[string]interface{} "Internal server error"

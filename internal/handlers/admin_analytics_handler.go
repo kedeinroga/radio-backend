@@ -52,6 +52,18 @@ type CampaignPerformanceResponse struct {
 }
 
 // GetRevenueAnalytics retrieves revenue analytics for a date range
+// @Summary Get revenue analytics
+// @Description Returns aggregated revenue metrics (impressions, clicks, CPM, CPC, CTR) for a given date range. Defaults to the last 30 days.
+// @Tags Admin Analytics
+// @Produce json
+// @Security BearerAuth
+// @Param from query string false "Start date (RFC3339)" example("2024-01-01T00:00:00Z")
+// @Param to query string false "End date (RFC3339)" example("2024-01-31T23:59:59Z")
+// @Success 200 {object} RevenueAnalyticsResponse "Revenue analytics data"
+// @Failure 400 {object} map[string]interface{} "Invalid date format"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Router /api/v1/admin/analytics/revenue [get]
 func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 	from := time.Now().Add(-30 * 24 * time.Hour) // Default: last 30 days
 	if fromStr := c.Query("from"); fromStr != "" {
@@ -90,6 +102,16 @@ func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 }
 
 // GetCampaignPerformance retrieves performance metrics for all campaigns
+// @Summary Get campaign performance
+// @Description Returns performance metrics (impressions, clicks, CTR, spend) for all active campaigns.
+// @Tags Admin Analytics
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "List of campaign performance metrics"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Failure 500 {object} map[string]interface{} "Failed to retrieve campaigns"
+// @Router /api/v1/admin/analytics/campaigns [get]
 func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 	// Get all active campaigns
 	campaigns, err := h.analyticsService.GetActiveCampaigns(c.Request.Context())
@@ -130,6 +152,15 @@ func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 }
 
 // GetFraudMetrics retrieves fraud detection metrics
+// @Summary Get fraud metrics
+// @Description Returns fraud detection metrics including blocked impressions, blocked clicks, and fraud score distribution.
+// @Tags Admin Analytics
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Fraud detection metrics"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Router /api/v1/admin/analytics/fraud [get]
 func (h *AdminAnalyticsHandler) GetFraudMetrics(c *gin.Context) {
 	// Mock fraud metrics (would integrate with actual fraud detection service)
 	response := gin.H{
@@ -148,6 +179,17 @@ func (h *AdminAnalyticsHandler) GetFraudMetrics(c *gin.Context) {
 }
 
 // GetTopAds retrieves top performing ads
+// @Summary Get top performing ads
+// @Description Returns the top performing advertisements ranked by the specified metric (impressions, clicks, ctr, revenue).
+// @Tags Admin Analytics
+// @Produce json
+// @Security BearerAuth
+// @Param metric query string false "Ranking metric: impressions | clicks | ctr | revenue" default(impressions)
+// @Success 200 {object} map[string]interface{} "Top ads list with the applied metric"
+// @Failure 400 {object} map[string]interface{} "Invalid metric value"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Router /api/v1/admin/analytics/top-ads [get]
 func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 	metric := c.Query("metric")
 	if metric == "" {
@@ -179,6 +221,16 @@ func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 }
 
 // GetDashboardOverview retrieves dashboard overview metrics
+// @Summary Get admin dashboard overview
+// @Description Returns a summary of active campaigns, total budget, total spend, impressions, clicks, CTR, and budget utilization percentage.
+// @Tags Admin Analytics
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Dashboard overview metrics"
+// @Failure 401 {object} map[string]interface{} "Unauthorized"
+// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Failure 500 {object} map[string]interface{} "Failed to retrieve dashboard data"
+// @Router /api/v1/admin/analytics/dashboard [get]
 func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	// Get all active campaigns
 	activeCampaigns, err := h.analyticsService.GetActiveCampaigns(c.Request.Context())

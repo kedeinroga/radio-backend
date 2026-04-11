@@ -83,6 +83,7 @@ type ActiveSessionInfo struct {
 // @Param request body StartSessionRequest true "Datos de la sesión"
 // @Success 200 {object} StartSessionResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 404 {object} ErrorResponse "Station not found (guest flow)"
 // @Failure 500 {object} ErrorResponse
 // @Security SharedSecret
 // @Security BearerAuth
@@ -172,7 +173,6 @@ func (h *StreamSessionHandler) StartSession(c *gin.Context) {
 // @Param request body HeartbeatRequest true "Session ID"
 // @Success 200 {object} SuccessResponse
 // @Failure 400 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Security BearerAuth
 // @Router /stream/heartbeat [post]
@@ -208,7 +208,6 @@ func (h *StreamSessionHandler) Heartbeat(c *gin.Context) {
 // @Param request body StopSessionRequest true "Session ID"
 // @Success 200 {object} SuccessResponse
 // @Failure 400 {object} ErrorResponse
-// @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Security BearerAuth
 // @Router /stream/stop [post]
@@ -241,6 +240,7 @@ func (h *StreamSessionHandler) StopSession(c *gin.Context) {
 // @Tags Streaming
 // @Produce json
 // @Success 200 {object} ActiveSessionsResponse
+// @Failure 400 {object} ErrorResponse "Invalid user ID format"
 // @Failure 401 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Security BearerAuth
