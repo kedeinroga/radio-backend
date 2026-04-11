@@ -2151,6 +2151,59 @@ paths:
       summary: Active guest users
       tags:
       - Analytics
+  /analytics/users/guest/details:
+    get:
+      consumes:
+      - application/json
+      description: Returns request details for each guest (unauthenticated) IP address
+        in the given time range, ordered by total requests descending. Useful for
+        understanding guest behavior patterns.
+      parameters:
+      - default: day
+        description: 'Time range: hour, day, week, month'
+        enum:
+        - hour
+        - day
+        - week
+        - month
+        in: query
+        name: range
+        type: string
+      - default: 50
+        description: Maximum number of IPs to return
+        in: query
+        maximum: 500
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":7,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z"}]})
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid or missing authentication token
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Access denied - Admin users only
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Guest users details
+      tags:
+      - Analytics
   /api/v1/admin/analytics/campaigns:
     get:
       description: Returns performance metrics (impressions, clicks, CTR, spend) for

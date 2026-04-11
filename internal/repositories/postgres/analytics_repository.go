@@ -187,6 +187,58 @@ func (r *AnalyticsRepository) CountGuestUsers(from time.Time) (int64, error) {
 	return count, nil
 }
 
+// GetGuestDetails returns request details grouped by IP for guest users since the given time
+func (r *AnalyticsRepository) GetGuestDetails(from time.Time, limit int) ([]domain.GuestDetail, error) {
+	query := `
+		SELECT
+			ip_address,
+			COUNT(*) AS total_requests,
+			COUNT(DISTINCT path) AS unique_endpoints,
+			MAX(user_agent) AS user_agent,
+			MIN(created_at) AS first_seen,
+			MAX(created_at) AS last_seen
+		FROM request_logs
+		WHERE user_type = 'guest'
+		AND ip_address IS NOT NULL
+		AND created_at >= $1
+		GROUP BY ip_address
+		ORDER BY total_requests DESC
+		LIMIT $2
+	`
+
+	rows, err := r.db.DB.Query(query, from, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get guest details: %w", err)
+	}
+	defer rows.Close()
+
+	var details []domain.GuestDetail
+	for rows.Next() {
+		var d domain.GuestDetail
+		var userAgent sql.NullString
+		if err := rows.Scan(
+			&d.IPAddress,
+			&d.TotalRequests,
+			&d.UniqueEndpoints,
+			&userAgent,
+			&d.FirstSeen,
+			&d.LastSeen,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan guest detail row: %w", err)
+		}
+		if userAgent.Valid {
+			d.UserAgent = userAgent.String
+		}
+		details = append(details, d)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate guest detail rows: %w", err)
+	}
+
+	return details, nil
+}
+
 // GetTrendingSearches returns the most trending searches in a time range
 func (r *AnalyticsRepository) GetTrendingSearches(from, to time.Time, limit int) ([]domain.SearchStats, error) {
 	// Primero obtenemos el total de búsquedas en el período

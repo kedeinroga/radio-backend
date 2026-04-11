@@ -1238,6 +1238,80 @@
                 }
             }
         },
+        "/analytics/users/guest/details": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns request details for each guest (unauthenticated) IP address in the given time range, ordered by total requests descending. Useful for understanding guest behavior patterns.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Guest users details",
+                "parameters": [
+                    {
+                        "enum": [
+                            "hour",
+                            "day",
+                            "week",
+                            "month"
+                        ],
+                        "type": "string",
+                        "default": "day",
+                        "description": "Time range: hour, day, week, month",
+                        "name": "range",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 500,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Maximum number of IPs to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Guest details list\" example({\"success\":true,\"data\":[{\"ip_address\":\"1.2.3.4\",\"total_requests\":42,\"unique_endpoints\":7,\"user_agent\":\"Mozilla/5.0...\",\"first_seen\":\"2026-04-11T00:00:00Z\",\"last_seen\":\"2026-04-11T12:00:00Z\"}]})",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or missing authentication token",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied - Admin users only",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/admin/analytics/campaigns": {
             "get": {
                 "security": [

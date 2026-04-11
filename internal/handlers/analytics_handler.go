@@ -133,6 +133,36 @@ func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {
 	})
 }
 
+// GetGuestDetails returns detailed request info per guest IP
+// @Summary Guest users details
+// @Description Returns request details for each guest (unauthenticated) IP address in the given time range, ordered by total requests descending. Useful for understanding guest behavior patterns.
+// @Tags Analytics
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
+// @Param limit query int false "Maximum number of IPs to return" default(50) minimum(1) maximum(500)
+// @Success 200 {object} map[string]interface{} "Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":7,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z"}]})
+// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
+// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /analytics/users/guest/details [get]
+func (h *AnalyticsHandler) GetGuestDetails(c *gin.Context) {
+	timeRange := c.DefaultQuery("range", "day")
+	limit := parseIntQuery(c, "limit", 50)
+
+	details, err := h.analyticsService.GetGuestDetails(timeRange, limit)
+	if err != nil {
+		RespondWithError(c, http.StatusInternalServerError, "fetch_failed", "Failed to fetch guest details")
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    details,
+	})
+}
+
 // GetGuestUsers returns guest users count
 // @Summary Active guest users
 // @Description Returns the number of guest (unauthenticated) active users in the last 24 hours. Guest users are identified by their unique IP address and represent users using the application without registering.

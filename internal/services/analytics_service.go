@@ -130,6 +130,18 @@ func (s *AnalyticsService) GetGuestUsersCount() (int64, error) {
 	return count, nil
 }
 
+// GetGuestDetails returns request details per IP for guest users
+func (s *AnalyticsService) GetGuestDetails(timeRange string, limit int) ([]domain.GuestDetail, error) {
+	from, _ := s.parseTimeRange(timeRange)
+
+	details, err := s.analyticsRepo.GetGuestDetails(from, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get guest details: %w", err)
+	}
+
+	return details, nil
+}
+
 // parseTimeRange parses a time range string and returns from/to times
 func (s *AnalyticsService) parseTimeRange(timeRange string) (time.Time, time.Time) {
 	now := time.Now()
