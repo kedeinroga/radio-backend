@@ -4305,10 +4305,13 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
+                        "SharedSecret": []
+                    },
+                    {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Crea una nueva sesión de streaming y retorna un token para acceder al proxy",
+                "description": "Para usuarios autenticados crea una sesión completa y retorna una URL proxied con token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -4339,12 +4342,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
