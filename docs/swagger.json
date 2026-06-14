@@ -4967,6 +4967,84 @@
                 }
             }
         },
+        "/stations/{id}/now-playing": {
+            "get": {
+                "security": [
+                    {
+                        "SharedSecret": []
+                    }
+                ],
+                "description": "Returns the song currently detected on a station from ICY metadata. 204 if unknown.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stations"
+                ],
+                "summary": "Get now-playing track",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Station ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.TrackDTO"
+                        }
+                    },
+                    "204": {
+                        "description": "No now-playing data available"
+                    }
+                }
+            }
+        },
+        "/stations/{id}/recent-tracks": {
+            "get": {
+                "security": [
+                    {
+                        "SharedSecret": []
+                    }
+                ],
+                "description": "Returns the recent track history of a station from ICY metadata.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Stations"
+                ],
+                "summary": "Get recently-played tracks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Station ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Max tracks (1-50)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.RecentTracksResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/stream/heartbeat": {
             "post": {
                 "security": [
@@ -5765,6 +5843,17 @@
                 }
             }
         },
+        "internal_handlers.RecentTracksResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.TrackDTO"
+                    }
+                }
+            }
+        },
         "internal_handlers.RefreshRequest": {
             "type": "object",
             "required": [
@@ -6288,6 +6377,26 @@
                 "conversion_value_cents": {
                     "type": "integer",
                     "minimum": 0
+                }
+            }
+        },
+        "internal_handlers.TrackDTO": {
+            "type": "object",
+            "properties": {
+                "artist": {
+                    "type": "string"
+                },
+                "played_at": {
+                    "type": "string"
+                },
+                "raw_title": {
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
                 }
             }
         },

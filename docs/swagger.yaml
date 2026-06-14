@@ -296,6 +296,13 @@ definitions:
       stripe_customer_id:
         type: string
     type: object
+  internal_handlers.RecentTracksResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.TrackDTO'
+        type: array
+    type: object
   internal_handlers.RefreshRequest:
     properties:
       refresh_token:
@@ -659,6 +666,19 @@ definitions:
         type: integer
     required:
     - conversion_value_cents
+    type: object
+  internal_handlers.TrackDTO:
+    properties:
+      artist:
+        type: string
+      played_at:
+        type: string
+      raw_title:
+        type: string
+      station_id:
+        type: string
+      title:
+        type: string
     type: object
   internal_handlers.TrackImpressionRequest:
     properties:
@@ -4588,6 +4608,56 @@ paths:
       security:
       - SharedSecret: []
       summary: Get station detail
+      tags:
+      - Stations
+  /stations/{id}/now-playing:
+    get:
+      description: Returns the song currently detected on a station from ICY metadata.
+        204 if unknown.
+      parameters:
+      - description: Station ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.TrackDTO'
+        "204":
+          description: No now-playing data available
+      security:
+      - SharedSecret: []
+      summary: Get now-playing track
+      tags:
+      - Stations
+  /stations/{id}/recent-tracks:
+    get:
+      description: Returns the recent track history of a station from ICY metadata.
+      parameters:
+      - description: Station ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 10
+        description: Max tracks (1-50)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handlers.RecentTracksResponse'
+      security:
+      - SharedSecret: []
+      summary: Get recently-played tracks
       tags:
       - Stations
   /stations/popular:
