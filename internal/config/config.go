@@ -42,7 +42,6 @@ type ServerConfig struct {
 // DatabaseConfig holds database configuration
 type DatabaseConfig struct {
 	URL                string
-	MigrateURL         string // Direct connection for migrations (bypasses PgBouncer)
 	MaxConnections     int
 	MaxIdleConnections int
 }
@@ -177,7 +176,6 @@ func Load() (*Config, error) {
 		},
 		Database: DatabaseConfig{
 			URL:                getEnv("DATABASE_URL", ""),
-			MigrateURL:         getEnv("DATABASE_URL_MIGRATE", getEnv("DATABASE_URL", "")),
 			MaxConnections:     getIntEnv("DATABASE_MAX_CONNECTIONS", 5),
 			MaxIdleConnections: getIntEnv("DATABASE_MAX_IDLE_CONNECTIONS", 2),
 		},

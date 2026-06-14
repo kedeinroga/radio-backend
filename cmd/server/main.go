@@ -99,8 +99,7 @@ func main() {
 	logger.Info("Database connected successfully")
 
 	// Run pending migrations before starting the server
-	// Uses MigrateURL (direct connection) to avoid PgBouncer prepared-statement conflicts.
-	if err := database.RunMigrations(cfg.Database.MigrateURL, database.DefaultMigrateConfig()); err != nil {
+	if err := database.RunMigrations(cfg.Database.URL, database.DefaultMigrateConfig()); err != nil {
 		logger.Error("Database migrations failed", "error", err)
 		log.Fatalf("Migration failed: %v", err)
 	}
