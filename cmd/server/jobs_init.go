@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
+	"radio-backend/internal/config"
 	"radio-backend/internal/infrastructure/database"
 	"radio-backend/internal/jobs"
 	"radio-backend/internal/services"
@@ -14,6 +17,9 @@ import (
 func InitializeJobSystem(
 	db *database.Connection,
 	streamSessionService *services.StreamSessionService,
+	stationService *services.StationService,
+	nowPlayingService *services.NowPlayingService,
+	nowPlayingCfg config.NowPlayingConfig,
 	logger *slog.Logger,
 ) (*jobs.JobScheduler, error) {
 
@@ -93,11 +99,46 @@ func InitializeJobSystem(
 		logger.Error("failed to register monitor_streams job", "error", err)
 	}
 
+	// Registrar now-playing jobs (captura de metadata ICY)
+	if nowPlayingCfg.Enabled && nowPlayingService != nil && stationService != nil {
+		nowPlayingJobs := jobs.NewNowPlayingJobs(
+			nowPlayingService,
+			stationService,
+			nowPlayingCfg.TopStations,
+			nowPlayingCfg.MaxConcurrency,
+			nowPlayingCfg.RetentionDays,
+			logger,
+		)
+
+		// Sondeo de las top-N estaciones según el intervalo configurado (def. 5 min)
+		pollSchedule := fmt.Sprintf("0 */%d * * * *", intervalMinutes(nowPlayingCfg.PollInterval))
+		if err := scheduler.AddJob("now_playing_poll", pollSchedule, nowPlayingJobs.PollPopularStations); err != nil {
+			logger.Error("failed to register now_playing_poll job", "error", err)
+		}
+
+		// Cada día a las 4 AM: retención del historial de pistas
+		if err := scheduler.AddJob("now_playing_cleanup", "0 0 4 * * *", nowPlayingJobs.CleanupOldTracks); err != nil {
+			logger.Error("failed to register now_playing_cleanup job", "error", err)
+		}
+	} else {
+		logger.Info("now-playing jobs disabled or not configured")
+	}
+
 	logger.Info("job system initialized",
 		"jobs_registered", len(scheduler.GetJobStats()),
 	)
 
 	return scheduler, nil
+}
+
+// intervalMinutes convierte una duración a minutos enteros para el cron schedule,
+// con un mínimo de 1 minuto.
+func intervalMinutes(d time.Duration) int {
+	minutes := int(d.Minutes())
+	if minutes < 1 {
+		return 1
+	}
+	return minutes
 }
 
 // RegisterJobRoutes registra los endpoints de administración de jobs

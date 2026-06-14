@@ -27,6 +27,7 @@ type Config struct {
 	Vault       VaultConfig
 	Advertising AdvertisingConfig
 	Stripe      StripeConfig
+	NowPlaying  NowPlayingConfig
 }
 
 // ServerConfig holds server configuration
@@ -144,6 +145,16 @@ type StripeConfig struct {
 	CustomerPortalURL string
 }
 
+// NowPlayingConfig holds the now-playing (ICY metadata) poll job configuration
+type NowPlayingConfig struct {
+	Enabled        bool
+	PollInterval   time.Duration
+	TopStations    int
+	MaxConcurrency int
+	RetentionDays  int
+	FetchTimeout   time.Duration
+}
+
 // Load loads configuration from environment variables
 func Load() (*Config, error) {
 	// 1. Expand the JSON secrets bundle from Secret Manager (Cloud Run production)
@@ -211,6 +222,14 @@ func Load() (*Config, error) {
 			SyncBatchSize:     getIntEnv("CACHE_SYNC_BATCH_SIZE", 100),
 			CleanupInterval:   getDurationEnv("CACHE_CLEANUP_INTERVAL", 24*time.Hour),
 			InactiveThreshold: getDurationEnv("CACHE_INACTIVE_THRESHOLD", 30*24*time.Hour),
+		},
+		NowPlaying: NowPlayingConfig{
+			Enabled:        getBoolEnv("NOW_PLAYING_ENABLED", true),
+			PollInterval:   getDurationEnv("NOW_PLAYING_POLL_INTERVAL", 5*time.Minute),
+			TopStations:    getIntEnv("NOW_PLAYING_TOP_STATIONS", 200),
+			MaxConcurrency: getIntEnv("NOW_PLAYING_MAX_CONCURRENCY", 10),
+			RetentionDays:  getIntEnv("NOW_PLAYING_RETENTION_DAYS", 30),
+			FetchTimeout:   getDurationEnv("NOW_PLAYING_FETCH_TIMEOUT", 15*time.Second),
 		},
 		Features: FeatureFlags{
 			PremiumContent:   getBoolEnv("FEATURE_PREMIUM_CONTENT", true),

@@ -320,10 +320,22 @@ func main() {
 		)
 	}
 
+	// ============================================
+	// NUEVO: Initialize Now-Playing System (ICY metadata)
+	// ============================================
+	// Independiente del streaming: registra rutas y expone el servicio para el job de sondeo.
+	nowPlayingService := InitializeNowPlayingSystem(
+		engine,
+		db,
+		cfg.Security.APISecretKey,
+		cfg.NowPlaying.FetchTimeout,
+		adLogger,
+	)
+
 	// Inicializar Job System (Background Jobs)
 	var jobScheduler interface{ Stop() }
 	if streamSessionService != nil {
-		scheduler, err := InitializeJobSystem(db, streamSessionService, adLogger)
+		scheduler, err := InitializeJobSystem(db, streamSessionService, stationService, nowPlayingService, cfg.NowPlaying, adLogger)
 		if err != nil {
 			adLogger.Error("Failed to initialize job system", "error", err)
 			log.Printf("Warning: Job system could not be initialized: %v", err)
