@@ -8,7 +8,7 @@ import (
 	"radio-backend/internal/domain"
 	"radio-backend/internal/infrastructure/database"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // FavoriteRepository implements domain.FavoriteRepository
@@ -63,7 +63,7 @@ func (r *FavoriteRepository) AddFavorite(ctx context.Context, userID, stationID 
 	_, err := r.db.DB.ExecContext(ctx, query, userID, stationID, time.Now())
 	if err != nil {
 		// Check for unique constraint violation (duplicate favorite)
-		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+		if pqErr, ok := err.(*pgconn.PgError); ok && pqErr.Code == "23505" {
 			return domain.ErrFavoriteAlreadyExists
 		}
 		return fmt.Errorf("failed to add favorite: %w", err)
