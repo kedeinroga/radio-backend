@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
@@ -19,11 +20,22 @@ type Connection struct {
 }
 
 // NewConnection creates a new database connection
+//
+// Usa el driver pgx en modo "simple protocol" (sin prepared statements). Esto es
+// imprescindible cuando se conecta a través del pooler de Supabase en modo
+// transacción (puerto 6543): ese modo multiplexa conexiones de servidor por
+// transacción, lo que parte el Parse/Bind del protocolo extendido entre conexiones
+// distintas y produce errores "bind message supplies N parameters, but prepared
+// statement \"\" requires M". El simple protocol envía la query como texto en un
+// único mensaje, eliminando ese fallo.
 func NewConnection(databaseURL string, maxConns, maxIdleConns int) (*Connection, error) {
-	db, err := sql.Open("postgres", databaseURL)
+	connConfig, err := pgx.ParseConfig(databaseURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return nil, fmt.Errorf("failed to parse database url: %w", err)
 	}
+	connConfig.DefaultQueryExecMode = pgx.QueryExecModeSimpleProtocol
+
+	db := stdlib.OpenDB(*connConfig)
 
 	// Set connection pool settings
 	db.SetMaxOpenConns(maxConns)

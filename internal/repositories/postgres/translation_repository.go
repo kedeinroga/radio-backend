@@ -9,6 +9,7 @@ import (
 	"radio-backend/internal/domain"
 	"radio-backend/internal/i18n"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
 )
 
@@ -44,7 +45,7 @@ func (r *translationRepository) Create(translation *domain.StationTranslation) e
 	)
 
 	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
+		if pqErr, ok := err.(*pgconn.PgError); ok {
 			// 23505 es el código de error de PostgreSQL para violación de clave única
 			if pqErr.Code == "23505" {
 				return domain.ErrTranslationExists
@@ -299,7 +300,7 @@ func (r *translationRepository) BulkCreate(translations []*domain.StationTransla
 		)
 
 		if err != nil {
-			if pqErr, ok := err.(*pq.Error); ok {
+			if pqErr, ok := err.(*pgconn.PgError); ok {
 				if pqErr.Code == "23505" {
 					return domain.ErrTranslationExists
 				}
