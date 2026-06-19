@@ -82,7 +82,9 @@ func (r *SearchCacheRepository) Save(ctx context.Context, entry *domain.SearchCa
 
 	_, err = r.db.DB.ExecContext(ctx, query,
 		entry.QueryHash,
-		queryParamsJSON,
+		// lib/pq envía []byte como bytea; para una columna JSONB hay que pasar string,
+		// de lo contrario Postgres falla con "invalid input syntax for type json" (SQLSTATE 22P02).
+		string(queryParamsJSON),
 		pq.Array(entry.StationIDs),
 		entry.ResultCount,
 		entry.ExpiresAt,

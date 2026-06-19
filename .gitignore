@@ -21,10 +21,10 @@ vendor/
 # Go workspace file
 go.work
 
-# Environment files
+# Environment files (todas las variantes excepto el ejemplo)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # IDE files
 .idea/
@@ -48,6 +48,9 @@ keys/
 *.pem
 *.key
 *.crt
+secrtes.json
+secrets.json
+*.secrets.json
 
 # Build artifacts
 tmp/
