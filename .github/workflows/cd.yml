@@ -96,7 +96,13 @@ jobs:
           sudo mv migrate /usr/local/bin/migrate
 
           echo "Fetching DATABASE_URL from app-secrets bundle..."
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "
+          import sys, json, urllib.parse
+          url = json.load(sys.stdin)['DATABASE_URL']
+          sep = '&' if '?' in url else '?'
+          url += sep + 'options=' + urllib.parse.quote('-c statement_timeout=0')
+          print(url)
+          ")
 
           echo "Running migrations..."
           migrate -path ./migrations -database "$DATABASE_URL" up
@@ -193,7 +199,13 @@ jobs:
           sudo mv migrate /usr/local/bin/migrate
 
           echo "Fetching DATABASE_URL from app-secrets bundle..."
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "
+          import sys, json, urllib.parse
+          url = json.load(sys.stdin)['DATABASE_URL']
+          sep = '&' if '?' in url else '?'
+          url += sep + 'options=' + urllib.parse.quote('-c statement_timeout=0')
+          print(url)
+          ")
 
           echo "Running migrations..."
           migrate -path ./migrations -database "$DATABASE_URL" up
