@@ -89,6 +89,20 @@ jobs:
           docker push "gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:staging-latest"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
+      - name: Run Database Migrations (Staging)
+        run: |
+          echo "Installing golang-migrate..."
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+          echo "Fetching DATABASE_URL from app-secrets bundle..."
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
+
+          echo "Running migrations..."
+          migrate -path ./migrations -database "$DATABASE_URL" up
+
+          echo "✅ Migrations completed successfully!" >> $GITHUB_STEP_SUMMARY
+
       - name: Deploy to Cloud Run (Staging)
         id: deploy
         run: |
@@ -114,20 +128,6 @@ jobs:
           echo "### 🚀 Staging Deployment Successful!" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** $URL" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
-
-      - name: Run Database Migrations (Staging)
-        run: |
-          echo "Installing golang-migrate..."
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate /usr/local/bin/migrate
-
-          echo "Fetching DATABASE_URL from app-secrets bundle..."
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
-
-          echo "Running migrations..."
-          migrate -path ./migrations -database "$DATABASE_URL" up
-
-          echo "✅ Migrations completed successfully!" >> $GITHUB_STEP_SUMMARY
 
       - name: Health Check
         run: |
@@ -186,6 +186,20 @@ jobs:
           docker push "gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest"
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
+      - name: Run Database Migrations (Production)
+        run: |
+          echo "Installing golang-migrate..."
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/migrate
+
+          echo "Fetching DATABASE_URL from app-secrets bundle..."
+          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
+
+          echo "Running migrations..."
+          migrate -path ./migrations -database "$DATABASE_URL" up
+
+          echo "✅ Migrations completed successfully!" >> $GITHUB_STEP_SUMMARY
+
       - name: Deploy to Cloud Run (Production)
         id: deploy
         run: |
@@ -214,20 +228,6 @@ jobs:
           echo "**Image:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
           echo "**Database:** Supabase PostgreSQL" >> $GITHUB_STEP_SUMMARY
           echo "**Cache:** Upstash Redis" >> $GITHUB_STEP_SUMMARY
-
-      - name: Run Database Migrations (Production)
-        run: |
-          echo "Installing golang-migrate..."
-          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
-          sudo mv migrate /usr/local/bin/migrate
-
-          echo "Fetching DATABASE_URL from app-secrets bundle..."
-          DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "import sys,json; print(json.load(sys.stdin)['DATABASE_URL'])")
-
-          echo "Running migrations..."
-          migrate -path ./migrations -database "$DATABASE_URL" up
-
-          echo "✅ Migrations completed successfully!" >> $GITHUB_STEP_SUMMARY
 
       - name: Health Check
         run: |
