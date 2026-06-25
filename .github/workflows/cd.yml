@@ -97,19 +97,13 @@ jobs:
 
           echo "Fetching DATABASE_URL from app-secrets bundle..."
           DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "
-          import sys, json, re
+          import sys, json
           url = json.load(sys.stdin)['DATABASE_URL']
-          # Convert Supabase pooler URL to direct connection for golang-migrate.
-          # PgBouncer (port 6543) drops prepared statements between transactions,
-          # breaking the advisory lock golang-migrate uses to track versions.
-          # We do string substitution only — never touch the password.
-          # Pooler: postgresql://postgres.REF:PASS@*.pooler.supabase.com:6543/postgres
-          # Direct: postgresql://postgres:PASS@db.REF.supabase.co:5432/postgres
-          m = re.search(r'postgres\.([a-z0-9]+):', url)
-          if m and 'pooler.supabase.com' in url:
-              ref = m.group(1)
-              url = url.replace(f'postgres.{ref}:', 'postgres:', 1)
-              url = re.sub(r'@[^/]+:\d+/', f'@db.{ref}.supabase.co:5432/', url)
+          # Switch Supabase pooler from transaction mode (port 6543) to session mode (port 5432).
+          # Transaction mode drops prepared statements between transactions, breaking the
+          # advisory lock golang-migrate uses. Session mode keeps connection state intact.
+          # Direct connection (db.REF.supabase.co) is IPv6-only and unreachable from GitHub Actions.
+          url = url.replace(':6543/', ':5432/')
           print(url)
           ")
 
@@ -209,19 +203,13 @@ jobs:
 
           echo "Fetching DATABASE_URL from app-secrets bundle..."
           DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "
-          import sys, json, re
+          import sys, json
           url = json.load(sys.stdin)['DATABASE_URL']
-          # Convert Supabase pooler URL to direct connection for golang-migrate.
-          # PgBouncer (port 6543) drops prepared statements between transactions,
-          # breaking the advisory lock golang-migrate uses to track versions.
-          # We do string substitution only — never touch the password.
-          # Pooler: postgresql://postgres.REF:PASS@*.pooler.supabase.com:6543/postgres
-          # Direct: postgresql://postgres:PASS@db.REF.supabase.co:5432/postgres
-          m = re.search(r'postgres\.([a-z0-9]+):', url)
-          if m and 'pooler.supabase.com' in url:
-              ref = m.group(1)
-              url = url.replace(f'postgres.{ref}:', 'postgres:', 1)
-              url = re.sub(r'@[^/]+:\d+/', f'@db.{ref}.supabase.co:5432/', url)
+          # Switch Supabase pooler from transaction mode (port 6543) to session mode (port 5432).
+          # Transaction mode drops prepared statements between transactions, breaking the
+          # advisory lock golang-migrate uses. Session mode keeps connection state intact.
+          # Direct connection (db.REF.supabase.co) is IPv6-only and unreachable from GitHub Actions.
+          url = url.replace(':6543/', ':5432/')
           print(url)
           ")
 
