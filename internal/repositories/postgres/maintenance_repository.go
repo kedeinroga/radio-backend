@@ -179,19 +179,21 @@ func (r *MaintenanceRepository) CleanupOldPartitions(retentionMonths int) ([]dom
 	}
 	defer rows.Close()
 
-	var results []domain.PartitionCleanupResult
+	results := make([]domain.PartitionCleanupResult, 0)
 	for rows.Next() {
 		var result domain.PartitionCleanupResult
+		var action string
+		// cleanup_old_partitions returns (partition_name, partition_date, action)
 		err := rows.Scan(
-			&result.TableName,
 			&result.PartitionName,
 			&result.PartitionDate,
-			&result.Dropped,
-			&result.Message,
+			&action,
 		)
 		if err != nil {
 			return nil, err
 		}
+		result.Dropped = action == "DROPPED"
+		result.Message = action
 		results = append(results, result)
 	}
 
