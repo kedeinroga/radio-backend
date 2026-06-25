@@ -141,23 +141,6 @@ type GetSessionsResponse struct {
 	TotalSessions int           `json:"total_sessions" example:"3"`
 }
 
-// SuccessResponse represents a generic success response
-type SuccessResponse struct {
-	Message string `json:"message" example:"Operation completed successfully"`
-}
-
-// ErrorResponse represents an error response
-type ErrorResponse struct {
-	Success bool        `json:"success" example:"false"`
-	Error   ErrorDetail `json:"error"`
-}
-
-// ErrorDetail represents error details
-type ErrorDetail struct {
-	Code    string `json:"code" example:"invalid_token"`
-	Message string `json:"message" example:"Token is invalid, expired or revoked"`
-}
-
 // Register handles user registration
 // @Summary Register new user
 // @Description Creates a new guest user account.
@@ -182,9 +165,10 @@ type ErrorDetail struct {
 // @Accept json
 // @Produce json
 // @Param request body RegisterRequest true "Registration data"
-// @Success 201 {object} map[string]interface{} "User created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request or password does not meet requirements"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} UserEnvelope "User created successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request body, weak/common password or validation error"
+// @Failure 409 {object} ErrorResponse "Email already registered (USER_ALREADY_EXISTS)"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req RegisterRequest
@@ -336,8 +320,8 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "User information"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
+// @Success 200 {object} UserEnvelope "User information"
+// @Failure 401 {object} ErrorResponse "Not authenticated"
 // @Router /auth/me [get]
 func (h *AuthHandler) Me(c *gin.Context) {
 	userID := middleware.GetUserID(c)

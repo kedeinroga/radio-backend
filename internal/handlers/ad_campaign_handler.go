@@ -57,9 +57,9 @@ type UpdateCampaignRequest struct {
 // @Security BearerAuth
 // @Param campaign body CreateCampaignRequest true "Campaign data"
 // @Success 201 {object} domain.AdCampaign "Campaign created successfully"
-// @Failure 400 {object} map[string]string "Invalid request body or advertiser_id"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid request body or advertiser_id"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns [post]
 func (h *AdCampaignHandler) CreateCampaign(c *gin.Context) {
 	var req CreateCampaignRequest
@@ -106,10 +106,10 @@ func (h *AdCampaignHandler) CreateCampaign(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Campaign ID (UUID)"
 // @Success 200 {object} domain.AdCampaign "Campaign details"
-// @Failure 400 {object} map[string]string "Invalid campaign ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Campaign not found"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid campaign ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 404 {object} ErrorResponse "Campaign not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{id} [get]
 func (h *AdCampaignHandler) GetCampaign(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "id")
@@ -135,9 +135,9 @@ func (h *AdCampaignHandler) GetCampaign(c *gin.Context) {
 // @Security BearerAuth
 // @Param advertiser_id path string true "Advertiser ID (UUID)"
 // @Success 200 {array} domain.AdCampaign "List of campaigns"
-// @Failure 400 {object} map[string]string "Invalid advertiser ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid advertiser ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/advertisers/{advertiser_id}/campaigns [get]
 func (h *AdCampaignHandler) GetCampaignsByAdvertiser(c *gin.Context) {
 	advertiserID, ok := GetUUIDParam(c, "advertiser_id")
@@ -165,10 +165,10 @@ func (h *AdCampaignHandler) GetCampaignsByAdvertiser(c *gin.Context) {
 // @Param id path string true "Campaign ID (UUID)"
 // @Param campaign body UpdateCampaignRequest true "Fields to update"
 // @Success 200 {object} domain.AdCampaign "Updated campaign"
-// @Failure 400 {object} map[string]string "Invalid ID format or request body"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Campaign not found"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid ID format or request body"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 404 {object} ErrorResponse "Campaign not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{id} [put]
 func (h *AdCampaignHandler) UpdateCampaign(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "id")
@@ -223,9 +223,9 @@ func (h *AdCampaignHandler) UpdateCampaign(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Campaign ID (UUID)"
 // @Success 204 "Campaign deleted successfully (no content)"
-// @Failure 400 {object} map[string]string "Invalid campaign ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid campaign ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{id} [delete]
 func (h *AdCampaignHandler) DeleteCampaign(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "id")
@@ -250,9 +250,9 @@ func (h *AdCampaignHandler) DeleteCampaign(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Campaign ID (UUID)"
 // @Success 200 {object} domain.AdCampaign "Campaign paused successfully"
-// @Failure 400 {object} map[string]string "Invalid campaign ID or campaign cannot be paused"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid campaign ID or campaign cannot be paused"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{id}/pause [post]
 func (h *AdCampaignHandler) PauseCampaign(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "id")
@@ -278,9 +278,9 @@ func (h *AdCampaignHandler) PauseCampaign(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Campaign ID (UUID)"
 // @Success 200 {object} domain.AdCampaign "Campaign resumed successfully"
-// @Failure 400 {object} map[string]string "Invalid campaign ID or campaign cannot be resumed"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid campaign ID or campaign cannot be resumed"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{id}/resume [post]
 func (h *AdCampaignHandler) ResumeCampaign(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "id")
@@ -305,10 +305,10 @@ func (h *AdCampaignHandler) ResumeCampaign(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Campaign ID (UUID)"
-// @Success 200 {object} map[string]interface{} "Campaign statistics"
-// @Failure 400 {object} map[string]string "Invalid campaign ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} services.CampaignStats "Campaign statistics"
+// @Failure 400 {object} ErrorResponse "Invalid campaign ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{id}/stats [get]
 func (h *AdCampaignHandler) GetCampaignStats(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "id")
@@ -333,8 +333,8 @@ func (h *AdCampaignHandler) GetCampaignStats(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {array} domain.AdCampaign "List of active campaigns"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/active [get]
 func (h *AdCampaignHandler) GetActiveCampaigns(c *gin.Context) {
 	campaigns, err := h.campaignService.GetActiveCampaigns(c.Request.Context())

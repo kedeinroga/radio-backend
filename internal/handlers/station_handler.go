@@ -64,12 +64,12 @@ type StationListResponse struct {
 // @Param id path string true "Station ID"
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationDetailResponse "Station detail with SEO metadata"
-// @Failure 400 {object} map[string]interface{} "Station ID is required"
-// @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
-// @Failure 403 {object} map[string]interface{} "Access denied - Premium only station"
-// @Failure 404 {object} map[string]interface{} "Station not found or has no stream"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
+// @Failure 400 {object} ErrorResponse "Station ID is required"
+// @Failure 401 {object} ErrorResponse "Unauthorized – missing or invalid X-Rradio-Secret"
+// @Failure 403 {object} ErrorResponse "Access denied - Premium only station"
+// @Failure 404 {object} ErrorResponse "Station not found or has no stream"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Failure 503 {object} ErrorResponse "External service temporarily unavailable"
 // @Router /stations/{id} [get]
 func (h *StationHandler) GetByID(c *gin.Context) {
 	stationID := c.Param("id")
@@ -132,9 +132,9 @@ func (h *StationHandler) GetByID(c *gin.Context) {
 // @Param country query string false "Filter by country code"
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationListResponse "List of popular stations with SEO metadata"
-// @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
+// @Failure 401 {object} ErrorResponse "Unauthorized – missing or invalid X-Rradio-Secret"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Failure 503 {object} ErrorResponse "External service temporarily unavailable"
 // @Router /stations/popular [get]
 func (h *StationHandler) GetPopular(c *gin.Context) {
 	// Parse query parameters
@@ -185,10 +185,10 @@ func (h *StationHandler) GetPopular(c *gin.Context) {
 // @Param limit query int false "Maximum number of results" default(20)
 // @Param lang query string false "Language code (es, en, fr, de)" default(es)
 // @Success 200 {object} StationListResponse "Search results with SEO metadata"
-// @Failure 400 {object} map[string]interface{} "Search parameter required"
-// @Failure 401 {object} map[string]interface{} "Unauthorized – missing or invalid X-Rradio-Secret"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Failure 503 {object} map[string]interface{} "External service temporarily unavailable"
+// @Failure 400 {object} ErrorResponse "Search parameter required"
+// @Failure 401 {object} ErrorResponse "Unauthorized – missing or invalid X-Rradio-Secret"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Failure 503 {object} ErrorResponse "External service temporarily unavailable"
 // @Router /stations/search [get]
 func (h *StationHandler) Search(c *gin.Context) {
 	// Parse query parameters

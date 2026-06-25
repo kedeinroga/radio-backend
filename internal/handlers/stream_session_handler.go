@@ -81,10 +81,11 @@ type ActiveSessionInfo struct {
 // @Accept json
 // @Produce json
 // @Param request body StartSessionRequest true "Datos de la sesión"
-// @Success 200 {object} StartSessionResponse
-// @Failure 400 {object} ErrorResponse
+// @Success 200 {object} StartSessionResponse "Session started (session_id/expires_at are null for guests)"
+// @Failure 400 {object} ErrorResponse "Invalid request body or user ID"
+// @Failure 401 {object} SimpleErrorResponse "Missing or invalid X-Rradio-Secret"
 // @Failure 404 {object} ErrorResponse "Station not found (guest flow)"
-// @Failure 500 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse "Failed to start session"
 // @Security SharedSecret
 // @Security BearerAuth
 // @Router /stream/start [post]
@@ -171,9 +172,10 @@ func (h *StreamSessionHandler) StartSession(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body HeartbeatRequest true "Session ID"
-// @Success 200 {object} SuccessResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} SuccessMessageResponse "Heartbeat updated"
+// @Failure 400 {object} ErrorResponse "Invalid request body"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 500 {object} ErrorResponse "Failed to update heartbeat"
 // @Security BearerAuth
 // @Router /stream/heartbeat [post]
 func (h *StreamSessionHandler) Heartbeat(c *gin.Context) {
@@ -206,9 +208,10 @@ func (h *StreamSessionHandler) Heartbeat(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body StopSessionRequest true "Session ID"
-// @Success 200 {object} SuccessResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} SuccessMessageResponse "Session stopped successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request body"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 500 {object} ErrorResponse "Failed to stop session"
 // @Security BearerAuth
 // @Router /stream/stop [post]
 func (h *StreamSessionHandler) StopSession(c *gin.Context) {
@@ -239,10 +242,10 @@ func (h *StreamSessionHandler) StopSession(c *gin.Context) {
 // @Description Retorna todas las sesiones de streaming activas del usuario autenticado
 // @Tags Streaming
 // @Produce json
-// @Success 200 {object} ActiveSessionsResponse
+// @Success 200 {object} ActiveSessionsResponse "Active sessions"
 // @Failure 400 {object} ErrorResponse "Invalid user ID format"
-// @Failure 401 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 500 {object} ErrorResponse "Failed to get active sessions"
 // @Security BearerAuth
 // @Router /stream/sessions [get]
 func (h *StreamSessionHandler) GetActiveSessions(c *gin.Context) {

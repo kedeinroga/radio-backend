@@ -51,6 +51,45 @@ type CampaignPerformanceResponse struct {
 	Status           string    `json:"status"`
 }
 
+// CampaignPerformanceListResponse wraps the campaign performance list with a count.
+type CampaignPerformanceListResponse struct {
+	Campaigns []CampaignPerformanceResponse `json:"campaigns"`
+	Count     int                           `json:"count" example:"3"`
+}
+
+// FraudScoreDistribution buckets fraud scores into low/medium/high ranges.
+type FraudScoreDistribution struct {
+	Low    int `json:"low" example:"0"`
+	Medium int `json:"medium" example:"0"`
+	High   int `json:"high" example:"0"`
+}
+
+// FraudMetricsResponse represents fraud detection metrics.
+type FraudMetricsResponse struct {
+	FraudAttemptsCount     int                    `json:"fraud_attempts_count" example:"0"`
+	BlockedImpressions     int                    `json:"blocked_impressions" example:"0"`
+	BlockedClicks          int                    `json:"blocked_clicks" example:"0"`
+	FraudScoreDistribution FraudScoreDistribution `json:"fraud_score_distribution"`
+}
+
+// TopAdsResponse represents the top performing ads ranked by a metric.
+type TopAdsResponse struct {
+	Metric string                   `json:"metric" example:"impressions"`
+	TopAds []map[string]interface{} `json:"top_ads"`
+	Count  int                      `json:"count" example:"0"`
+}
+
+// DashboardOverviewResponse represents the admin dashboard summary metrics.
+type DashboardOverviewResponse struct {
+	ActiveCampaignsCount int     `json:"active_campaigns_count" example:"5"`
+	TotalBudgetCents     int     `json:"total_budget_cents" example:"100000"`
+	TotalSpentCents      int     `json:"total_spent_cents" example:"42000"`
+	TotalImpressions     int64   `json:"total_impressions" example:"0"`
+	TotalClicks          int64   `json:"total_clicks" example:"0"`
+	CTR                  float64 `json:"ctr" example:"0"`
+	BudgetUtilization    float64 `json:"budget_utilization" example:"42"`
+}
+
 // GetRevenueAnalytics retrieves revenue analytics for a date range
 // @Summary Get revenue analytics
 // @Description Returns aggregated revenue metrics (impressions, clicks, CPM, CPC, CTR) for a given date range. Defaults to the last 30 days.
@@ -60,9 +99,9 @@ type CampaignPerformanceResponse struct {
 // @Param from query string false "Start date (RFC3339)" example("2024-01-01T00:00:00Z")
 // @Param to query string false "End date (RFC3339)" example("2024-01-31T23:59:59Z")
 // @Success 200 {object} RevenueAnalyticsResponse "Revenue analytics data"
-// @Failure 400 {object} map[string]interface{} "Invalid date format"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Failure 400 {object} ErrorResponse "Invalid date format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Router /api/v1/admin/analytics/revenue [get]
 func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 	from := time.Now().Add(-30 * 24 * time.Hour) // Default: last 30 days
@@ -107,10 +146,10 @@ func (h *AdminAnalyticsHandler) GetRevenueAnalytics(c *gin.Context) {
 // @Tags Admin Analytics
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "List of campaign performance metrics"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Admin access required"
-// @Failure 500 {object} map[string]interface{} "Failed to retrieve campaigns"
+// @Success 200 {object} CampaignPerformanceListResponse "List of campaign performance metrics"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
+// @Failure 500 {object} ErrorResponse "Failed to retrieve campaigns"
 // @Router /api/v1/admin/analytics/campaigns [get]
 func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 	// Get all active campaigns
@@ -157,9 +196,9 @@ func (h *AdminAnalyticsHandler) GetCampaignPerformance(c *gin.Context) {
 // @Tags Admin Analytics
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Fraud detection metrics"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Success 200 {object} FraudMetricsResponse "Fraud detection metrics"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Router /api/v1/admin/analytics/fraud [get]
 func (h *AdminAnalyticsHandler) GetFraudMetrics(c *gin.Context) {
 	// Mock fraud metrics (would integrate with actual fraud detection service)
@@ -185,10 +224,10 @@ func (h *AdminAnalyticsHandler) GetFraudMetrics(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param metric query string false "Ranking metric: impressions | clicks | ctr | revenue" default(impressions)
-// @Success 200 {object} map[string]interface{} "Top ads list with the applied metric"
-// @Failure 400 {object} map[string]interface{} "Invalid metric value"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Admin access required"
+// @Success 200 {object} TopAdsResponse "Top ads list with the applied metric"
+// @Failure 400 {object} ErrorResponse "Invalid metric value"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Router /api/v1/admin/analytics/top-ads [get]
 func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 	metric := c.Query("metric")
@@ -226,10 +265,10 @@ func (h *AdminAnalyticsHandler) GetTopAds(c *gin.Context) {
 // @Tags Admin Analytics
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Dashboard overview metrics"
-// @Failure 401 {object} map[string]interface{} "Unauthorized"
-// @Failure 403 {object} map[string]interface{} "Admin access required"
-// @Failure 500 {object} map[string]interface{} "Failed to retrieve dashboard data"
+// @Success 200 {object} DashboardOverviewResponse "Dashboard overview metrics"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
+// @Failure 500 {object} ErrorResponse "Failed to retrieve dashboard data"
 // @Router /api/v1/admin/analytics/dashboard [get]
 func (h *AdminAnalyticsHandler) GetDashboardOverview(c *gin.Context) {
 	// Get all active campaigns

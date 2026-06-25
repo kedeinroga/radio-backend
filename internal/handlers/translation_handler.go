@@ -22,6 +22,41 @@ func NewTranslationHandler(translationService *services.TranslationService) *Tra
 	}
 }
 
+// Translation endpoints wrap their payload in {"success": true, ...}.
+
+// TranslationEnvelope is the envelope for a single translation.
+type TranslationEnvelope struct {
+	Success bool                       `json:"success" example:"true"`
+	Data    domain.TranslationResponse `json:"data"`
+}
+
+// TranslationListResponse is the envelope for a list of translations.
+type TranslationListResponse struct {
+	Success bool                          `json:"success" example:"true"`
+	Data    []*domain.TranslationResponse `json:"data"`
+	Count   int                           `json:"count" example:"3"`
+}
+
+// SuccessMessageResponse is a {"success": true, "message": "..."} envelope.
+type SuccessMessageResponse struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message" example:"Translation deleted successfully"`
+}
+
+// BulkTranslationResponse is the envelope for the bulk-create operation.
+type BulkTranslationResponse struct {
+	Success bool   `json:"success" example:"true"`
+	Message string `json:"message" example:"Translations created successfully"`
+	Count   int    `json:"count" example:"10"`
+}
+
+// AvailableLanguagesResponse is the envelope listing available language codes.
+type AvailableLanguagesResponse struct {
+	Success bool     `json:"success" example:"true"`
+	Data    []string `json:"data" example:"es,en,fr"`
+	Count   int      `json:"count" example:"3"`
+}
+
 // CreateTranslation godoc
 // @Summary Create a new translation
 // @Description Creates a new translation for a station in a specific language (admin only). Request example: {"station_id": "abc123", "language_code": "en", "title": "Rock FM - Free Online Radio", "description": "Listen to Rock FM live from USA", "keywords": ["rock", "usa", "music", "online", "free"]}
@@ -30,13 +65,13 @@ func NewTranslationHandler(translationService *services.TranslationService) *Tra
 // @Produce json
 // @Security BearerAuth
 // @Param request body domain.CreateTranslationRequest true "Translation data"
-// @Success 201 {object} domain.TranslationResponse "Translation created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
-// @Failure 404 {object} map[string]interface{} "Station not found"
-// @Failure 409 {object} map[string]interface{} "Translation already exists"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} TranslationEnvelope "Translation created successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Not authorized - Admin only"
+// @Failure 404 {object} ErrorResponse "Station not found"
+// @Failure 409 {object} ErrorResponse "Translation already exists"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/translations [post]
 func (h *TranslationHandler) CreateTranslation(c *gin.Context) {
 	var req domain.CreateTranslationRequest
@@ -75,12 +110,12 @@ func (h *TranslationHandler) CreateTranslation(c *gin.Context) {
 // @Security BearerAuth
 // @Param stationId path string true "Station ID"
 // @Param lang path string true "Language code (es, en, fr, de)"
-// @Success 200 {object} domain.TranslationResponse "Translation found"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
-// @Failure 404 {object} map[string]interface{} "Translation not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} TranslationEnvelope "Translation found"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Not authorized - Admin only"
+// @Failure 404 {object} ErrorResponse "Translation not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/translations/{stationId}/{lang} [get]
 func (h *TranslationHandler) GetTranslation(c *gin.Context) {
 	stationID := c.Param("stationId")
@@ -117,12 +152,12 @@ func (h *TranslationHandler) GetTranslation(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param stationId path string true "Station ID"
-// @Success 200 {object} map[string]interface{} "List of translations"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
-// @Failure 404 {object} map[string]interface{} "Station not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} TranslationListResponse "List of translations"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Not authorized - Admin only"
+// @Failure 404 {object} ErrorResponse "Station not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/translations/{stationId} [get]
 func (h *TranslationHandler) ListTranslations(c *gin.Context) {
 	stationID := c.Param("stationId")
@@ -161,12 +196,12 @@ func (h *TranslationHandler) ListTranslations(c *gin.Context) {
 // @Param stationId path string true "Station ID"
 // @Param lang path string true "Language code (es, en, fr, de)"
 // @Param request body domain.UpdateTranslationRequest true "Updated translation data"
-// @Success 200 {object} domain.TranslationResponse "Translation updated successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
-// @Failure 404 {object} map[string]interface{} "Translation not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} TranslationEnvelope "Translation updated successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Not authorized - Admin only"
+// @Failure 404 {object} ErrorResponse "Translation not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/translations/{stationId}/{lang} [put]
 func (h *TranslationHandler) UpdateTranslation(c *gin.Context) {
 	stationID := c.Param("stationId")
@@ -210,12 +245,12 @@ func (h *TranslationHandler) UpdateTranslation(c *gin.Context) {
 // @Security BearerAuth
 // @Param stationId path string true "Station ID"
 // @Param lang path string true "Language code (es, en, fr, de)"
-// @Success 200 {object} map[string]interface{} "Translation deleted successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
-// @Failure 404 {object} map[string]interface{} "Translation not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} SuccessMessageResponse "Translation deleted successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Not authorized - Admin only"
+// @Failure 404 {object} ErrorResponse "Translation not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/translations/{stationId}/{lang} [delete]
 func (h *TranslationHandler) DeleteTranslation(c *gin.Context) {
 	stationID := c.Param("stationId")
@@ -253,11 +288,11 @@ func (h *TranslationHandler) DeleteTranslation(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body []domain.CreateTranslationRequest true "List of translations to create"
-// @Success 201 {object} map[string]interface{} "Translations created successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Not authorized - Admin only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} BulkTranslationResponse "Translations created successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Not authorized - Admin only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/translations/bulk [post]
 func (h *TranslationHandler) BulkCreateTranslations(c *gin.Context) {
 	var requests []domain.CreateTranslationRequest
@@ -303,9 +338,9 @@ func (h *TranslationHandler) BulkCreateTranslations(c *gin.Context) {
 // @Tags Translations
 // @Produce json
 // @Param stationId path string true "Station ID"
-// @Success 200 {object} map[string]interface{} "List of available languages. Example: {\"success\":true,\"data\":[\"es\",\"en\",\"fr\"],\"count\":3}"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} AvailableLanguagesResponse "List of available languages"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /translations/{stationId}/languages [get]
 func (h *TranslationHandler) GetAvailableLanguages(c *gin.Context) {
 	stationID := c.Param("stationId")

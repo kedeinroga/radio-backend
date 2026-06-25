@@ -29,6 +29,12 @@ func NewAdvertisementHandler(
 	}
 }
 
+// EligibleAdsResponse is the {"ads": [...], "count": n} envelope returned by GetEligibleAds.
+type EligibleAdsResponse struct {
+	Ads   []domain.Advertisement `json:"ads"`
+	Count int                    `json:"count" example:"3"`
+}
+
 // CreateAdvertisementRequest represents the request body for creating an advertisement
 type CreateAdvertisementRequest struct {
 	CampaignID            string    `json:"campaign_id" binding:"required,uuid"`
@@ -78,9 +84,9 @@ type UpdateAdvertisementRequest struct {
 // @Security BearerAuth
 // @Param advertisement body CreateAdvertisementRequest true "Advertisement data"
 // @Success 201 {object} domain.Advertisement "Advertisement created successfully"
-// @Failure 400 {object} map[string]string "Invalid request body or campaign_id"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid request body or campaign_id"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/ads [post]
 func (h *AdvertisementHandler) CreateAdvertisement(c *gin.Context) {
 	var req CreateAdvertisementRequest
@@ -143,10 +149,10 @@ func (h *AdvertisementHandler) CreateAdvertisement(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Advertisement ID (UUID)"
 // @Success 200 {object} domain.Advertisement "Advertisement details"
-// @Failure 400 {object} map[string]string "Invalid advertisement ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Advertisement not found"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid advertisement ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 404 {object} ErrorResponse "Advertisement not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/ads/{id} [get]
 func (h *AdvertisementHandler) GetAdvertisement(c *gin.Context) {
 	adID, ok := GetUUIDParam(c, "id")
@@ -172,9 +178,9 @@ func (h *AdvertisementHandler) GetAdvertisement(c *gin.Context) {
 // @Security BearerAuth
 // @Param campaign_id path string true "Campaign ID (UUID)"
 // @Success 200 {array} domain.Advertisement "List of advertisements"
-// @Failure 400 {object} map[string]string "Invalid campaign ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid campaign ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/campaigns/{campaign_id}/ads [get]
 func (h *AdvertisementHandler) GetAdvertisementsByCampaign(c *gin.Context) {
 	campaignID, ok := GetUUIDParam(c, "campaign_id")
@@ -202,10 +208,10 @@ func (h *AdvertisementHandler) GetAdvertisementsByCampaign(c *gin.Context) {
 // @Param id path string true "Advertisement ID (UUID)"
 // @Param advertisement body UpdateAdvertisementRequest true "Fields to update"
 // @Success 200 {object} domain.Advertisement "Updated advertisement"
-// @Failure 400 {object} map[string]string "Invalid ID format or request body"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 404 {object} map[string]string "Advertisement not found"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid ID format or request body"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 404 {object} ErrorResponse "Advertisement not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/ads/{id} [put]
 func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 	adID, ok := GetUUIDParam(c, "id")
@@ -284,9 +290,9 @@ func (h *AdvertisementHandler) UpdateAdvertisement(c *gin.Context) {
 // @Security BearerAuth
 // @Param id path string true "Advertisement ID (UUID)"
 // @Success 204 "Advertisement deleted successfully (no content)"
-// @Failure 400 {object} map[string]string "Invalid advertisement ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid advertisement ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/ads/{id} [delete]
 func (h *AdvertisementHandler) DeleteAdvertisement(c *gin.Context) {
 	adID, ok := GetUUIDParam(c, "id")
@@ -315,9 +321,9 @@ func (h *AdvertisementHandler) DeleteAdvertisement(c *gin.Context) {
 // @Param device query string false "Device type: 'mobile', 'tablet', 'desktop', 'smart_speaker'"
 // @Param is_premium query boolean false "Whether user has premium subscription (default: false)"
 // @Param limit query integer false "Maximum number of ads to return (default: 5, max: 10)"
-// @Success 200 {array} domain.Advertisement "List of eligible advertisements (empty for premium users)"
-// @Failure 400 {object} map[string]string "Invalid query parameters"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} EligibleAdsResponse "Eligible advertisements (empty for premium users)"
+// @Failure 400 {object} ErrorResponse "Invalid query parameters"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/ads/eligible [get]
 func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 	// Extract user ID from context or query (optional)
@@ -380,10 +386,10 @@ func (h *AdvertisementHandler) GetEligibleAds(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param id path string true "Advertisement ID (UUID)"
-// @Success 200 {object} map[string]interface{} "Advertisement statistics with impressions, clicks, CTR, spend, and budget info"
-// @Failure 400 {object} map[string]string "Invalid advertisement ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} services.AdvertisementStats "Advertisement statistics"
+// @Failure 400 {object} ErrorResponse "Invalid advertisement ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /api/v1/ads/{id}/stats [get]
 func (h *AdvertisementHandler) GetAdvertisementStats(c *gin.Context) {
 	adID, ok := GetUUIDParam(c, "id")

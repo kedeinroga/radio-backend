@@ -4,12 +4,41 @@ import (
 	"net/http"
 	"strconv"
 
-	_ "radio-backend/internal/domain" // imported for swagger documentation
+	"radio-backend/internal/domain"
 	"radio-backend/internal/infrastructure/logger"
 	"radio-backend/internal/services"
 
 	"github.com/gin-gonic/gin"
 )
+
+// SitemapDataResponse wraps the sitemap data under the "data" key.
+type SitemapDataResponse struct {
+	Data domain.SitemapData `json:"data"`
+}
+
+// PopularTagsData holds the limited tags list with counts.
+type PopularTagsData struct {
+	Tags  []domain.PopularTag `json:"tags"`
+	Count int                 `json:"count" example:"100"`
+	Total int                 `json:"total" example:"250"`
+}
+
+// PopularTagsResponse wraps the popular tags under the "data" key.
+type PopularTagsResponse struct {
+	Data PopularTagsData `json:"data"`
+}
+
+// PopularCountriesData holds the limited countries list with counts.
+type PopularCountriesData struct {
+	Countries []domain.PopularCountry `json:"countries"`
+	Count     int                     `json:"count" example:"50"`
+	Total     int                     `json:"total" example:"120"`
+}
+
+// PopularCountriesResponse wraps the popular countries under the "data" key.
+type PopularCountriesResponse struct {
+	Data PopularCountriesData `json:"data"`
+}
 
 // SEOHandler handles public SEO endpoints
 type SEOHandler struct {
@@ -28,8 +57,8 @@ func NewSEOHandler(seoService *services.SEOService) *SEOHandler {
 // @Description Returns popular tags and countries to build dynamic sitemap.xml. Data is cached for 6 hours.
 // @Tags SEO
 // @Produce json
-// @Success 200 {object} domain.SitemapData "Sitemap data"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} SitemapDataResponse "Sitemap data"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /seo/sitemap-data [get]
 func (h *SEOHandler) GetSitemapData(c *gin.Context) {
 	logger.Info("fetching sitemap data")
@@ -52,9 +81,9 @@ func (h *SEOHandler) GetSitemapData(c *gin.Context) {
 // @Tags SEO
 // @Produce json
 // @Param limit query int false "Results limit" default(100) minimum(1) maximum(100)
-// @Success 200 {object} object{data=object{tags=[]domain.PopularTag,count=int,total=int}} "List of popular tags"
-// @Failure 400 {object} map[string]interface{} "Invalid parameter"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} PopularTagsResponse "List of popular tags"
+// @Failure 400 {object} ErrorResponse "Invalid parameter"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /seo/popular-tags [get]
 func (h *SEOHandler) GetPopularTags(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "100")
@@ -99,9 +128,9 @@ func (h *SEOHandler) GetPopularTags(c *gin.Context) {
 // @Tags SEO
 // @Produce json
 // @Param limit query int false "Results limit" default(50) minimum(1) maximum(50)
-// @Success 200 {object} object{data=object{countries=[]domain.PopularCountry,count=int,total=int}} "List of popular countries"
-// @Failure 400 {object} map[string]interface{} "Invalid parameter"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} PopularCountriesResponse "List of popular countries"
+// @Failure 400 {object} ErrorResponse "Invalid parameter"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /seo/popular-countries [get]
 func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 	limitStr := c.DefaultQuery("limit", "50")
@@ -146,10 +175,10 @@ func (h *SEOHandler) GetPopularCountries(c *gin.Context) {
 // @Tags SEO
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Statistics updated"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} SuccessResponse "Statistics updated"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/seo/refresh-stats [post]
 func (h *SEOHandler) RefreshSEOStats(c *gin.Context) {
 	logger.Info("manually refreshing SEO statistics")

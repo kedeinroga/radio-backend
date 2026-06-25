@@ -4,11 +4,7 @@ import (
 	"radio-backend/internal/handlers"
 	"radio-backend/internal/middleware"
 
-	_ "radio-backend/docs" // Import generated docs
-
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Router holds all route handlers and middleware
@@ -103,8 +99,8 @@ func (r *Router) Setup() *gin.Engine {
 	// Health check
 	r.engine.GET("/health", r.healthCheck)
 
-	// Swagger documentation
-	r.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// API documentation (Scalar) — registered only outside production
+	r.registerDocs()
 
 	// API v1 routes
 	v1 := r.engine.Group("/api/v1")

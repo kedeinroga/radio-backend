@@ -71,11 +71,11 @@ type SecurityLogsResponse struct {
 // @Produce json
 // @Security BearerAuth
 // @Param period query string false "Time period (7d or 30d)" default(7d) Enums(7d, 30d)
-// @Success 200 {object} SecurityMetricsResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} SecurityMetricsResponse "Security metrics"
+// @Failure 400 {object} ErrorResponse "Invalid period parameter"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
+// @Failure 500 {object} ErrorResponse "Failed to retrieve security metrics"
 // @Router /api/v1/admin/security/metrics [get]
 func (h *SecurityHandler) GetMetrics(c *gin.Context) {
 	// Check if user is admin (should be done by middleware, but double-check)
@@ -136,11 +136,10 @@ func (h *SecurityHandler) GetMetrics(c *gin.Context) {
 // @Param limit query int false "Items per page" default(50) minimum(1) maximum(100)
 // @Param event_type query string false "Filter by event type" Enums(login_success, login_failed, token.issued, token.validated, token.revoked, session.created, session.revoked, session.suspicious, password.reset, password.changed)
 // @Param search query string false "Search in event type, IP address, reason, or email"
-// @Success 200 {object} SecurityLogsResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} SecurityLogsResponse "Paginated security logs"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
+// @Failure 500 {object} ErrorResponse "Failed to retrieve security logs"
 // @Router /api/v1/admin/security/logs [get]
 func (h *SecurityHandler) GetLogs(c *gin.Context) {
 	// Check if user is admin (should be done by middleware, but double-check)
@@ -266,11 +265,10 @@ type PathCountItem struct {
 // @Produce json
 // @Security BearerAuth
 // @Param period query string false "Time period" default(24h) Enums(24h, 7d, 30d)
-// @Success 200 {object} SuspiciousSourceStatsResponse
-// @Failure 400 {object} ErrorResponse
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} SuspiciousSourceStatsResponse "Suspicious source stats"
+// @Failure 400 {object} ErrorResponse "Invalid period parameter"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Router /api/v1/admin/security/suspicious-sources [get]
 func (h *SecurityHandler) GetSuspiciousSources(c *gin.Context) {
 	userType, exists := c.Get("user_type")

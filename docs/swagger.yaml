@@ -1,8 +1,5 @@
 basePath: /api/v1
 definitions:
-  gin.H:
-    additionalProperties: {}
-    type: object
   internal_handlers.ActivatePremiumRequest:
     properties:
       expires_at:
@@ -48,6 +45,160 @@ definitions:
         type: string
     required:
     - station_id
+    type: object
+  internal_handlers.AlertsResponse:
+    properties:
+      alert_count:
+        example: 2
+        type: integer
+      alerts:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.Alert'
+        type: array
+      has_critical:
+        example: false
+        type: boolean
+      has_warning:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.AnalyticsPopularStationDTO:
+    properties:
+      country:
+        example: USA
+        type: string
+      favicon:
+        example: https://cdn.example.com/favicon.png
+        type: string
+      name:
+        example: Rock FM
+        type: string
+      plays:
+        example: 1520
+        type: integer
+      station_id:
+        example: abc123
+        type: string
+      url:
+        example: https://stream.example.com/live
+        type: string
+    type: object
+  internal_handlers.AvailableLanguagesResponse:
+    properties:
+      count:
+        example: 3
+        type: integer
+      data:
+        example:
+        - es
+        - en
+        - fr
+        items:
+          type: string
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.BulkTranslationResponse:
+    properties:
+      count:
+        example: 10
+        type: integer
+      message:
+        example: Translations created successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.CampaignPerformanceListResponse:
+    properties:
+      campaigns:
+        items:
+          $ref: '#/definitions/internal_handlers.CampaignPerformanceResponse'
+        type: array
+      count:
+        example: 3
+        type: integer
+    type: object
+  internal_handlers.CampaignPerformanceResponse:
+    properties:
+      campaign_id:
+        type: string
+      campaign_name:
+        type: string
+      ctr:
+        type: number
+      spent_cents:
+        type: integer
+      status:
+        type: string
+      total_clicks:
+        type: integer
+      total_impressions:
+        type: integer
+    type: object
+  internal_handlers.CanShowAdResponse:
+    properties:
+      can_show:
+        example: true
+        type: boolean
+      reason:
+        example: allowed
+        type: string
+      user_id:
+        type: string
+    type: object
+  internal_handlers.CheckPartitionsResponse:
+    properties:
+      has_missing:
+        example: false
+        type: boolean
+      months_ahead:
+        example: 3
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PartitionCheckResult'
+        type: array
+    type: object
+  internal_handlers.CleanupPartitionsResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PartitionCleanupResult'
+        type: array
+      retention_months:
+        example: 12
+        type: integer
+      total_dropped:
+        example: 3
+        type: integer
+    type: object
+  internal_handlers.ClickListResponse:
+    properties:
+      clicks:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.AdClick'
+        type: array
+      count:
+        example: 10
+        type: integer
+    type: object
+  internal_handlers.CountData:
+    properties:
+      count:
+        example: 1234
+        type: integer
+    type: object
+  internal_handlers.CountResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.CountData'
+      success:
+        example: true
+        type: boolean
     type: object
   internal_handlers.CreateAdvertisementRequest:
     properties:
@@ -171,6 +322,30 @@ definitions:
       portal_url:
         type: string
     type: object
+  internal_handlers.DashboardOverviewResponse:
+    properties:
+      active_campaigns_count:
+        example: 5
+        type: integer
+      budget_utilization:
+        example: 42
+        type: number
+      ctr:
+        example: 0
+        type: number
+      total_budget_cents:
+        example: 100000
+        type: integer
+      total_clicks:
+        example: 0
+        type: integer
+      total_impressions:
+        example: 0
+        type: integer
+      total_spent_cents:
+        example: 42000
+        type: integer
+    type: object
   internal_handlers.DeviceInfo:
     properties:
       browser:
@@ -186,22 +361,98 @@ definitions:
         example: Mozilla/5.0...
         type: string
     type: object
+  internal_handlers.EligibleAdsResponse:
+    properties:
+      ads:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
+        type: array
+      count:
+        example: 3
+        type: integer
+    type: object
   internal_handlers.ErrorDetail:
     properties:
       code:
-        example: invalid_token
+        example: STATION_NOT_FOUND
+        type: string
+      field:
+        example: email (only present on validation errors)
         type: string
       message:
-        example: Token is invalid, expired or revoked
+        example: station not found
         type: string
     type: object
   internal_handlers.ErrorResponse:
     properties:
       error:
         $ref: '#/definitions/internal_handlers.ErrorDetail'
-      success:
+    type: object
+  internal_handlers.FavoriteListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.FavoriteStationDTO'
+        type: array
+      meta:
+        $ref: '#/definitions/internal_handlers.MetaCount'
+    type: object
+  internal_handlers.FavoriteStationDTO:
+    properties:
+      country:
+        example: United States
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      image_url:
+        example: https://cdn.rockfm.com/logo.png
+        type: string
+      is_premium_only:
         example: false
         type: boolean
+      name:
+        example: Rock FM 100.1
+        type: string
+      stream_url:
+        example: https://stream.rockfm.com/live
+        type: string
+      tags:
+        example:
+        - rock
+        - classic rock
+        items:
+          type: string
+        type: array
+      votes:
+        example: 1500
+        type: integer
+    type: object
+  internal_handlers.FraudMetricsResponse:
+    properties:
+      blocked_clicks:
+        example: 0
+        type: integer
+      blocked_impressions:
+        example: 0
+        type: integer
+      fraud_attempts_count:
+        example: 0
+        type: integer
+      fraud_score_distribution:
+        $ref: '#/definitions/internal_handlers.FraudScoreDistribution'
+    type: object
+  internal_handlers.FraudScoreDistribution:
+    properties:
+      high:
+        example: 0
+        type: integer
+      low:
+        example: 0
+        type: integer
+      medium:
+        example: 0
+        type: integer
     type: object
   internal_handlers.GetSessionsResponse:
     properties:
@@ -212,6 +463,33 @@ definitions:
       total_sessions:
         example: 3
         type: integer
+    type: object
+  internal_handlers.GuestDetailsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.GuestDetail'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.GuestRateLimitData:
+    properties:
+      enabled:
+        example: false
+        type: boolean
+      limit_per_hour:
+        example: 100
+        type: integer
+    type: object
+  internal_handlers.GuestRateLimitResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.GuestRateLimitData'
+      success:
+        example: true
+        type: boolean
     type: object
   internal_handlers.HeartbeatRequest:
     properties:
@@ -231,6 +509,19 @@ definitions:
       last_seen:
         example: "2026-04-10T15:04:05Z"
         type: string
+    type: object
+  internal_handlers.ImpressionListResponse:
+    properties:
+      count:
+        example: 100
+        type: integer
+      impressions:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.AdImpression'
+        type: array
+      limit:
+        example: 100
+        type: integer
     type: object
   internal_handlers.Location:
     properties:
@@ -278,6 +569,28 @@ definitions:
         example: Bearer
         type: string
     type: object
+  internal_handlers.MetaCount:
+    properties:
+      count:
+        example: 20
+        type: integer
+    type: object
+  internal_handlers.PartitionStatusResponse:
+    properties:
+      partitions:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PartitionStatusResult'
+        type: array
+      total:
+        example: 18
+        type: integer
+      total_rows:
+        example: 154200
+        type: integer
+      total_size_mb:
+        example: 42.5
+        type: number
+    type: object
   internal_handlers.PathCountItem:
     properties:
       count:
@@ -285,6 +598,76 @@ definitions:
         type: integer
       path:
         example: /api/v1/auth/login
+        type: string
+    type: object
+  internal_handlers.PopularCountriesData:
+    properties:
+      count:
+        example: 50
+        type: integer
+      countries:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PopularCountry'
+        type: array
+      total:
+        example: 120
+        type: integer
+    type: object
+  internal_handlers.PopularCountriesResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.PopularCountriesData'
+    type: object
+  internal_handlers.PopularStationsAnalyticsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.AnalyticsPopularStationDTO'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.PopularTagsData:
+    properties:
+      count:
+        example: 100
+        type: integer
+      tags:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.PopularTag'
+        type: array
+      total:
+        example: 250
+        type: integer
+    type: object
+  internal_handlers.PopularTagsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers.PopularTagsData'
+    type: object
+  internal_handlers.PremiumActivatedResponse:
+    properties:
+      expires_at:
+        type: string
+      message:
+        example: Premium subscription activated
+        type: string
+      success:
+        example: true
+        type: boolean
+      user_id:
+        type: string
+    type: object
+  internal_handlers.PremiumDeactivatedResponse:
+    properties:
+      message:
+        example: Premium subscription deactivated
+        type: string
+      success:
+        example: true
+        type: boolean
+      user_id:
         type: string
     type: object
   internal_handlers.PremiumStatusResponse:
@@ -303,12 +686,32 @@ definitions:
           $ref: '#/definitions/internal_handlers.TrackDTO'
         type: array
     type: object
+  internal_handlers.RecommendationsResponse:
+    properties:
+      recommendations:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.MaintenanceRecommendation'
+        type: array
+      total:
+        example: 3
+        type: integer
+    type: object
   internal_handlers.RefreshRequest:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
+    type: object
+  internal_handlers.RefreshStatisticsResponse:
+    properties:
+      days_back:
+        example: 7
+        type: integer
+      statistics:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.RefreshStatistics'
+        type: array
     type: object
   internal_handlers.RefreshTokenResponse:
     properties:
@@ -329,6 +732,16 @@ definitions:
         type: string
       token_type:
         example: Bearer
+        type: string
+    type: object
+  internal_handlers.RefreshViewsResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.RefreshResult'
+        type: array
+      type:
+        example: all
         type: string
     type: object
   internal_handlers.RegisterRequest:
@@ -514,6 +927,17 @@ definitions:
         example: Mozilla/5.0...
         type: string
     type: object
+  internal_handlers.SimpleErrorResponse:
+    properties:
+      error:
+        example: authentication required
+        type: string
+    type: object
+  internal_handlers.SitemapDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/radio-backend_internal_domain.SitemapData'
+    type: object
   internal_handlers.SourceCountItem:
     properties:
       count:
@@ -612,6 +1036,15 @@ definitions:
           $ref: '#/definitions/radio-backend_internal_services.StreamInfo'
         type: array
     type: object
+  internal_handlers.SuccessMessageResponse:
+    properties:
+      message:
+        example: Translation deleted successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   internal_handlers.SuccessResponse:
     properties:
       message:
@@ -637,6 +1070,20 @@ definitions:
       total_count:
         type: integer
     type: object
+  internal_handlers.TopAdsResponse:
+    properties:
+      count:
+        example: 0
+        type: integer
+      metric:
+        example: impressions
+        type: string
+      top_ads:
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+    type: object
   internal_handlers.TrackClickRequest:
     properties:
       advertisement_id:
@@ -659,6 +1106,14 @@ definitions:
     - ip_address
     - user_agent
     type: object
+  internal_handlers.TrackClickResponse:
+    properties:
+      click_id:
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   internal_handlers.TrackConversionRequest:
     properties:
       conversion_value_cents:
@@ -666,6 +1121,17 @@ definitions:
         type: integer
     required:
     - conversion_value_cents
+    type: object
+  internal_handlers.TrackConversionResponse:
+    properties:
+      click_id:
+        type: string
+      conversion_value_cents:
+        example: 500
+        type: integer
+      success:
+        example: true
+        type: boolean
     type: object
   internal_handlers.TrackDTO:
     properties:
@@ -710,6 +1176,60 @@ definitions:
     - ip_address
     - session_id
     - user_agent
+    type: object
+  internal_handlers.TrackImpressionResponse:
+    properties:
+      impression_id:
+        type: string
+      impression_token:
+        example: eyJhbGciOi...
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.TranslationEnvelope:
+    properties:
+      data:
+        $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.TranslationListResponse:
+    properties:
+      count:
+        example: 3
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  internal_handlers.TrendingSearchDTO:
+    properties:
+      count:
+        example: 456
+        type: integer
+      percentage:
+        example: 12.5
+        type: number
+      search_term:
+        example: rock
+        type: string
+    type: object
+  internal_handlers.TrendingSearchesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/internal_handlers.TrendingSearchDTO'
+        type: array
+      success:
+        example: true
+        type: boolean
     type: object
   internal_handlers.UpdateAdvertisementRequest:
     properties:
@@ -774,6 +1294,35 @@ definitions:
           type: string
         type: array
     type: object
+  internal_handlers.UserEnvelope:
+    properties:
+      user:
+        $ref: '#/definitions/internal_handlers.UserSummary'
+    type: object
+  internal_handlers.UserSummary:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      user_type:
+        example: guest
+        type: string
+    type: object
+  internal_handlers.ValidateImpressionResponse:
+    properties:
+      advertisement_id:
+        type: string
+      session_id:
+        type: string
+      timestamp:
+        type: string
+      valid:
+        example: true
+        type: boolean
+    type: object
   internal_handlers.ValidateTokenRequest:
     properties:
       include_metadata:
@@ -805,6 +1354,22 @@ definitions:
         example: true
         type: boolean
     type: object
+  internal_handlers.ViewableCountResponse:
+    properties:
+      advertisement_id:
+        type: string
+      since:
+        type: string
+      viewable_count:
+        example: 42
+        type: integer
+    type: object
+  internal_handlers.WebhookReceivedResponse:
+    properties:
+      received:
+        example: true
+        type: boolean
+    type: object
   radio-backend_internal_domain.AdCampaign:
     properties:
       advertiser_id:
@@ -832,6 +1397,32 @@ definitions:
       updated_at:
         type: string
     type: object
+  radio-backend_internal_domain.AdClick:
+    properties:
+      advertisement_id:
+        type: string
+      click_position:
+        description: e.g., "top-banner", "mid-roll"
+        type: string
+      conversion_value_cents:
+        type: integer
+      converted:
+        type: boolean
+      created_at:
+        type: string
+      id:
+        type: string
+      impression_id:
+        type: string
+      ip_address:
+        type: string
+      referrer:
+        type: string
+      user_agent:
+        type: string
+      user_id:
+        type: string
+    type: object
   radio-backend_internal_domain.AdFormat:
     enum:
     - banner
@@ -844,6 +1435,40 @@ definitions:
     - AdFormatInterstitial
     - AdFormatAudio
     - AdFormatNative
+  radio-backend_internal_domain.AdImpression:
+    properties:
+      advertisement_id:
+        type: string
+      city:
+        type: string
+      country_code:
+        type: string
+      created_at:
+        type: string
+      device_type:
+        description: mobile, tablet, desktop
+        type: string
+      id:
+        type: string
+      impression_duration_ms:
+        type: integer
+      impression_token:
+        description: HMAC token para validación
+        type: string
+      ip_address:
+        type: string
+      session_id:
+        type: string
+      station_id:
+        type: string
+      user_agent:
+        type: string
+      user_id:
+        description: NULL para usuarios no autenticados
+        type: string
+      viewable:
+        type: boolean
+    type: object
   radio-backend_internal_domain.AdStatus:
     enum:
     - draft
@@ -1026,6 +1651,34 @@ definitions:
         description: up, down, degraded
         type: string
     type: object
+  radio-backend_internal_domain.GuestDetail:
+    properties:
+      endpoints:
+        items:
+          $ref: '#/definitions/radio-backend_internal_domain.GuestEndpointStat'
+        type: array
+      first_seen:
+        type: string
+      ip_address:
+        type: string
+      last_seen:
+        type: string
+      total_requests:
+        type: integer
+      unique_endpoints:
+        type: integer
+      user_agent:
+        type: string
+    type: object
+  radio-backend_internal_domain.GuestEndpointStat:
+    properties:
+      count:
+        type: integer
+      method:
+        type: string
+      path:
+        type: string
+    type: object
   radio-backend_internal_domain.HealthMetrics:
     properties:
       alerts:
@@ -1070,6 +1723,36 @@ definitions:
       token_id:
         type: string
     type: object
+  radio-backend_internal_domain.MaintenanceOperation:
+    enum:
+    - refresh_views
+    - cleanup_partitions
+    - check_partitions
+    - partition_status
+    - full_maintenance
+    type: string
+    x-enum-varnames:
+    - MaintenanceRefreshViews
+    - MaintenanceCleanupPartitions
+    - MaintenanceCheckPartitions
+    - MaintenancePartitionStatus
+    - MaintenanceFullMaintenance
+  radio-backend_internal_domain.MaintenanceRecommendation:
+    properties:
+      last_run_at:
+        type: string
+      next_run_at:
+        type: string
+      operation:
+        $ref: '#/definitions/radio-backend_internal_domain.MaintenanceOperation'
+      priority:
+        description: '"critical", "warning", "info"'
+        type: string
+      reason:
+        type: string
+      should_run:
+        type: boolean
+    type: object
   radio-backend_internal_domain.MaterializedViewHealth:
     properties:
       avg_refresh_duration_ms:
@@ -1088,6 +1771,32 @@ definitions:
       total_views:
         type: integer
     type: object
+  radio-backend_internal_domain.PartitionCheckResult:
+    properties:
+      message:
+        type: string
+      month_date:
+        type: string
+      partition_name:
+        type: string
+      partitions_exist:
+        type: boolean
+      table_name:
+        type: string
+    type: object
+  radio-backend_internal_domain.PartitionCleanupResult:
+    properties:
+      dropped:
+        type: boolean
+      message:
+        type: string
+      partition_date:
+        type: string
+      partition_name:
+        type: string
+      table_name:
+        type: string
+    type: object
   radio-backend_internal_domain.PartitionHealth:
     properties:
       last_check:
@@ -1101,6 +1810,23 @@ definitions:
         type: string
       total_partitions:
         type: integer
+    type: object
+  radio-backend_internal_domain.PartitionStatusResult:
+    properties:
+      index_size_mb:
+        type: number
+      partition_date:
+        type: string
+      partition_name:
+        type: string
+      row_count:
+        type: integer
+      size_mb:
+        type: number
+      table_name:
+        type: string
+      total_size_mb:
+        type: number
     type: object
   radio-backend_internal_domain.PerformanceMetrics:
     properties:
@@ -1156,6 +1882,44 @@ definitions:
         type: string
       usage_percent:
         type: number
+    type: object
+  radio-backend_internal_domain.RefreshResult:
+    properties:
+      completed_at:
+        type: string
+      duration_ms:
+        type: integer
+      error_message:
+        type: string
+      rows_affected:
+        type: integer
+      started_at:
+        type: string
+      status:
+        type: string
+      view_name:
+        type: string
+    type: object
+  radio-backend_internal_domain.RefreshStatistics:
+    properties:
+      avg_duration_ms:
+        type: number
+      failed_refreshes:
+        type: integer
+      last_refresh:
+        type: string
+      last_status:
+        type: string
+      max_duration_ms:
+        type: integer
+      min_duration_ms:
+        type: integer
+      successful_refreshes:
+        type: integer
+      total_refreshes:
+        type: integer
+      view_name:
+        type: string
     type: object
   radio-backend_internal_domain.SEOMetadata:
     properties:
@@ -1253,6 +2017,112 @@ definitions:
     - description
     - title
     type: object
+  radio-backend_internal_domain.UserAdProfile:
+    properties:
+      ads_shown_this_hour:
+        type: integer
+      ads_shown_today:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: string
+      is_premium:
+        type: boolean
+      last_ad_shown_at:
+        type: string
+      listening_times:
+        description: JSONB
+        type: string
+      preferred_genres:
+        items:
+          type: string
+        type: array
+      premium_expires_at:
+        type: string
+      stripe_customer_id:
+        type: string
+      stripe_subscription_id:
+        type: string
+      subscription_status:
+        type: string
+      total_ad_clicks:
+        type: integer
+      total_ads_shown:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  radio-backend_internal_services.AdvertisementStats:
+    properties:
+      advertisement_id:
+        type: string
+      average_cpc:
+        description: Cost Per Click
+        type: number
+      average_cpm:
+        description: Cost Per Mille
+        type: number
+      clicks_count:
+        type: integer
+      ctr:
+        description: Click-Through Rate (%)
+        type: number
+      impressions_count:
+        type: integer
+      remaining_cents:
+        type: integer
+      spend_cents:
+        type: integer
+      status:
+        $ref: '#/definitions/radio-backend_internal_domain.AdStatus'
+      title:
+        type: string
+      total_budget_cents:
+        type: integer
+    type: object
+  radio-backend_internal_services.CampaignStats:
+    properties:
+      budget_utilization:
+        type: number
+      campaign_id:
+        type: string
+      days_remaining:
+        type: integer
+      end_date:
+        type: string
+      is_active:
+        type: boolean
+      name:
+        type: string
+      remaining_cents:
+        type: integer
+      spent_cents:
+        type: integer
+      start_date:
+        type: string
+      status:
+        $ref: '#/definitions/radio-backend_internal_domain.CampaignStatus'
+      total_budget_cents:
+        type: integer
+    type: object
+  radio-backend_internal_services.ClickStats:
+    properties:
+      advertisement_id:
+        type: string
+      average_click_delay_seconds:
+        type: number
+      conversion_rate:
+        type: number
+      since:
+        type: string
+      total_clicks:
+        type: integer
+      total_conversion_value_cents:
+        type: integer
+    type: object
   radio-backend_internal_services.StreamInfo:
     properties:
       bitrateKbps:
@@ -1266,6 +2136,27 @@ definitions:
       lastUpdate:
         type: string
       sessionID:
+        type: string
+    type: object
+  radio-backend_internal_services.UserAdStats:
+    properties:
+      ads_shown_this_hour:
+        type: integer
+      ads_shown_today:
+        type: integer
+      ctr:
+        type: number
+      is_active:
+        type: boolean
+      is_premium:
+        type: boolean
+      last_ad_shown_at:
+        type: string
+      total_ad_clicks:
+        type: integer
+      total_ads_shown:
+        type: integer
+      user_id:
         type: string
     type: object
   time.Duration:
@@ -1332,25 +2223,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Check results" example({"success":true,"data":{"results":[{"table_name":"station_plays","partition_name":"station_plays_2026_02","partitions_exist":true}],"has_missing":false}})
+          description: Check results
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.CheckPartitionsResponse'
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Check future partitions
@@ -1374,26 +2261,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Cleanup results" example({"success":true,"data":{"results":[{"table_name":"station_plays","partition_name":"station_plays_2024_01","dropped":true,"message":"Partition
-            dropped successfully"}],"total_dropped":3}})
+          description: Cleanup results
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.CleanupPartitionsResponse'
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Cleanup old partitions
@@ -1409,25 +2291,22 @@ paths:
       - application/json
       responses:
         "200":
-          description: Full maintenance results
+          description: Full maintenance results (dynamic map)
           schema:
             additionalProperties: true
             type: object
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Perform full maintenance
@@ -1443,25 +2322,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Partition status" example({"success":true,"data":{"partitions":[{"partition_name":"station_plays_2026_01","table_name":"station_plays","row_count":15420,"size_mb":2.5,"total_size_mb":3.2}],"total":18}})
+          description: Partition status
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.PartitionStatusResponse'
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get partition status
@@ -1477,29 +2352,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Maintenance recommendations" example({"success":true,"data":[{"operation":"refresh_views","priority":"warning","reason":"Vista
-            no refrescada en 6+ horas","should_run":true}]})
+          description: Maintenance recommendations
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.RecommendationsResponse'
         "401":
-          description: Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid
-            or expired token"}})
+          description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin
-            access required"}})
+          description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal server error" example({"error":{"code":"maintenance_failed","message":"Failed
-            to get recommendations"}})
+          description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get maintenance recommendations
@@ -1525,23 +2392,19 @@ paths:
         "200":
           description: Refresh statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.RefreshStatisticsResponse'
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get refresh statistics
@@ -1567,25 +2430,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Refresh results" example({"success":true,"data":{"results":[{"view_name":"mv_top_tags_seo","duration_ms":245,"rows_affected":150,"status":"SUCCESS"}],"total":3}})
+          description: Refresh results
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.RefreshViewsResponse'
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Refresh materialized views
@@ -1602,12 +2461,15 @@ paths:
         "200":
           description: Alerts retrieved successfully
           schema:
-            properties:
-              alerts:
-                items:
-                  $ref: '#/definitions/radio-backend_internal_domain.Alert'
-                type: array
-            type: object
+            $ref: '#/definitions/internal_handlers.AlertsResponse'
+        "401":
+          description: Not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
+        "403":
+          description: Admin access required
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Failed to get alerts
           schema:
@@ -1629,6 +2491,14 @@ paths:
           description: Health metrics retrieved successfully
           schema:
             $ref: '#/definitions/radio-backend_internal_domain.HealthMetrics'
+        "401":
+          description: Not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
+        "403":
+          description: Admin access required
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Failed to get health metrics
           schema:
@@ -1648,23 +2518,19 @@ paths:
         "200":
           description: Statistics updated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SuccessResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Refresh SEO statistics (Admin)
@@ -1691,37 +2557,31 @@ paths:
         "201":
           description: Translation created successfully
           schema:
-            $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+            $ref: '#/definitions/internal_handlers.TranslationEnvelope'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Not authorized - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Station not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "409":
           description: Translation already exists
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create a new translation
@@ -1742,33 +2602,27 @@ paths:
         "200":
           description: List of translations
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.TranslationListResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Not authorized - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Station not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List all translations for a station
@@ -1794,33 +2648,27 @@ paths:
         "200":
           description: Translation deleted successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SuccessMessageResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Not authorized - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Translation not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete a translation
@@ -1845,32 +2693,27 @@ paths:
         "200":
           description: Translation found
           schema:
-            $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+            $ref: '#/definitions/internal_handlers.TranslationEnvelope'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Not authorized - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Translation not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get a specific translation
@@ -1903,32 +2746,27 @@ paths:
         "200":
           description: Translation updated successfully
           schema:
-            $ref: '#/definitions/radio-backend_internal_domain.TranslationResponse'
+            $ref: '#/definitions/internal_handlers.TranslationEnvelope'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Not authorized - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Translation not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update a translation
@@ -1957,28 +2795,23 @@ paths:
         "201":
           description: Translations created successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.BulkTranslationResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Not authorized - Admin only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create multiple translations
@@ -2012,28 +2845,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Trending searches statistics" example({"success":true,"data":[{"search_term":"rock","count":456,"percentage":12.5}]})
+          description: Trending searches statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.TrendingSearchesResponse'
         "401":
-          description: Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid
-            or expired token"}})
+          description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin
-            access required"}})
+          description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal server error" example({"error":{"code":"fetch_failed","message":"Failed
-            to fetch trending searches"}})
+          description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Trending searches
@@ -2067,29 +2893,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Popular stations statistics" example({"success":true,"data":[{"station_id":"abc123","name":"Rock
-            FM","country":"USA","plays":1520,"favicon":"https://...","url":"https://..."}]})
+          description: Popular stations statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.PopularStationsAnalyticsResponse'
         "401":
-          description: Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid
-            or expired token"}})
+          description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin
-            access required"}})
+          description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal server error" example({"error":{"code":"fetch_failed","message":"Failed
-            to fetch popular stations"}})
+          description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Popular stations statistics
@@ -2106,28 +2924,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Successful response" example({"success":true,"data":{"count":1234}})
+          description: Active users count
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.CountResponse'
         "401":
-          description: Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid
-            or expired token"}})
+          description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin
-            access required"}})
+          description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal server error" example({"error":{"code":"fetch_failed","message":"Failed
-            to fetch active users count"}})
+          description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Active users
@@ -2144,28 +2955,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Successful response" example({"success":true,"data":{"count":856}})
+          description: Guest users count
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.CountResponse'
         "401":
-          description: Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid
-            or expired token"}})
+          description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin
-            access required"}})
+          description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal server error" example({"error":{"code":"fetch_failed","message":"Failed
-            to fetch guest users count"}})
+          description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Active guest users
@@ -2200,25 +3004,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":3,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z","endpoints":[{"method":"GET","path":"/api/v1/stations/search","count":25},{"method":"GET","path":"/api/v1/stations/abc123","count":15},{"method":"POST","path":"/api/v1/stream/start","count":2}]}]})
+          description: Guest details list
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.GuestDetailsResponse'
         "401":
           description: Invalid or missing authentication token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Access denied - Admin users only
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Guest users details
@@ -2234,23 +3034,19 @@ paths:
         "200":
           description: List of campaign performance metrics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.CampaignPerformanceListResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Admin access required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Failed to retrieve campaigns
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get campaign performance
@@ -2266,23 +3062,19 @@ paths:
         "200":
           description: Dashboard overview metrics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.DashboardOverviewResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Admin access required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Failed to retrieve dashboard data
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get admin dashboard overview
@@ -2298,18 +3090,15 @@ paths:
         "200":
           description: Fraud detection metrics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.FraudMetricsResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Admin access required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get fraud metrics
@@ -2340,18 +3129,15 @@ paths:
         "400":
           description: Invalid date format
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Admin access required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get revenue analytics
@@ -2373,23 +3159,19 @@ paths:
         "200":
           description: Top ads list with the applied metric
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.TopAdsResponse'
         "400":
           description: Invalid metric value
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Admin access required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get top performing ads
@@ -2405,18 +3187,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Current status" example({"success":true,"data":{"enabled":false,"limit_per_hour":100}})
+          description: Current status
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.GuestRateLimitResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Forbidden
+          description: Admin access required
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get guest IP rate limit status
@@ -2432,20 +3213,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: New state" example({"success":true,"data":{"enabled":true,"limit_per_hour":100}})
+          description: New state
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.GuestRateLimitResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Forbidden
+          description: Admin access required
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to toggle guest rate limiter
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -2496,23 +3276,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Paginated security logs
           schema:
             $ref: '#/definitions/internal_handlers.SecurityLogsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Forbidden
+          description: Admin access required
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to retrieve security logs
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -2539,23 +3315,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Security metrics
           schema:
             $ref: '#/definitions/internal_handlers.SecurityMetricsResponse'
         "400":
-          description: Bad Request
+          description: Invalid period parameter
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Forbidden
+          description: Admin access required
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to retrieve security metrics
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -2583,25 +3359,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Suspicious source stats
           schema:
             $ref: '#/definitions/internal_handlers.SuspiciousSourceStatsResponse'
         "400":
-          description: Bad Request
+          description: Invalid period parameter
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
-          description: Forbidden
+          description: Admin access required
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get suspicious request source stats
@@ -2633,21 +3405,15 @@ paths:
         "400":
           description: Invalid request body or campaign_id
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create a new advertisement
@@ -2669,21 +3435,15 @@ paths:
         "400":
           description: Invalid advertisement ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete advertisement
@@ -2708,27 +3468,19 @@ paths:
         "400":
           description: Invalid advertisement ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Advertisement not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get advertisement details
@@ -2762,27 +3514,19 @@ paths:
         "400":
           description: Invalid ID format or request body
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Advertisement not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update advertisement
@@ -2803,29 +3547,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Advertisement statistics with impressions, clicks, CTR, spend,
-            and budget info
+          description: Advertisement statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/radio-backend_internal_services.AdvertisementStats'
         "400":
           description: Invalid advertisement ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get advertisement statistics
@@ -2870,23 +3606,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of eligible advertisements (empty for premium users)
+          description: Eligible advertisements (empty for premium users)
           schema:
-            items:
-              $ref: '#/definitions/radio-backend_internal_domain.Advertisement'
-            type: array
+            $ref: '#/definitions/internal_handlers.EligibleAdsResponse'
         "400":
           description: Invalid query parameters
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Get eligible advertisements for user
       tags:
       - Advertisements
@@ -2904,20 +3634,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of clicks with count
+          description: List of clicks
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ClickListResponse'
         "400":
           description: Invalid advertisement ID format
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get clicks by advertisement
@@ -2944,18 +3671,15 @@ paths:
         "200":
           description: Click statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/radio-backend_internal_services.ClickStats'
         "400":
           description: Invalid advertisement ID or since date format
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get click statistics
@@ -2980,20 +3704,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: List of impressions with count and applied limit
+          description: List of impressions
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ImpressionListResponse'
         "400":
           description: Invalid advertisement ID format
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get impressions by advertisement
@@ -3018,20 +3739,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Viewable impression count with advertisement_id and since timestamp
+          description: Viewable impression count
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ViewableCountResponse'
         "400":
           description: Invalid advertisement ID or since date format
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Count viewable impressions
@@ -3059,21 +3777,15 @@ paths:
         "400":
           description: Invalid advertiser ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List campaigns by advertiser
@@ -3104,21 +3816,15 @@ paths:
         "400":
           description: Invalid request body or advertiser_id
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create advertising campaign
@@ -3146,21 +3852,15 @@ paths:
         "400":
           description: Invalid campaign ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List advertisements by campaign
@@ -3183,21 +3883,15 @@ paths:
         "400":
           description: Invalid campaign ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete campaign
@@ -3222,27 +3916,19 @@ paths:
         "400":
           description: Invalid campaign ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Campaign not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get campaign details
@@ -3276,27 +3962,19 @@ paths:
         "400":
           description: Invalid ID format or request body
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Campaign not found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update campaign
@@ -3322,21 +4000,15 @@ paths:
         "400":
           description: Invalid campaign ID or campaign cannot be paused
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Pause campaign
@@ -3363,21 +4035,15 @@ paths:
         "400":
           description: Invalid campaign ID or campaign cannot be resumed
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Resume campaign
@@ -3400,26 +4066,19 @@ paths:
         "200":
           description: Campaign statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/radio-backend_internal_services.CampaignStats'
         "400":
           description: Invalid campaign ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get campaign statistics
@@ -3441,15 +4100,11 @@ paths:
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: List active campaigns
@@ -3459,21 +4114,21 @@ paths:
     post:
       responses:
         "200":
-          description: OK
+          description: Subscription cancelled
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SuccessMessageResponse'
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Cancel subscription
@@ -3496,15 +4151,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Create checkout session
@@ -3520,15 +4175,15 @@ paths:
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get customer portal URL
@@ -3544,15 +4199,15 @@ paths:
         "400":
           description: Invalid user ID format
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get premium status
@@ -3575,25 +4230,21 @@ paths:
       - application/json
       responses:
         "201":
-          description: Click recorded with click_id
+          description: Click recorded
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.TrackClickResponse'
         "400":
           description: Invalid request body, UUID fields, or click data
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Suspicious click detected
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       summary: Track ad click
       tags:
       - Ad Tracking
@@ -3619,20 +4270,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Conversion recorded with click_id and conversion_value_cents
+          description: Conversion recorded
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.TrackConversionResponse'
         "400":
           description: Invalid click ID or request body
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       summary: Track click conversion
       tags:
       - Ad Tracking
@@ -3653,30 +4301,25 @@ paths:
       - application/json
       responses:
         "201":
-          description: Impression recorded with impression_id and impression_token
+          description: Impression recorded
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.TrackImpressionResponse'
         "400":
           description: Invalid request body or UUID fields
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "403":
           description: Suspicious activity detected
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "429":
           description: Frequency cap exceeded
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       summary: Track ad impression
       tags:
       - Ad Tracking
@@ -3694,20 +4337,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: Token is valid with advertisement_id and session_id
+          description: Token is valid
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ValidateImpressionResponse'
         "400":
           description: Token query parameter is required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Invalid or expired token
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       summary: Validate impression token
       tags:
       - Ad Tracking
@@ -3727,26 +4367,19 @@ paths:
         "200":
           description: User advertising profile
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/radio-backend_internal_domain.UserAdProfile'
         "400":
           description: Invalid user ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user advertising profile
@@ -3775,26 +4408,19 @@ paths:
         "200":
           description: Updated profile
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/radio-backend_internal_domain.UserAdProfile'
         "400":
           description: Invalid request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Update user ad preferences
@@ -3824,26 +4450,19 @@ paths:
         "200":
           description: Profile with premium activated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.PremiumActivatedResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Activate premium subscription
@@ -3864,29 +4483,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Eligibility check result with can_show_ad boolean, reason string,
-            and next_eligible_at timestamp
+          description: Ad eligibility result
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.CanShowAdResponse'
         "400":
           description: Invalid user ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Check if user can see ads
@@ -3906,28 +4517,21 @@ paths:
       - application/json
       responses:
         "200":
-          description: Success message
+          description: Premium deactivated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.PremiumDeactivatedResponse'
         "400":
           description: Invalid user ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Deactivate premium subscription
@@ -3949,26 +4553,19 @@ paths:
         "200":
           description: User ad statistics
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/radio-backend_internal_services.UserAdStats'
         "400":
           description: Invalid user ID format
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "401":
           description: Unauthorized - JWT token required
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user ad interaction statistics
@@ -4077,13 +4674,11 @@ paths:
         "200":
           description: User information
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.UserEnvelope'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get current user information
@@ -4161,18 +4756,19 @@ paths:
         "201":
           description: User created successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.UserEnvelope'
         "400":
-          description: Invalid request or password does not meet requirements
+          description: Invalid request body, weak/common password or validation error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "409":
+          description: Email already registered (USER_ALREADY_EXISTS)
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Register new user
       tags:
       - Authentication
@@ -4325,17 +4921,15 @@ paths:
         "200":
           description: List of favorite stations
           schema:
-            $ref: '#/definitions/internal_handlers.StationListResponse'
+            $ref: '#/definitions/internal_handlers.FavoriteListResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user favorites
@@ -4358,38 +4952,31 @@ paths:
         "201":
           description: Favorite added successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SuccessResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "403":
           description: Access denied - Premium only station
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Station not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "409":
           description: Station already in favorites
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Add station to favorites
@@ -4412,28 +4999,23 @@ paths:
         "200":
           description: Favorite removed successfully
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.SuccessResponse'
         "400":
           description: Station ID is required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Not authenticated
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Favorite not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Remove station from favorites
@@ -4457,29 +5039,15 @@ paths:
         "200":
           description: List of popular countries
           schema:
-            properties:
-              data:
-                properties:
-                  count:
-                    type: integer
-                  countries:
-                    items:
-                      $ref: '#/definitions/radio-backend_internal_domain.PopularCountry'
-                    type: array
-                  total:
-                    type: integer
-                type: object
-            type: object
+            $ref: '#/definitions/internal_handlers.PopularCountriesResponse'
         "400":
           description: Invalid parameter
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Top popular countries
       tags:
       - SEO
@@ -4501,29 +5069,15 @@ paths:
         "200":
           description: List of popular tags
           schema:
-            properties:
-              data:
-                properties:
-                  count:
-                    type: integer
-                  tags:
-                    items:
-                      $ref: '#/definitions/radio-backend_internal_domain.PopularTag'
-                    type: array
-                  total:
-                    type: integer
-                type: object
-            type: object
+            $ref: '#/definitions/internal_handlers.PopularTagsResponse'
         "400":
           description: Invalid parameter
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Top popular tags/genres
       tags:
       - SEO
@@ -4537,12 +5091,11 @@ paths:
         "200":
           description: Sitemap data
           schema:
-            $ref: '#/definitions/radio-backend_internal_domain.SitemapData'
+            $ref: '#/definitions/internal_handlers.SitemapDataResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Data for generating sitemap
       tags:
       - SEO
@@ -4578,33 +5131,27 @@ paths:
         "400":
           description: Station ID is required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized – missing or invalid X-Rradio-Secret
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "403":
           description: Access denied - Premium only station
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
           description: Station not found or has no stream
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "503":
           description: External service temporarily unavailable
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - SharedSecret: []
       summary: Get station detail
@@ -4624,11 +5171,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Currently playing track
           schema:
             $ref: '#/definitions/internal_handlers.TrackDTO'
         "204":
           description: No now-playing data available
+        "400":
+          description: Station ID is required
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Failed to get now-playing data
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - SharedSecret: []
       summary: Get now-playing track
@@ -4652,9 +5207,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Recent track history
           schema:
             $ref: '#/definitions/internal_handlers.RecentTracksResponse'
+        "400":
+          description: Station ID is required
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "500":
+          description: Failed to get recent tracks
+          schema:
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - SharedSecret: []
       summary: Get recently-played tracks
@@ -4696,18 +5259,15 @@ paths:
         "401":
           description: Unauthorized – missing or invalid X-Rradio-Secret
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "503":
           description: External service temporarily unavailable
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - SharedSecret: []
       summary: Get popular stations
@@ -4751,23 +5311,19 @@ paths:
         "400":
           description: Search parameter required
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
           description: Unauthorized – missing or invalid X-Rradio-Secret
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "503":
           description: External service temporarily unavailable
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
       - SharedSecret: []
       summary: Search stations
@@ -4789,15 +5345,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Heartbeat updated
           schema:
-            $ref: '#/definitions/internal_handlers.SuccessResponse'
+            $ref: '#/definitions/internal_handlers.SuccessMessageResponse'
         "400":
-          description: Bad Request
+          description: Invalid request body
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to update heartbeat
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -4819,19 +5379,19 @@ paths:
       - audio/mpeg
       responses:
         "200":
-          description: OK
+          description: Audio stream (audio/mpeg)
           schema:
             type: file
         "401":
-          description: Token inválido o expirado
+          description: Missing, invalid or expired token
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "404":
-          description: Estación no encontrada
+          description: Station not found
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "502":
-          description: Error al conectar con el stream
+          description: Failed to connect to the upstream stream
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Proxy de stream de audio
@@ -4844,7 +5404,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Active sessions
           schema:
             $ref: '#/definitions/internal_handlers.ActiveSessionsResponse'
         "400":
@@ -4852,11 +5412,11 @@ paths:
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to get active sessions
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -4881,19 +5441,23 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Session started (session_id/expires_at are null for guests)
           schema:
             $ref: '#/definitions/internal_handlers.StartSessionResponse'
         "400":
-          description: Bad Request
+          description: Invalid request body or user ID
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Missing or invalid X-Rradio-Secret
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "404":
           description: Station not found (guest flow)
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to start session
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -4909,13 +5473,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Active stream statistics
           schema:
             $ref: '#/definitions/internal_handlers.StreamStatsResponse'
         "401":
-          description: Unauthorized
+          description: Not authenticated
           schema:
-            $ref: '#/definitions/internal_handlers.ErrorResponse'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       security:
       - BearerAuth: []
       summary: Obtener estadísticas de streams activos
@@ -4938,15 +5502,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Session stopped successfully
           schema:
-            $ref: '#/definitions/internal_handlers.SuccessResponse'
+            $ref: '#/definitions/internal_handlers.SuccessMessageResponse'
         "400":
-          description: Bad Request
+          description: Invalid request body
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
+        "401":
+          description: Not authenticated
+          schema:
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
-          description: Internal Server Error
+          description: Failed to stop session
           schema:
             $ref: '#/definitions/internal_handlers.ErrorResponse'
       security:
@@ -4969,20 +5537,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'List of available languages. Example: {\"success\":true,\"data\":[\"es\",\"en\",\"fr\"],\"count\":3}'
+          description: List of available languages
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.AvailableLanguagesResponse'
         "400":
           description: Invalid request
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/internal_handlers.ErrorResponse'
       summary: Get available languages for a station
       tags:
       - Translations
@@ -5000,17 +5565,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Event acknowledged
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.WebhookReceivedResponse'
         "400":
           description: Invalid body, missing/invalid signature, or unparseable event
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
         "500":
           description: Failed to process checkout, subscription update, or deletion
           schema:
-            $ref: '#/definitions/gin.H'
+            $ref: '#/definitions/internal_handlers.SimpleErrorResponse'
       summary: Handle Stripe webhook
       tags:
       - premium

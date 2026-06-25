@@ -34,9 +34,9 @@ type AddFavoriteRequest struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} handlers.StationListResponse "List of favorite stations"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} FavoriteListResponse "List of favorite stations"
+// @Failure 401 {object} ErrorResponse "Not authenticated"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /favorites [get]
 func (h *FavoriteHandler) GetFavorites(c *gin.Context) {
 	userID := middleware.GetUserID(c)
@@ -78,13 +78,13 @@ func (h *FavoriteHandler) GetFavorites(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param request body AddFavoriteRequest true "Station ID"
-// @Success 201 {object} map[string]interface{} "Favorite added successfully"
-// @Failure 400 {object} map[string]interface{} "Invalid request"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 403 {object} map[string]interface{} "Access denied - Premium only station"
-// @Failure 404 {object} map[string]interface{} "Station not found"
-// @Failure 409 {object} map[string]interface{} "Station already in favorites"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} SuccessResponse "Favorite added successfully"
+// @Failure 400 {object} ErrorResponse "Invalid request"
+// @Failure 401 {object} ErrorResponse "Not authenticated"
+// @Failure 403 {object} ErrorResponse "Access denied - Premium only station"
+// @Failure 404 {object} ErrorResponse "Station not found"
+// @Failure 409 {object} ErrorResponse "Station already in favorites"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /favorites [post]
 func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 	var req AddFavoriteRequest
@@ -128,11 +128,11 @@ func (h *FavoriteHandler) AddFavorite(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param stationId path string true "Station ID"
-// @Success 200 {object} map[string]interface{} "Favorite removed successfully"
-// @Failure 400 {object} map[string]interface{} "Station ID is required"
-// @Failure 401 {object} map[string]interface{} "Not authenticated"
-// @Failure 404 {object} map[string]interface{} "Favorite not found"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} SuccessResponse "Favorite removed successfully"
+// @Failure 400 {object} ErrorResponse "Station ID is required"
+// @Failure 401 {object} ErrorResponse "Not authenticated"
+// @Failure 404 {object} ErrorResponse "Favorite not found"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /favorites/{stationId} [delete]
 func (h *FavoriteHandler) RemoveFavorite(c *gin.Context) {
 	stationID := c.Param("stationId")

@@ -34,15 +34,20 @@ func NewStripeWebhookHandler(
 	}
 }
 
+// WebhookReceivedResponse is the acknowledgement returned to Stripe.
+type WebhookReceivedResponse struct {
+	Received bool `json:"received" example:"true"`
+}
+
 // HandleWebhook procesa eventos de Stripe
 // @Summary Handle Stripe webhook
 // @Tags premium
 // @Accept  json
 // @Produce json
 // @Param Stripe-Signature header string true "Stripe webhook signature"
-// @Success 200 {object} gin.H
-// @Failure 400 {object} gin.H "Invalid body, missing/invalid signature, or unparseable event"
-// @Failure 500 {object} gin.H "Failed to process checkout, subscription update, or deletion"
+// @Success 200 {object} WebhookReceivedResponse "Event acknowledged"
+// @Failure 400 {object} SimpleErrorResponse "Invalid body, missing/invalid signature, or unparseable event"
+// @Failure 500 {object} SimpleErrorResponse "Failed to process checkout, subscription update, or deletion"
 // @Router /webhooks/stripe [post]
 func (h *StripeWebhookHandler) HandleWebhook(c *gin.Context) {
 	const MaxBodyBytes = int64(65536) // 64KB

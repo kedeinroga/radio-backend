@@ -54,31 +54,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Check results\" example({\"success\":true,\"data\":{\"results\":[{\"table_name\":\"station_plays\",\"partition_name\":\"station_plays_2026_02\",\"partitions_exist\":true}],\"has_missing\":false}})",
+                        "description": "Check results",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.CheckPartitionsResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -115,31 +111,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Cleanup results\" example({\"success\":true,\"data\":{\"results\":[{\"table_name\":\"station_plays\",\"partition_name\":\"station_plays_2024_01\",\"dropped\":true,\"message\":\"Partition dropped successfully\"}],\"total_dropped\":3}})",
+                        "description": "Cleanup results",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.CleanupPartitionsResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -165,7 +157,7 @@ const docTemplate = `{
                 "summary": "Perform full maintenance",
                 "responses": {
                     "200": {
-                        "description": "Full maintenance results",
+                        "description": "Full maintenance results (dynamic map)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -174,22 +166,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -215,31 +204,27 @@ const docTemplate = `{
                 "summary": "Get partition status",
                 "responses": {
                     "200": {
-                        "description": "Partition status\" example({\"success\":true,\"data\":{\"partitions\":[{\"partition_name\":\"station_plays_2026_01\",\"table_name\":\"station_plays\",\"row_count\":15420,\"size_mb\":2.5,\"total_size_mb\":3.2}],\"total\":18}})",
+                        "description": "Partition status",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.PartitionStatusResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -265,31 +250,27 @@ const docTemplate = `{
                 "summary": "Get maintenance recommendations",
                 "responses": {
                     "200": {
-                        "description": "Maintenance recommendations\" example({\"success\":true,\"data\":[{\"operation\":\"refresh_views\",\"priority\":\"warning\",\"reason\":\"Vista no refrescada en 6+ horas\",\"should_run\":true}]})",
+                        "description": "Maintenance recommendations",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.RecommendationsResponse"
                         }
                     },
                     "401": {
-                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error\" example({\"error\":{\"code\":\"maintenance_failed\",\"message\":\"Failed to get recommendations\"}})",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -328,29 +309,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Refresh statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.RefreshStatisticsResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -390,31 +367,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Refresh results\" example({\"success\":true,\"data\":{\"results\":[{\"view_name\":\"mv_top_tags_seo\",\"duration_ms\":245,\"rows_affected\":150,\"status\":\"SUCCESS\"}],\"total\":3}})",
+                        "description": "Refresh results",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.RefreshViewsResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -439,15 +412,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Alerts retrieved successfully",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "alerts": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/radio-backend_internal_domain.Alert"
-                                    }
-                                }
-                            }
+                            "$ref": "#/definitions/internal_handlers.AlertsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
@@ -481,6 +458,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/radio-backend_internal_domain.HealthMetrics"
                         }
                     },
+                    "401": {
+                        "description": "Not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Failed to get health metrics",
                         "schema": {
@@ -509,29 +498,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Statistics updated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -570,49 +555,43 @@ const docTemplate = `{
                     "201": {
                         "description": "Translation created successfully",
                         "schema": {
-                            "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                            "$ref": "#/definitions/internal_handlers.TranslationEnvelope"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Not authorized - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Station not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Translation already exists",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -654,36 +633,31 @@ const docTemplate = `{
                     "201": {
                         "description": "Translations created successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.BulkTranslationResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Not authorized - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -717,43 +691,37 @@ const docTemplate = `{
                     "200": {
                         "description": "List of translations",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.TranslationListResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Not authorized - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Station not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -794,42 +762,37 @@ const docTemplate = `{
                     "200": {
                         "description": "Translation found",
                         "schema": {
-                            "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                            "$ref": "#/definitions/internal_handlers.TranslationEnvelope"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Not authorized - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Translation not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -880,42 +843,37 @@ const docTemplate = `{
                     "200": {
                         "description": "Translation updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                            "$ref": "#/definitions/internal_handlers.TranslationEnvelope"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Not authorized - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Translation not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -954,43 +912,37 @@ const docTemplate = `{
                     "200": {
                         "description": "Translation deleted successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SuccessMessageResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Not authorized - Admin only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Translation not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1040,31 +992,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Trending searches statistics\" example({\"success\":true,\"data\":[{\"search_term\":\"rock\",\"count\":456,\"percentage\":12.5}]})",
+                        "description": "Trending searches statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.TrendingSearchesResponse"
                         }
                     },
                     "401": {
-                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch trending searches\"}})",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1114,31 +1062,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Popular stations statistics\" example({\"success\":true,\"data\":[{\"station_id\":\"abc123\",\"name\":\"Rock FM\",\"country\":\"USA\",\"plays\":1520,\"favicon\":\"https://...\",\"url\":\"https://...\"}]})",
+                        "description": "Popular stations statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.PopularStationsAnalyticsResponse"
                         }
                     },
                     "401": {
-                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch popular stations\"}})",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1164,31 +1108,27 @@ const docTemplate = `{
                 "summary": "Active users",
                 "responses": {
                     "200": {
-                        "description": "Successful response\" example({\"success\":true,\"data\":{\"count\":1234}})",
+                        "description": "Active users count",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.CountResponse"
                         }
                     },
                     "401": {
-                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch active users count\"}})",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1214,31 +1154,27 @@ const docTemplate = `{
                 "summary": "Active guest users",
                 "responses": {
                     "200": {
-                        "description": "Successful response\" example({\"success\":true,\"data\":{\"count\":856}})",
+                        "description": "Guest users count",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.CountResponse"
                         }
                     },
                     "401": {
-                        "description": "Invalid or missing authentication token\" example({\"error\":{\"code\":\"unauthorized\",\"message\":\"invalid or expired token\"}})",
+                        "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Access denied - Admin users only\" example({\"error\":{\"code\":\"forbidden\",\"message\":\"admin access required\"}})",
+                        "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal server error\" example({\"error\":{\"code\":\"fetch_failed\",\"message\":\"Failed to fetch guest users count\"}})",
+                        "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1288,31 +1224,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Guest details list\" example({\"success\":true,\"data\":[{\"ip_address\":\"1.2.3.4\",\"total_requests\":42,\"unique_endpoints\":3,\"user_agent\":\"Mozilla/5.0...\",\"first_seen\":\"2026-04-11T00:00:00Z\",\"last_seen\":\"2026-04-11T12:00:00Z\",\"endpoints\":[{\"method\":\"GET\",\"path\":\"/api/v1/stations/search\",\"count\":25},{\"method\":\"GET\",\"path\":\"/api/v1/stations/abc123\",\"count\":15},{\"method\":\"POST\",\"path\":\"/api/v1/stream/start\",\"count\":2}]}]})",
+                        "description": "Guest details list",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.GuestDetailsResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or missing authentication token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Admin users only",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1337,29 +1269,25 @@ const docTemplate = `{
                     "200": {
                         "description": "List of campaign performance metrics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.CampaignPerformanceListResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Admin access required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Failed to retrieve campaigns",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1384,29 +1312,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Dashboard overview metrics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.DashboardOverviewResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Admin access required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Failed to retrieve dashboard data",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -1431,22 +1355,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Fraud detection metrics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.FraudMetricsResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Admin access required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -1493,22 +1414,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid date format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Admin access required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -1542,29 +1460,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Top ads list with the applied metric",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.TopAdsResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid metric value",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Admin access required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -1590,22 +1504,21 @@ const docTemplate = `{
                 "summary": "Get guest IP rate limit status",
                 "responses": {
                     "200": {
-                        "description": "Current status\" example({\"success\":true,\"data\":{\"enabled\":false,\"limit_per_hour\":100}})",
+                        "description": "Current status",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.GuestRateLimitResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Admin access required",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -1631,26 +1544,25 @@ const docTemplate = `{
                 "summary": "Toggle guest IP rate limiter",
                 "responses": {
                     "200": {
-                        "description": "New state\" example({\"success\":true,\"data\":{\"enabled\":true,\"limit_per_hour\":100}})",
+                        "description": "New state",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.GuestRateLimitResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Admin access required",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to toggle guest rate limiter",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -1721,31 +1633,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Paginated security logs",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.SecurityLogsResponse"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
-                        }
-                    },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Admin access required",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to retrieve security logs",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -1786,31 +1692,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Security metrics",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.SecurityMetricsResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid period parameter",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Admin access required",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to retrieve security metrics",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -1852,33 +1758,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Suspicious source stats",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.SuspiciousSourceStatsResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid period parameter",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Admin access required",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -1923,28 +1823,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request body or campaign_id",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2006,30 +1897,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of eligible advertisements (empty for premium users)",
+                        "description": "Eligible advertisements (empty for premium users)",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
-                            }
+                            "$ref": "#/definitions/internal_handlers.EligibleAdsResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid query parameters",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2069,37 +1951,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid advertisement ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Advertisement not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2149,37 +2019,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid ID format or request body",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Advertisement not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2211,28 +2069,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid advertisement ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2264,37 +2113,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Advertisement statistics with impressions, clicks, CTR, spend, and budget info",
+                        "description": "Advertisement statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/radio-backend_internal_services.AdvertisementStats"
                         }
                     },
                     "400": {
                         "description": "Invalid advertisement ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2326,24 +2165,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of clicks with count",
+                        "description": "List of clicks",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ClickListResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid advertisement ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -2384,22 +2220,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Click statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/radio-backend_internal_services.ClickStats"
                         }
                     },
                     "400": {
                         "description": "Invalid advertisement ID or since date format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -2438,24 +2271,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of impressions with count and applied limit",
+                        "description": "List of impressions",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ImpressionListResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid advertisement ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -2494,24 +2324,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Viewable impression count with advertisement_id and since timestamp",
+                        "description": "Viewable impression count",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ViewableCountResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid advertisement ID or since date format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -2554,28 +2381,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid advertiser ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2620,28 +2438,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request body or advertiser_id",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2675,19 +2484,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2730,28 +2533,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid campaign ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2791,37 +2585,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid campaign ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Campaign not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2871,37 +2653,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid ID format or request body",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Campaign not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2933,28 +2703,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid campaign ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -2994,28 +2755,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid campaign ID or campaign cannot be paused",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -3055,28 +2807,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid campaign ID or campaign cannot be resumed",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -3110,35 +2853,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Campaign statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/radio-backend_internal_services.CampaignStats"
                         }
                     },
                     "400": {
                         "description": "Invalid campaign ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -3157,27 +2890,27 @@ const docTemplate = `{
                 "summary": "Cancel subscription",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Subscription cancelled",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SuccessMessageResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3215,19 +2948,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3254,19 +2987,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3293,19 +3026,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3337,31 +3070,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Click recorded with click_id",
+                        "description": "Click recorded",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.TrackClickResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request body, UUID fields, or click data",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Suspicious click detected",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3400,24 +3129,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Conversion recorded with click_id and conversion_value_cents",
+                        "description": "Conversion recorded",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.TrackConversionResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid click ID or request body",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3449,38 +3175,33 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "Impression recorded with impression_id and impression_token",
+                        "description": "Impression recorded",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.TrackImpressionResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request body or UUID fields",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Suspicious activity detected",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "429": {
                         "description": "Frequency cap exceeded",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3507,24 +3228,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token is valid with advertisement_id and session_id",
+                        "description": "Token is valid",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ValidateImpressionResponse"
                         }
                     },
                     "400": {
                         "description": "Token query parameter is required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Invalid or expired token",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3558,35 +3276,25 @@ const docTemplate = `{
                     "200": {
                         "description": "User advertising profile",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/radio-backend_internal_domain.UserAdProfile"
                         }
                     },
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3630,35 +3338,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Updated profile",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/radio-backend_internal_domain.UserAdProfile"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3704,35 +3402,25 @@ const docTemplate = `{
                     "200": {
                         "description": "Profile with premium activated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.PremiumActivatedResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3764,37 +3452,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Eligibility check result with can_show_ad boolean, reason string, and next_eligible_at timestamp",
+                        "description": "Ad eligibility result",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.CanShowAdResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3826,37 +3504,27 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success message",
+                        "description": "Premium deactivated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.PremiumDeactivatedResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -3890,35 +3558,25 @@ const docTemplate = `{
                     "200": {
                         "description": "User ad statistics",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/radio-backend_internal_services.UserAdStats"
                         }
                     },
                     "400": {
                         "description": "Invalid user ID format",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized - JWT token required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -4056,15 +3714,13 @@ const docTemplate = `{
                     "200": {
                         "description": "User information",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.UserEnvelope"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4150,22 +3806,25 @@ const docTemplate = `{
                     "201": {
                         "description": "User created successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.UserEnvelope"
                         }
                     },
                     "400": {
-                        "description": "Invalid request or password does not meet requirements",
+                        "description": "Invalid request body, weak/common password or validation error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Email already registered (USER_ALREADY_EXISTS)",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4395,21 +4054,19 @@ const docTemplate = `{
                     "200": {
                         "description": "List of favorite stations",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.StationListResponse"
+                            "$ref": "#/definitions/internal_handlers.FavoriteListResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4446,50 +4103,43 @@ const docTemplate = `{
                     "201": {
                         "description": "Favorite added successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Premium only station",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Station not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Station already in favorites",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4526,36 +4176,31 @@ const docTemplate = `{
                     "200": {
                         "description": "Favorite removed successfully",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Station ID is required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Not authenticated",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Favorite not found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4586,40 +4231,19 @@ const docTemplate = `{
                     "200": {
                         "description": "List of popular countries",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "count": {
-                                            "type": "integer"
-                                        },
-                                        "countries": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/radio-backend_internal_domain.PopularCountry"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                }
-                            }
+                            "$ref": "#/definitions/internal_handlers.PopularCountriesResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid parameter",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4650,40 +4274,19 @@ const docTemplate = `{
                     "200": {
                         "description": "List of popular tags",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "object",
-                                    "properties": {
-                                        "count": {
-                                            "type": "integer"
-                                        },
-                                        "tags": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/radio-backend_internal_domain.PopularTag"
-                                            }
-                                        },
-                                        "total": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                }
-                            }
+                            "$ref": "#/definitions/internal_handlers.PopularTagsResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid parameter",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4703,14 +4306,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Sitemap data",
                         "schema": {
-                            "$ref": "#/definitions/radio-backend_internal_domain.SitemapData"
+                            "$ref": "#/definitions/internal_handlers.SitemapDataResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4773,22 +4375,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized – missing or invalid X-Rradio-Secret",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "503": {
                         "description": "External service temporarily unavailable",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4852,29 +4451,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Search parameter required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized – missing or invalid X-Rradio-Secret",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "503": {
                         "description": "External service temporarily unavailable",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4931,43 +4526,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Station ID is required",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized – missing or invalid X-Rradio-Secret",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Access denied - Premium only station",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Station not found or has no stream",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "503": {
                         "description": "External service temporarily unavailable",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -4999,13 +4588,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Currently playing track",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.TrackDTO"
                         }
                     },
                     "204": {
                         "description": "No now-playing data available"
+                    },
+                    "400": {
+                        "description": "Station ID is required",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get now-playing data",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -5043,9 +4644,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Recent track history",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.RecentTracksResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Station ID is required",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get recent tracks",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -5082,19 +4695,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Heartbeat updated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
+                            "$ref": "#/definitions/internal_handlers.SuccessMessageResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request body",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to update heartbeat",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -5123,25 +4742,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Audio stream (audio/mpeg)",
                         "schema": {
                             "type": "file"
                         }
                     },
                     "401": {
-                        "description": "Token inválido o expirado",
+                        "description": "Missing, invalid or expired token",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "404": {
-                        "description": "Estación no encontrada",
+                        "description": "Station not found",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "502": {
-                        "description": "Error al conectar con el stream",
+                        "description": "Failed to connect to the upstream stream",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -5166,7 +4785,7 @@ const docTemplate = `{
                 "summary": "Obtener sesiones activas del usuario",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Active sessions",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ActiveSessionsResponse"
                         }
@@ -5178,13 +4797,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to get active sessions",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -5226,15 +4845,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Session started (session_id/expires_at are null for guests)",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StartSessionResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request body or user ID",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Missing or invalid X-Rradio-Secret",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "404": {
@@ -5244,7 +4869,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to start session",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -5269,15 +4894,15 @@ const docTemplate = `{
                 "summary": "Obtener estadísticas de streams activos",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Active stream statistics",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.StreamStatsResponse"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "Not authenticated",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -5314,19 +4939,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Session stopped successfully",
                         "schema": {
-                            "$ref": "#/definitions/internal_handlers.SuccessResponse"
+                            "$ref": "#/definitions/internal_handlers.SuccessMessageResponse"
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid request body",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
+                    "401": {
+                        "description": "Not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
+                        }
+                    },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Failed to stop session",
                         "schema": {
                             "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
@@ -5355,24 +4986,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of available languages. Example: {\\\"success\\\":true,\\\"data\\\":[\\\"es\\\",\\\"en\\\",\\\"fr\\\"],\\\"count\\\":3}",
+                        "description": "List of available languages",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.AvailableLanguagesResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/internal_handlers.ErrorResponse"
                         }
                     }
                 }
@@ -5401,21 +5029,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Event acknowledged",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.WebhookReceivedResponse"
                         }
                     },
                     "400": {
                         "description": "Invalid body, missing/invalid signature, or unparseable event",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Failed to process checkout, subscription update, or deletion",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/internal_handlers.SimpleErrorResponse"
                         }
                     }
                 }
@@ -5423,10 +5051,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gin.H": {
-            "type": "object",
-            "additionalProperties": {}
-        },
         "internal_handlers.ActivatePremiumRequest": {
             "type": "object",
             "required": [
@@ -5494,6 +5118,230 @@ const docTemplate = `{
             "properties": {
                 "station_id": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_handlers.AlertsResponse": {
+            "type": "object",
+            "properties": {
+                "alert_count": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.Alert"
+                    }
+                },
+                "has_critical": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "has_warning": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.AnalyticsPopularStationDTO": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string",
+                    "example": "USA"
+                },
+                "favicon": {
+                    "type": "string",
+                    "example": "https://cdn.example.com/favicon.png"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Rock FM"
+                },
+                "plays": {
+                    "type": "integer",
+                    "example": 1520
+                },
+                "station_id": {
+                    "type": "string",
+                    "example": "abc123"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://stream.example.com/live"
+                }
+            }
+        },
+        "internal_handlers.AvailableLanguagesResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "es",
+                        "en",
+                        "fr"
+                    ]
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.BulkTranslationResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Translations created successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.CampaignPerformanceListResponse": {
+            "type": "object",
+            "properties": {
+                "campaigns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.CampaignPerformanceResponse"
+                    }
+                },
+                "count": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "internal_handlers.CampaignPerformanceResponse": {
+            "type": "object",
+            "properties": {
+                "campaign_id": {
+                    "type": "string"
+                },
+                "campaign_name": {
+                    "type": "string"
+                },
+                "ctr": {
+                    "type": "number"
+                },
+                "spent_cents": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "total_clicks": {
+                    "type": "integer"
+                },
+                "total_impressions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_handlers.CanShowAdResponse": {
+            "type": "object",
+            "properties": {
+                "can_show": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "allowed"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.CheckPartitionsResponse": {
+            "type": "object",
+            "properties": {
+                "has_missing": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "months_ahead": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.PartitionCheckResult"
+                    }
+                }
+            }
+        },
+        "internal_handlers.CleanupPartitionsResponse": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.PartitionCleanupResult"
+                    }
+                },
+                "retention_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "total_dropped": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
+        "internal_handlers.ClickListResponse": {
+            "type": "object",
+            "properties": {
+                "clicks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.AdClick"
+                    }
+                },
+                "count": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "internal_handlers.CountData": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 1234
+                }
+            }
+        },
+        "internal_handlers.CountResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/internal_handlers.CountData"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -5668,6 +5516,39 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.DashboardOverviewResponse": {
+            "type": "object",
+            "properties": {
+                "active_campaigns_count": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "budget_utilization": {
+                    "type": "number",
+                    "example": 42
+                },
+                "ctr": {
+                    "type": "number",
+                    "example": 0
+                },
+                "total_budget_cents": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "total_clicks": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total_impressions": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total_spent_cents": {
+                    "type": "integer",
+                    "example": 42000
+                }
+            }
+        },
         "internal_handlers.DeviceInfo": {
             "type": "object",
             "properties": {
@@ -5689,16 +5570,35 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.EligibleAdsResponse": {
+            "type": "object",
+            "properties": {
+                "ads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.Advertisement"
+                    }
+                },
+                "count": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
         "internal_handlers.ErrorDetail": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "string",
-                    "example": "invalid_token"
+                    "example": "STATION_NOT_FOUND"
+                },
+                "field": {
+                    "type": "string",
+                    "example": "email (only present on validation errors)"
                 },
                 "message": {
                     "type": "string",
-                    "example": "Token is invalid, expired or revoked"
+                    "example": "station not found"
                 }
             }
         },
@@ -5707,10 +5607,100 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "$ref": "#/definitions/internal_handlers.ErrorDetail"
+                }
+            }
+        },
+        "internal_handlers.FavoriteListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.FavoriteStationDTO"
+                    }
                 },
-                "success": {
+                "meta": {
+                    "$ref": "#/definitions/internal_handlers.MetaCount"
+                }
+            }
+        },
+        "internal_handlers.FavoriteStationDTO": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string",
+                    "example": "United States"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "image_url": {
+                    "type": "string",
+                    "example": "https://cdn.rockfm.com/logo.png"
+                },
+                "is_premium_only": {
                     "type": "boolean",
                     "example": false
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Rock FM 100.1"
+                },
+                "stream_url": {
+                    "type": "string",
+                    "example": "https://stream.rockfm.com/live"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "rock",
+                        "classic rock"
+                    ]
+                },
+                "votes": {
+                    "type": "integer",
+                    "example": 1500
+                }
+            }
+        },
+        "internal_handlers.FraudMetricsResponse": {
+            "type": "object",
+            "properties": {
+                "blocked_clicks": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "blocked_impressions": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "fraud_attempts_count": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "fraud_score_distribution": {
+                    "$ref": "#/definitions/internal_handlers.FraudScoreDistribution"
+                }
+            }
+        },
+        "internal_handlers.FraudScoreDistribution": {
+            "type": "object",
+            "properties": {
+                "high": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "low": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "medium": {
+                    "type": "integer",
+                    "example": 0
                 }
             }
         },
@@ -5726,6 +5716,46 @@ const docTemplate = `{
                 "total_sessions": {
                     "type": "integer",
                     "example": 3
+                }
+            }
+        },
+        "internal_handlers.GuestDetailsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.GuestDetail"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.GuestRateLimitData": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "limit_per_hour": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "internal_handlers.GuestRateLimitResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/internal_handlers.GuestRateLimitData"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -5754,6 +5784,25 @@ const docTemplate = `{
                 "last_seen": {
                     "type": "string",
                     "example": "2026-04-10T15:04:05Z"
+                }
+            }
+        },
+        "internal_handlers.ImpressionListResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "impressions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.AdImpression"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },
@@ -5822,6 +5871,38 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.MetaCount": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 20
+                }
+            }
+        },
+        "internal_handlers.PartitionStatusResponse": {
+            "type": "object",
+            "properties": {
+                "partitions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.PartitionStatusResult"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 18
+                },
+                "total_rows": {
+                    "type": "integer",
+                    "example": 154200
+                },
+                "total_size_mb": {
+                    "type": "number",
+                    "example": 42.5
+                }
+            }
+        },
         "internal_handlers.PathCountItem": {
             "type": "object",
             "properties": {
@@ -5832,6 +5913,110 @@ const docTemplate = `{
                 "path": {
                     "type": "string",
                     "example": "/api/v1/auth/login"
+                }
+            }
+        },
+        "internal_handlers.PopularCountriesData": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 50
+                },
+                "countries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.PopularCountry"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 120
+                }
+            }
+        },
+        "internal_handlers.PopularCountriesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/internal_handlers.PopularCountriesData"
+                }
+            }
+        },
+        "internal_handlers.PopularStationsAnalyticsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.AnalyticsPopularStationDTO"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.PopularTagsData": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.PopularTag"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 250
+                }
+            }
+        },
+        "internal_handlers.PopularTagsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/internal_handlers.PopularTagsData"
+                }
+            }
+        },
+        "internal_handlers.PremiumActivatedResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Premium subscription activated"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_handlers.PremiumDeactivatedResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Premium subscription deactivated"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         },
@@ -5860,6 +6045,21 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.RecommendationsResponse": {
+            "type": "object",
+            "properties": {
+                "recommendations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.MaintenanceRecommendation"
+                    }
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 3
+                }
+            }
+        },
         "internal_handlers.RefreshRequest": {
             "type": "object",
             "required": [
@@ -5868,6 +6068,21 @@ const docTemplate = `{
             "properties": {
                 "refresh_token": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_handlers.RefreshStatisticsResponse": {
+            "type": "object",
+            "properties": {
+                "days_back": {
+                    "type": "integer",
+                    "example": 7
+                },
+                "statistics": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.RefreshStatistics"
+                    }
                 }
             }
         },
@@ -5897,6 +6112,21 @@ const docTemplate = `{
                 "token_type": {
                     "type": "string",
                     "example": "Bearer"
+                }
+            }
+        },
+        "internal_handlers.RefreshViewsResponse": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.RefreshResult"
+                    }
+                },
+                "type": {
+                    "type": "string",
+                    "example": "all"
                 }
             }
         },
@@ -6160,6 +6390,23 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.SimpleErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "authentication required"
+                }
+            }
+        },
+        "internal_handlers.SitemapDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.SitemapData"
+                }
+            }
+        },
         "internal_handlers.SourceCountItem": {
             "type": "object",
             "properties": {
@@ -6304,6 +6551,19 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.SuccessMessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Translation deleted successfully"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "internal_handlers.SuccessResponse": {
             "type": "object",
             "properties": {
@@ -6342,6 +6602,26 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.TopAdsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "metric": {
+                    "type": "string",
+                    "example": "impressions"
+                },
+                "top_ads": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                    }
+                }
+            }
+        },
         "internal_handlers.TrackClickRequest": {
             "type": "object",
             "required": [
@@ -6374,6 +6654,18 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.TrackClickResponse": {
+            "type": "object",
+            "properties": {
+                "click_id": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "internal_handlers.TrackConversionRequest": {
             "type": "object",
             "required": [
@@ -6383,6 +6675,22 @@ const docTemplate = `{
                 "conversion_value_cents": {
                     "type": "integer",
                     "minimum": 0
+                }
+            }
+        },
+        "internal_handlers.TrackConversionResponse": {
+            "type": "object",
+            "properties": {
+                "click_id": {
+                    "type": "string"
+                },
+                "conversion_value_cents": {
+                    "type": "integer",
+                    "example": 500
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -6447,6 +6755,85 @@ const docTemplate = `{
                 },
                 "user_id": {
                     "type": "string"
+                }
+            }
+        },
+        "internal_handlers.TrackImpressionResponse": {
+            "type": "object",
+            "properties": {
+                "impression_id": {
+                    "type": "string"
+                },
+                "impression_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOi..."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.TranslationEnvelope": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.TranslationListResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.TranslationResponse"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.TrendingSearchDTO": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 456
+                },
+                "percentage": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "search_term": {
+                    "type": "string",
+                    "example": "rock"
+                }
+            }
+        },
+        "internal_handlers.TrendingSearchesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_handlers.TrendingSearchDTO"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -6543,6 +6930,49 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_handlers.UserEnvelope": {
+            "type": "object",
+            "properties": {
+                "user": {
+                    "$ref": "#/definitions/internal_handlers.UserSummary"
+                }
+            }
+        },
+        "internal_handlers.UserSummary": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "123e4567-e89b-12d3-a456-426614174000"
+                },
+                "user_type": {
+                    "type": "string",
+                    "example": "guest"
+                }
+            }
+        },
+        "internal_handlers.ValidateImpressionResponse": {
+            "type": "object",
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "valid": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "internal_handlers.ValidateTokenRequest": {
             "type": "object",
             "properties": {
@@ -6582,6 +7012,30 @@ const docTemplate = `{
                     "example": "123e4567-e89b-12d3-a456-426614174000"
                 },
                 "valid": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "internal_handlers.ViewableCountResponse": {
+            "type": "object",
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "since": {
+                    "type": "string"
+                },
+                "viewable_count": {
+                    "type": "integer",
+                    "example": 42
+                }
+            }
+        },
+        "internal_handlers.WebhookReceivedResponse": {
+            "type": "object",
+            "properties": {
+                "received": {
                     "type": "boolean",
                     "example": true
                 }
@@ -6628,6 +7082,45 @@ const docTemplate = `{
                 }
             }
         },
+        "radio-backend_internal_domain.AdClick": {
+            "type": "object",
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "click_position": {
+                    "description": "e.g., \"top-banner\", \"mid-roll\"",
+                    "type": "string"
+                },
+                "conversion_value_cents": {
+                    "type": "integer"
+                },
+                "converted": {
+                    "type": "boolean"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "impression_id": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "referrer": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "radio-backend_internal_domain.AdFormat": {
             "type": "string",
             "enum": [
@@ -6642,6 +7135,56 @@ const docTemplate = `{
                 "AdFormatAudio",
                 "AdFormatNative"
             ]
+        },
+        "radio-backend_internal_domain.AdImpression": {
+            "type": "object",
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "country_code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "device_type": {
+                    "description": "mobile, tablet, desktop",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "impression_duration_ms": {
+                    "type": "integer"
+                },
+                "impression_token": {
+                    "description": "HMAC token para validación",
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "station_id": {
+                    "type": "string"
+                },
+                "user_agent": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "NULL para usuarios no autenticados",
+                    "type": "string"
+                },
+                "viewable": {
+                    "type": "boolean"
+                }
+            }
         },
         "radio-backend_internal_domain.AdStatus": {
             "type": "string",
@@ -6903,6 +7446,49 @@ const docTemplate = `{
                 }
             }
         },
+        "radio-backend_internal_domain.GuestDetail": {
+            "type": "object",
+            "properties": {
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/radio-backend_internal_domain.GuestEndpointStat"
+                    }
+                },
+                "first_seen": {
+                    "type": "string"
+                },
+                "ip_address": {
+                    "type": "string"
+                },
+                "last_seen": {
+                    "type": "string"
+                },
+                "total_requests": {
+                    "type": "integer"
+                },
+                "unique_endpoints": {
+                    "type": "integer"
+                },
+                "user_agent": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.GuestEndpointStat": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
         "radio-backend_internal_domain.HealthMetrics": {
             "type": "object",
             "properties": {
@@ -6969,6 +7555,47 @@ const docTemplate = `{
                 }
             }
         },
+        "radio-backend_internal_domain.MaintenanceOperation": {
+            "type": "string",
+            "enum": [
+                "refresh_views",
+                "cleanup_partitions",
+                "check_partitions",
+                "partition_status",
+                "full_maintenance"
+            ],
+            "x-enum-varnames": [
+                "MaintenanceRefreshViews",
+                "MaintenanceCleanupPartitions",
+                "MaintenanceCheckPartitions",
+                "MaintenancePartitionStatus",
+                "MaintenanceFullMaintenance"
+            ]
+        },
+        "radio-backend_internal_domain.MaintenanceRecommendation": {
+            "type": "object",
+            "properties": {
+                "last_run_at": {
+                    "type": "string"
+                },
+                "next_run_at": {
+                    "type": "string"
+                },
+                "operation": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.MaintenanceOperation"
+                },
+                "priority": {
+                    "description": "\"critical\", \"warning\", \"info\"",
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "should_run": {
+                    "type": "boolean"
+                }
+            }
+        },
         "radio-backend_internal_domain.MaterializedViewHealth": {
             "type": "object",
             "properties": {
@@ -6996,6 +7623,46 @@ const docTemplate = `{
                 }
             }
         },
+        "radio-backend_internal_domain.PartitionCheckResult": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "month_date": {
+                    "type": "string"
+                },
+                "partition_name": {
+                    "type": "string"
+                },
+                "partitions_exist": {
+                    "type": "boolean"
+                },
+                "table_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.PartitionCleanupResult": {
+            "type": "object",
+            "properties": {
+                "dropped": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "partition_date": {
+                    "type": "string"
+                },
+                "partition_name": {
+                    "type": "string"
+                },
+                "table_name": {
+                    "type": "string"
+                }
+            }
+        },
         "radio-backend_internal_domain.PartitionHealth": {
             "type": "object",
             "properties": {
@@ -7014,6 +7681,32 @@ const docTemplate = `{
                 },
                 "total_partitions": {
                     "type": "integer"
+                }
+            }
+        },
+        "radio-backend_internal_domain.PartitionStatusResult": {
+            "type": "object",
+            "properties": {
+                "index_size_mb": {
+                    "type": "number"
+                },
+                "partition_date": {
+                    "type": "string"
+                },
+                "partition_name": {
+                    "type": "string"
+                },
+                "row_count": {
+                    "type": "integer"
+                },
+                "size_mb": {
+                    "type": "number"
+                },
+                "table_name": {
+                    "type": "string"
+                },
+                "total_size_mb": {
+                    "type": "number"
                 }
             }
         },
@@ -7093,6 +7786,64 @@ const docTemplate = `{
                 },
                 "usage_percent": {
                     "type": "number"
+                }
+            }
+        },
+        "radio-backend_internal_domain.RefreshResult": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "error_message": {
+                    "type": "string"
+                },
+                "rows_affected": {
+                    "type": "integer"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "view_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_domain.RefreshStatistics": {
+            "type": "object",
+            "properties": {
+                "avg_duration_ms": {
+                    "type": "number"
+                },
+                "failed_refreshes": {
+                    "type": "integer"
+                },
+                "last_refresh": {
+                    "type": "string"
+                },
+                "last_status": {
+                    "type": "string"
+                },
+                "max_duration_ms": {
+                    "type": "integer"
+                },
+                "min_duration_ms": {
+                    "type": "integer"
+                },
+                "successful_refreshes": {
+                    "type": "integer"
+                },
+                "total_refreshes": {
+                    "type": "integer"
+                },
+                "view_name": {
+                    "type": "string"
                 }
             }
         },
@@ -7232,6 +7983,165 @@ const docTemplate = `{
                 }
             }
         },
+        "radio-backend_internal_domain.UserAdProfile": {
+            "type": "object",
+            "properties": {
+                "ads_shown_this_hour": {
+                    "type": "integer"
+                },
+                "ads_shown_today": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_premium": {
+                    "type": "boolean"
+                },
+                "last_ad_shown_at": {
+                    "type": "string"
+                },
+                "listening_times": {
+                    "description": "JSONB",
+                    "type": "string"
+                },
+                "preferred_genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "premium_expires_at": {
+                    "type": "string"
+                },
+                "stripe_customer_id": {
+                    "type": "string"
+                },
+                "stripe_subscription_id": {
+                    "type": "string"
+                },
+                "subscription_status": {
+                    "type": "string"
+                },
+                "total_ad_clicks": {
+                    "type": "integer"
+                },
+                "total_ads_shown": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_services.AdvertisementStats": {
+            "type": "object",
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "average_cpc": {
+                    "description": "Cost Per Click",
+                    "type": "number"
+                },
+                "average_cpm": {
+                    "description": "Cost Per Mille",
+                    "type": "number"
+                },
+                "clicks_count": {
+                    "type": "integer"
+                },
+                "ctr": {
+                    "description": "Click-Through Rate (%)",
+                    "type": "number"
+                },
+                "impressions_count": {
+                    "type": "integer"
+                },
+                "remaining_cents": {
+                    "type": "integer"
+                },
+                "spend_cents": {
+                    "type": "integer"
+                },
+                "status": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.AdStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "total_budget_cents": {
+                    "type": "integer"
+                }
+            }
+        },
+        "radio-backend_internal_services.CampaignStats": {
+            "type": "object",
+            "properties": {
+                "budget_utilization": {
+                    "type": "number"
+                },
+                "campaign_id": {
+                    "type": "string"
+                },
+                "days_remaining": {
+                    "type": "integer"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "remaining_cents": {
+                    "type": "integer"
+                },
+                "spent_cents": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/radio-backend_internal_domain.CampaignStatus"
+                },
+                "total_budget_cents": {
+                    "type": "integer"
+                }
+            }
+        },
+        "radio-backend_internal_services.ClickStats": {
+            "type": "object",
+            "properties": {
+                "advertisement_id": {
+                    "type": "string"
+                },
+                "average_click_delay_seconds": {
+                    "type": "number"
+                },
+                "conversion_rate": {
+                    "type": "number"
+                },
+                "since": {
+                    "type": "string"
+                },
+                "total_clicks": {
+                    "type": "integer"
+                },
+                "total_conversion_value_cents": {
+                    "type": "integer"
+                }
+            }
+        },
         "radio-backend_internal_services.StreamInfo": {
             "type": "object",
             "properties": {
@@ -7250,6 +8160,38 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "sessionID": {
+                    "type": "string"
+                }
+            }
+        },
+        "radio-backend_internal_services.UserAdStats": {
+            "type": "object",
+            "properties": {
+                "ads_shown_this_hour": {
+                    "type": "integer"
+                },
+                "ads_shown_today": {
+                    "type": "integer"
+                },
+                "ctr": {
+                    "type": "number"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_premium": {
+                    "type": "boolean"
+                },
+                "last_ad_shown_at": {
+                    "type": "string"
+                },
+                "total_ad_clicks": {
+                    "type": "integer"
+                },
+                "total_ads_shown": {
+                    "type": "integer"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }

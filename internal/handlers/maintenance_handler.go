@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"radio-backend/internal/domain"
 	"radio-backend/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,46 @@ func NewMaintenanceHandler(maintenanceService *services.MaintenanceService) *Mai
 	return &MaintenanceHandler{maintenanceService: maintenanceService}
 }
 
+// RecommendationsResponse is the response for maintenance recommendations.
+type RecommendationsResponse struct {
+	Recommendations []domain.MaintenanceRecommendation `json:"recommendations"`
+	Total           int                                `json:"total" example:"3"`
+}
+
+// RefreshViewsResponse is the response for the refresh-views operation.
+type RefreshViewsResponse struct {
+	Results []domain.RefreshResult `json:"results"`
+	Type    string                 `json:"type" example:"all"`
+}
+
+// RefreshStatisticsResponse is the response for refresh statistics.
+type RefreshStatisticsResponse struct {
+	Statistics []domain.RefreshStatistics `json:"statistics"`
+	DaysBack   int                        `json:"days_back" example:"7"`
+}
+
+// CleanupPartitionsResponse is the response for partition cleanup.
+type CleanupPartitionsResponse struct {
+	Results         []domain.PartitionCleanupResult `json:"results"`
+	TotalDropped    int                             `json:"total_dropped" example:"3"`
+	RetentionMonths int                             `json:"retention_months" example:"12"`
+}
+
+// CheckPartitionsResponse is the response for the future-partition check.
+type CheckPartitionsResponse struct {
+	Results     []domain.PartitionCheckResult `json:"results"`
+	HasMissing  bool                          `json:"has_missing" example:"false"`
+	MonthsAhead int                           `json:"months_ahead" example:"3"`
+}
+
+// PartitionStatusResponse is the response for partition status.
+type PartitionStatusResponse struct {
+	Partitions  []domain.PartitionStatusResult `json:"partitions"`
+	Total       int                            `json:"total" example:"18"`
+	TotalRows   int64                          `json:"total_rows" example:"154200"`
+	TotalSizeMB float64                        `json:"total_size_mb" example:"42.5"`
+}
+
 // GetRecommendations returns maintenance recommendations
 // @Summary Get maintenance recommendations
 // @Description Returns recommendations for database maintenance operations that should be executed. Shows priority levels and reasons.
@@ -26,10 +67,10 @@ func NewMaintenanceHandler(maintenanceService *services.MaintenanceService) *Mai
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Maintenance recommendations" example({"success":true,"data":[{"operation":"refresh_views","priority":"warning","reason":"Vista no refrescada en 6+ horas","should_run":true}]})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"maintenance_failed","message":"Failed to get recommendations"}})
+// @Success 200 {object} RecommendationsResponse "Maintenance recommendations"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/recommendations [get]
 func (h *MaintenanceHandler) GetRecommendations(c *gin.Context) {
 	recommendations, err := h.maintenanceService.GetRecommendations()
@@ -52,10 +93,10 @@ func (h *MaintenanceHandler) GetRecommendations(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param type query string false "Type of views to refresh: all, seo, analytics" default(all) Enums(all, seo, analytics)
-// @Success 200 {object} map[string]interface{} "Refresh results" example({"success":true,"data":{"results":[{"view_name":"mv_top_tags_seo","duration_ms":245,"rows_affected":150,"status":"SUCCESS"}],"total":3}})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} RefreshViewsResponse "Refresh results"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/refresh-views [post]
 func (h *MaintenanceHandler) RefreshViews(c *gin.Context) {
 	viewType := c.DefaultQuery("type", "all")
@@ -91,10 +132,10 @@ func (h *MaintenanceHandler) RefreshViews(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param days query int false "Number of days to look back" default(7) minimum(1) maximum(90)
-// @Success 200 {object} map[string]interface{} "Refresh statistics"
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} RefreshStatisticsResponse "Refresh statistics"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/refresh-stats [get]
 func (h *MaintenanceHandler) GetRefreshStatistics(c *gin.Context) {
 	daysBack := parseIntQueryParam(c, "days", 7)
@@ -119,10 +160,10 @@ func (h *MaintenanceHandler) GetRefreshStatistics(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param retention_months query int false "Number of months to retain" default(12) minimum(1) maximum(36)
-// @Success 200 {object} map[string]interface{} "Cleanup results" example({"success":true,"data":{"results":[{"table_name":"station_plays","partition_name":"station_plays_2024_01","dropped":true,"message":"Partition dropped successfully"}],"total_dropped":3}})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} CleanupPartitionsResponse "Cleanup results"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/cleanup-partitions [post]
 func (h *MaintenanceHandler) CleanupPartitions(c *gin.Context) {
 	retentionMonths := parseIntQueryParam(c, "retention_months", 12)
@@ -156,10 +197,10 @@ func (h *MaintenanceHandler) CleanupPartitions(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param months_ahead query int false "Number of months ahead to check" default(3) minimum(1) maximum(12)
-// @Success 200 {object} map[string]interface{} "Check results" example({"success":true,"data":{"results":[{"table_name":"station_plays","partition_name":"station_plays_2026_02","partitions_exist":true}],"has_missing":false}})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} CheckPartitionsResponse "Check results"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/check-partitions [get]
 func (h *MaintenanceHandler) CheckPartitions(c *gin.Context) {
 	monthsAhead := parseIntQueryParam(c, "months_ahead", 3)
@@ -193,10 +234,10 @@ func (h *MaintenanceHandler) CheckPartitions(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Partition status" example({"success":true,"data":{"partitions":[{"partition_name":"station_plays_2026_01","table_name":"station_plays","row_count":15420,"size_mb":2.5,"total_size_mb":3.2}],"total":18}})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} PartitionStatusResponse "Partition status"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/partition-status [get]
 func (h *MaintenanceHandler) GetPartitionStatus(c *gin.Context) {
 	results, err := h.maintenanceService.GetPartitionStatus()
@@ -228,10 +269,10 @@ func (h *MaintenanceHandler) GetPartitionStatus(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Full maintenance results"
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} map[string]interface{} "Full maintenance results (dynamic map)"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /admin/maintenance/full [post]
 func (h *MaintenanceHandler) PerformFullMaintenance(c *gin.Context) {
 	result, err := h.maintenanceService.PerformFullMaintenance()

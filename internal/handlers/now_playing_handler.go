@@ -41,8 +41,10 @@ type RecentTracksResponse struct {
 // @Produce json
 // @Security SharedSecret
 // @Param id path string true "Station ID"
-// @Success 200 {object} TrackDTO
+// @Success 200 {object} TrackDTO "Currently playing track"
 // @Success 204 "No now-playing data available"
+// @Failure 400 {object} ErrorResponse "Station ID is required"
+// @Failure 500 {object} ErrorResponse "Failed to get now-playing data"
 // @Router /stations/{id}/now-playing [get]
 func (h *NowPlayingHandler) GetNowPlaying(c *gin.Context) {
 	stationID := c.Param("id")
@@ -79,7 +81,9 @@ func (h *NowPlayingHandler) GetNowPlaying(c *gin.Context) {
 // @Security SharedSecret
 // @Param id path string true "Station ID"
 // @Param limit query int false "Max tracks (1-50)" default(10)
-// @Success 200 {object} RecentTracksResponse
+// @Success 200 {object} RecentTracksResponse "Recent track history"
+// @Failure 400 {object} ErrorResponse "Station ID is required"
+// @Failure 500 {object} ErrorResponse "Failed to get recent tracks"
 // @Router /stations/{id}/recent-tracks [get]
 func (h *NowPlayingHandler) GetRecentTracks(c *gin.Context) {
 	stationID := c.Param("id")

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"radio-backend/internal/domain"
 	"radio-backend/internal/services"
 
 	"github.com/gin-gonic/gin"
@@ -18,6 +19,55 @@ func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *Analytics
 	return &AnalyticsHandler{analyticsService: analyticsService}
 }
 
+// Analytics endpoints wrap their payload in {"success": true, "data": ...},
+// which differs from the bare RespondWithSuccess envelope used elsewhere.
+
+// AnalyticsPopularStationDTO is a single popular-station analytics row.
+type AnalyticsPopularStationDTO struct {
+	StationID string `json:"station_id" example:"abc123"`
+	Name      string `json:"name" example:"Rock FM"`
+	Country   string `json:"country" example:"USA"`
+	Plays     int    `json:"plays" example:"1520"`
+	Favicon   string `json:"favicon" example:"https://cdn.example.com/favicon.png"`
+	URL       string `json:"url" example:"https://stream.example.com/live"`
+}
+
+// PopularStationsAnalyticsResponse is the envelope for popular-station analytics.
+type PopularStationsAnalyticsResponse struct {
+	Success bool                         `json:"success" example:"true"`
+	Data    []AnalyticsPopularStationDTO `json:"data"`
+}
+
+// TrendingSearchDTO is a single trending-search analytics row.
+type TrendingSearchDTO struct {
+	SearchTerm string  `json:"search_term" example:"rock"`
+	Count      int     `json:"count" example:"456"`
+	Percentage float64 `json:"percentage" example:"12.5"`
+}
+
+// TrendingSearchesResponse is the envelope for trending-search analytics.
+type TrendingSearchesResponse struct {
+	Success bool                `json:"success" example:"true"`
+	Data    []TrendingSearchDTO `json:"data"`
+}
+
+// CountData carries a single count value.
+type CountData struct {
+	Count int64 `json:"count" example:"1234"`
+}
+
+// CountResponse is the envelope for active/guest user counts.
+type CountResponse struct {
+	Success bool      `json:"success" example:"true"`
+	Data    CountData `json:"data"`
+}
+
+// GuestDetailsResponse is the envelope for guest request details.
+type GuestDetailsResponse struct {
+	Success bool                 `json:"success" example:"true"`
+	Data    []domain.GuestDetail `json:"data"`
+}
+
 // GetPopularStations returns popular stations analytics
 // @Summary Popular stations statistics
 // @Description Returns the most played stations in a specific time period ordered by number of plays. Includes complete information for each station.
@@ -27,10 +77,10 @@ func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *Analytics
 // @Security BearerAuth
 // @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
 // @Param limit query int false "Maximum number of results to return" default(10) minimum(1) maximum(100)
-// @Success 200 {object} map[string]interface{} "Popular stations statistics" example({"success":true,"data":[{"station_id":"abc123","name":"Rock FM","country":"USA","plays":1520,"favicon":"https://...","url":"https://..."}]})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch popular stations"}})
+// @Success 200 {object} PopularStationsAnalyticsResponse "Popular stations statistics"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /analytics/stations/popular [get]
 func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
 	timeRange := c.DefaultQuery("range", "day")
@@ -70,10 +120,10 @@ func (h *AnalyticsHandler) GetPopularStations(c *gin.Context) {
 // @Security BearerAuth
 // @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
 // @Param limit query int false "Maximum number of results to return" default(10) minimum(1) maximum(100)
-// @Success 200 {object} map[string]interface{} "Trending searches statistics" example({"success":true,"data":[{"search_term":"rock","count":456,"percentage":12.5}]})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch trending searches"}})
+// @Success 200 {object} TrendingSearchesResponse "Trending searches statistics"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /analytics/searches/trending [get]
 func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
 	timeRange := c.DefaultQuery("range", "day")
@@ -113,10 +163,10 @@ func (h *AnalyticsHandler) GetTrendingSearches(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Successful response" example({"success":true,"data":{"count":1234}})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch active users count"}})
+// @Success 200 {object} CountResponse "Active users count"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /analytics/users/active [get]
 func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {
 	count, err := h.analyticsService.GetActiveUsersCount()
@@ -142,10 +192,10 @@ func (h *AnalyticsHandler) GetActiveUsers(c *gin.Context) {
 // @Security BearerAuth
 // @Param range query string false "Time range: hour, day, week, month" default(day) Enums(hour, day, week, month)
 // @Param limit query int false "Maximum number of IPs to return" default(50) minimum(1) maximum(500)
-// @Success 200 {object} map[string]interface{} "Guest details list" example({"success":true,"data":[{"ip_address":"1.2.3.4","total_requests":42,"unique_endpoints":3,"user_agent":"Mozilla/5.0...","first_seen":"2026-04-11T00:00:00Z","last_seen":"2026-04-11T12:00:00Z","endpoints":[{"method":"GET","path":"/api/v1/stations/search","count":25},{"method":"GET","path":"/api/v1/stations/abc123","count":15},{"method":"POST","path":"/api/v1/stream/start","count":2}]}]})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token"
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} GuestDetailsResponse "Guest details list"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /analytics/users/guest/details [get]
 func (h *AnalyticsHandler) GetGuestDetails(c *gin.Context) {
 	timeRange := c.DefaultQuery("range", "day")
@@ -170,10 +220,10 @@ func (h *AnalyticsHandler) GetGuestDetails(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Successful response" example({"success":true,"data":{"count":856}})
-// @Failure 401 {object} map[string]interface{} "Invalid or missing authentication token" example({"error":{"code":"unauthorized","message":"invalid or expired token"}})
-// @Failure 403 {object} map[string]interface{} "Access denied - Admin users only" example({"error":{"code":"forbidden","message":"admin access required"}})
-// @Failure 500 {object} map[string]interface{} "Internal server error" example({"error":{"code":"fetch_failed","message":"Failed to fetch guest users count"}})
+// @Success 200 {object} CountResponse "Guest users count"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or missing authentication token"
+// @Failure 403 {object} SimpleErrorResponse "Access denied - Admin users only"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /analytics/users/guest [get]
 func (h *AnalyticsHandler) GetGuestUsers(c *gin.Context) {
 	count, err := h.analyticsService.GetGuestUsersCount()

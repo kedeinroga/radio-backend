@@ -21,6 +21,14 @@ func NewMonitoringHandler(monitoringService *services.MonitoringService) *Monito
 	}
 }
 
+// AlertsResponse is the response for the system alerts endpoint.
+type AlertsResponse struct {
+	Alerts      []domain.Alert `json:"alerts"`
+	AlertCount  int            `json:"alert_count" example:"2"`
+	HasCritical bool           `json:"has_critical" example:"false"`
+	HasWarning  bool           `json:"has_warning" example:"true"`
+}
+
 // GetHealthMetrics returns comprehensive health metrics
 // @Summary Get health metrics
 // @Description Returns comprehensive system health metrics including database, Redis, partitions, and materialized views
@@ -29,6 +37,8 @@ func NewMonitoringHandler(monitoringService *services.MonitoringService) *Monito
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} domain.HealthMetrics "Health metrics retrieved successfully"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Failure 500 {object} ErrorResponse "Failed to get health metrics"
 // @Router /admin/monitoring/health [get]
 func (h *MonitoringHandler) GetHealthMetrics(c *gin.Context) {
@@ -48,7 +58,9 @@ func (h *MonitoringHandler) GetHealthMetrics(c *gin.Context) {
 // @Tags Monitoring
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} object{alerts=[]domain.Alert} "Alerts retrieved successfully"
+// @Success 200 {object} AlertsResponse "Alerts retrieved successfully"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Failure 500 {object} ErrorResponse "Failed to get alerts"
 // @Router /admin/monitoring/alerts [get]
 func (h *MonitoringHandler) GetAlerts(c *gin.Context) {

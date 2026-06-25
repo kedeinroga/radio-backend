@@ -18,6 +18,18 @@ func NewGuestRateLimitHandler(limiter *middleware.GuestIPRateLimiter) *GuestRate
 	return &GuestRateLimitHandler{limiter: limiter}
 }
 
+// GuestRateLimitData holds the guest IP rate limiter state.
+type GuestRateLimitData struct {
+	Enabled      bool `json:"enabled" example:"false"`
+	LimitPerHour int  `json:"limit_per_hour" example:"100"`
+}
+
+// GuestRateLimitResponse is the {"success": true, "data": {...}} envelope.
+type GuestRateLimitResponse struct {
+	Success bool               `json:"success" example:"true"`
+	Data    GuestRateLimitData `json:"data"`
+}
+
 // GetStatus returns the current state of the guest IP rate limiter.
 // @Summary Get guest IP rate limit status
 // @Description Returns whether the per-guest-IP rate limiter is currently enabled and the configured limit.
@@ -25,9 +37,9 @@ func NewGuestRateLimitHandler(limiter *middleware.GuestIPRateLimiter) *GuestRate
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "Current status" example({"success":true,"data":{"enabled":false,"limit_per_hour":100}})
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
+// @Success 200 {object} GuestRateLimitResponse "Current status"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
 // @Router /api/v1/admin/security/guest-rate-limit [get]
 func (h *GuestRateLimitHandler) GetStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
@@ -46,10 +58,10 @@ func (h *GuestRateLimitHandler) GetStatus(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Success 200 {object} map[string]interface{} "New state" example({"success":true,"data":{"enabled":true,"limit_per_hour":100}})
-// @Failure 401 {object} ErrorResponse
-// @Failure 403 {object} ErrorResponse
-// @Failure 500 {object} ErrorResponse
+// @Success 200 {object} GuestRateLimitResponse "New state"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
+// @Failure 403 {object} SimpleErrorResponse "Admin access required"
+// @Failure 500 {object} ErrorResponse "Failed to toggle guest rate limiter"
 // @Router /api/v1/admin/security/guest-rate-limit/toggle [post]
 func (h *GuestRateLimitHandler) Toggle(c *gin.Context) {
 	enabled, err := h.limiter.Toggle()

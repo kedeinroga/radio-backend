@@ -8,8 +8,34 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"radio-backend/internal/domain"
 	"radio-backend/internal/services"
 )
+
+// User ad-profile endpoints emit flat {"error": "message"} bodies on failure
+// (SimpleErrorResponse) and the success envelopes defined below.
+
+// PremiumActivatedResponse is returned after activating premium.
+type PremiumActivatedResponse struct {
+	Success   bool      `json:"success" example:"true"`
+	Message   string    `json:"message" example:"Premium subscription activated"`
+	UserID    uuid.UUID `json:"user_id"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+// PremiumDeactivatedResponse is returned after deactivating premium.
+type PremiumDeactivatedResponse struct {
+	Success bool      `json:"success" example:"true"`
+	Message string    `json:"message" example:"Premium subscription deactivated"`
+	UserID  uuid.UUID `json:"user_id"`
+}
+
+// CanShowAdResponse is the ad-eligibility check result.
+type CanShowAdResponse struct {
+	UserID  uuid.UUID `json:"user_id"`
+	CanShow bool      `json:"can_show" example:"true"`
+	Reason  string    `json:"reason" example:"allowed"`
+}
 
 // UserAdProfileHandler handles user ad profile management
 type UserAdProfileHandler struct {
@@ -47,10 +73,10 @@ type ActivatePremiumRequest struct {
 // @Produce json
 // @Security BearerAuth
 // @Param user_id path string true "User ID (UUID)"
-// @Success 200 {object} map[string]interface{} "User advertising profile"
-// @Failure 400 {object} map[string]string "Invalid user ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} domain.UserAdProfile "User advertising profile"
+// @Failure 400 {object} SimpleErrorResponse "Invalid user ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile [get]
 func (h *UserAdProfileHandler) GetUserAdProfile(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("user_id"))
@@ -59,7 +85,8 @@ func (h *UserAdProfileHandler) GetUserAdProfile(c *gin.Context) {
 		return
 	}
 
-	profile, err := h.profileService.GetProfile(c.Request.Context(), userID)
+	var profile *domain.UserAdProfile
+	profile, err = h.profileService.GetProfile(c.Request.Context(), userID)
 	if err != nil {
 		h.logger.Error("Failed to get user ad profile", "error", err, "user_id", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get profile"})
@@ -78,10 +105,10 @@ func (h *UserAdProfileHandler) GetUserAdProfile(c *gin.Context) {
 // @Security BearerAuth
 // @Param user_id path string true "User ID (UUID)"
 // @Param profile body UpdateProfileRequest true "Profile updates"
-// @Success 200 {object} map[string]interface{} "Updated profile"
-// @Failure 400 {object} map[string]string "Invalid request"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} domain.UserAdProfile "Updated profile"
+// @Failure 400 {object} SimpleErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile [put]
 func (h *UserAdProfileHandler) UpdateUserAdProfile(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("user_id"))
@@ -130,10 +157,10 @@ func (h *UserAdProfileHandler) UpdateUserAdProfile(c *gin.Context) {
 // @Security BearerAuth
 // @Param user_id path string true "User ID (UUID)"
 // @Param premium body ActivatePremiumRequest true "Premium subscription details from Stripe"
-// @Success 200 {object} map[string]interface{} "Profile with premium activated"
-// @Failure 400 {object} map[string]string "Invalid request"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} PremiumActivatedResponse "Profile with premium activated"
+// @Failure 400 {object} SimpleErrorResponse "Invalid request"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile/activate-premium [post]
 func (h *UserAdProfileHandler) ActivatePremium(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("user_id"))
@@ -179,10 +206,10 @@ func (h *UserAdProfileHandler) ActivatePremium(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param user_id path string true "User ID (UUID)"
-// @Success 200 {object} map[string]interface{} "Success message"
-// @Failure 400 {object} map[string]string "Invalid user ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} PremiumDeactivatedResponse "Premium deactivated"
+// @Failure 400 {object} SimpleErrorResponse "Invalid user ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile/deactivate-premium [post]
 func (h *UserAdProfileHandler) DeactivatePremium(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("user_id"))
@@ -211,10 +238,10 @@ func (h *UserAdProfileHandler) DeactivatePremium(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param user_id path string true "User ID (UUID)"
-// @Success 200 {object} map[string]interface{} "User ad statistics"
-// @Failure 400 {object} map[string]string "Invalid user ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} services.UserAdStats "User ad statistics"
+// @Failure 400 {object} SimpleErrorResponse "Invalid user ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile/stats [get]
 func (h *UserAdProfileHandler) GetUserAdStats(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("user_id"))
@@ -240,10 +267,10 @@ func (h *UserAdProfileHandler) GetUserAdStats(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param user_id path string true "User ID (UUID)"
-// @Success 200 {object} map[string]interface{} "Eligibility check result with can_show_ad boolean, reason string, and next_eligible_at timestamp"
-// @Failure 400 {object} map[string]string "Invalid user ID format"
-// @Failure 401 {object} map[string]string "Unauthorized - JWT token required"
-// @Failure 500 {object} map[string]string "Internal server error"
+// @Success 200 {object} CanShowAdResponse "Ad eligibility result"
+// @Failure 400 {object} SimpleErrorResponse "Invalid user ID format"
+// @Failure 401 {object} SimpleErrorResponse "Unauthorized - JWT token required"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/users/{user_id}/ad-profile/can-show-ad [get]
 func (h *UserAdProfileHandler) CanShowAd(c *gin.Context) {
 	userID, err := uuid.Parse(c.Param("user_id"))

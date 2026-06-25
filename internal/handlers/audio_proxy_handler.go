@@ -32,10 +32,10 @@ func NewAudioProxyHandler(
 // @Tags Streaming
 // @Produce audio/mpeg
 // @Param token query string true "Token JWT de la sesión"
-// @Success 200 {file} audio/mpeg
-// @Failure 401 {object} ErrorResponse "Token inválido o expirado"
-// @Failure 404 {object} ErrorResponse "Estación no encontrada"
-// @Failure 502 {object} ErrorResponse "Error al conectar con el stream"
+// @Success 200 {file} file "Audio stream (audio/mpeg)"
+// @Failure 401 {object} ErrorResponse "Missing, invalid or expired token"
+// @Failure 404 {object} ErrorResponse "Station not found"
+// @Failure 502 {object} ErrorResponse "Failed to connect to the upstream stream"
 // @Router /stream/proxy [get]
 func (h *AudioProxyHandler) ProxyStream(c *gin.Context) {
 	token := c.Query("token")
@@ -74,8 +74,8 @@ func (h *AudioProxyHandler) ProxyStream(c *gin.Context) {
 // @Description Retorna información sobre streams actualmente activos (solo admin)
 // @Tags Streaming
 // @Produce json
-// @Success 200 {object} StreamStatsResponse
-// @Failure 401 {object} ErrorResponse
+// @Success 200 {object} StreamStatsResponse "Active stream statistics"
+// @Failure 401 {object} SimpleErrorResponse "Not authenticated"
 // @Security BearerAuth
 // @Router /stream/stats [get]
 func (h *AudioProxyHandler) GetStreamStats(c *gin.Context) {

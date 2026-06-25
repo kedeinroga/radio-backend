@@ -33,6 +33,57 @@ func NewImpressionHandler(
 	}
 }
 
+// Ad-tracking endpoints emit flat {"error": "message"} bodies on failure
+// (SimpleErrorResponse) and the success envelopes defined below.
+
+// TrackImpressionResponse is returned after recording an impression.
+type TrackImpressionResponse struct {
+	ImpressionID    uuid.UUID `json:"impression_id"`
+	ImpressionToken string    `json:"impression_token" example:"eyJhbGciOi..."`
+	Success         bool      `json:"success" example:"true"`
+}
+
+// ValidateImpressionResponse is returned when validating an impression token.
+type ValidateImpressionResponse struct {
+	Valid           bool      `json:"valid" example:"true"`
+	AdvertisementID uuid.UUID `json:"advertisement_id"`
+	SessionID       string    `json:"session_id"`
+	Timestamp       time.Time `json:"timestamp"`
+}
+
+// ImpressionListResponse lists impressions for an advertisement.
+type ImpressionListResponse struct {
+	Impressions []domain.AdImpression `json:"impressions"`
+	Count       int                   `json:"count" example:"100"`
+	Limit       int                   `json:"limit" example:"100"`
+}
+
+// ViewableCountResponse holds the viewable impression count.
+type ViewableCountResponse struct {
+	AdvertisementID uuid.UUID `json:"advertisement_id"`
+	ViewableCount   int64     `json:"viewable_count" example:"42"`
+	Since           time.Time `json:"since"`
+}
+
+// TrackClickResponse is returned after recording a click.
+type TrackClickResponse struct {
+	ClickID uuid.UUID `json:"click_id"`
+	Success bool      `json:"success" example:"true"`
+}
+
+// TrackConversionResponse is returned after recording a conversion.
+type TrackConversionResponse struct {
+	ClickID              uuid.UUID `json:"click_id"`
+	ConversionValueCents int       `json:"conversion_value_cents" example:"500"`
+	Success              bool      `json:"success" example:"true"`
+}
+
+// ClickListResponse lists clicks for an advertisement.
+type ClickListResponse struct {
+	Clicks []domain.AdClick `json:"clicks"`
+	Count  int              `json:"count" example:"10"`
+}
+
 // TrackImpressionRequest represents the request body for tracking an impression
 type TrackImpressionRequest struct {
 	AdvertisementID string  `json:"advertisement_id" binding:"required,uuid"`
@@ -69,11 +120,11 @@ type TrackConversionRequest struct {
 // @Accept json
 // @Produce json
 // @Param request body TrackImpressionRequest true "Impression data"
-// @Success 201 {object} map[string]interface{} "Impression recorded with impression_id and impression_token"
-// @Failure 400 {object} map[string]interface{} "Invalid request body or UUID fields"
-// @Failure 403 {object} map[string]interface{} "Suspicious activity detected"
-// @Failure 429 {object} map[string]interface{} "Frequency cap exceeded"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} TrackImpressionResponse "Impression recorded"
+// @Failure 400 {object} SimpleErrorResponse "Invalid request body or UUID fields"
+// @Failure 403 {object} SimpleErrorResponse "Suspicious activity detected"
+// @Failure 429 {object} SimpleErrorResponse "Frequency cap exceeded"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/tracking/impressions [post]
 func (h *ImpressionHandler) TrackImpression(c *gin.Context) {
 	var req TrackImpressionRequest
@@ -145,9 +196,9 @@ func (h *ImpressionHandler) TrackImpression(c *gin.Context) {
 // @Tags Ad Tracking
 // @Produce json
 // @Param token query string true "Impression token to validate"
-// @Success 200 {object} map[string]interface{} "Token is valid with advertisement_id and session_id"
-// @Failure 400 {object} map[string]interface{} "Token query parameter is required"
-// @Failure 401 {object} map[string]interface{} "Invalid or expired token"
+// @Success 200 {object} ValidateImpressionResponse "Token is valid"
+// @Failure 400 {object} SimpleErrorResponse "Token query parameter is required"
+// @Failure 401 {object} SimpleErrorResponse "Invalid or expired token"
 // @Router /api/v1/tracking/impressions/validate [get]
 func (h *ImpressionHandler) ValidateImpressionToken(c *gin.Context) {
 	token := c.Query("token")
@@ -179,9 +230,9 @@ func (h *ImpressionHandler) ValidateImpressionToken(c *gin.Context) {
 // @Security BearerAuth
 // @Param ad_id path string true "Advertisement ID (UUID)"
 // @Param limit query int false "Maximum number of records to return" default(100)
-// @Success 200 {object} map[string]interface{} "List of impressions with count and applied limit"
-// @Failure 400 {object} map[string]interface{} "Invalid advertisement ID format"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} ImpressionListResponse "List of impressions"
+// @Failure 400 {object} SimpleErrorResponse "Invalid advertisement ID format"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/advertiser/ads/{ad_id}/impressions [get]
 func (h *ImpressionHandler) GetImpressionsByAdvertisement(c *gin.Context) {
 	adID, err := uuid.Parse(c.Param("ad_id"))
@@ -220,9 +271,9 @@ func (h *ImpressionHandler) GetImpressionsByAdvertisement(c *gin.Context) {
 // @Security BearerAuth
 // @Param ad_id path string true "Advertisement ID (UUID)"
 // @Param since query string false "Start timestamp (RFC3339). Defaults to 24 hours ago." example("2024-01-15T00:00:00Z")
-// @Success 200 {object} map[string]interface{} "Viewable impression count with advertisement_id and since timestamp"
-// @Failure 400 {object} map[string]interface{} "Invalid advertisement ID or since date format"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} ViewableCountResponse "Viewable impression count"
+// @Failure 400 {object} SimpleErrorResponse "Invalid advertisement ID or since date format"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/advertiser/ads/{ad_id}/viewable [get]
 func (h *ImpressionHandler) CountViewableImpressions(c *gin.Context) {
 	adID, err := uuid.Parse(c.Param("ad_id"))
@@ -262,10 +313,10 @@ func (h *ImpressionHandler) CountViewableImpressions(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body TrackClickRequest true "Click data"
-// @Success 201 {object} map[string]interface{} "Click recorded with click_id"
-// @Failure 400 {object} map[string]interface{} "Invalid request body, UUID fields, or click data"
-// @Failure 403 {object} map[string]interface{} "Suspicious click detected"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {object} TrackClickResponse "Click recorded"
+// @Failure 400 {object} SimpleErrorResponse "Invalid request body, UUID fields, or click data"
+// @Failure 403 {object} SimpleErrorResponse "Suspicious click detected"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/tracking/clicks [post]
 func (h *ImpressionHandler) TrackClick(c *gin.Context) {
 	var req TrackClickRequest
@@ -341,9 +392,9 @@ func (h *ImpressionHandler) TrackClick(c *gin.Context) {
 // @Produce json
 // @Param click_id path string true "Click ID (UUID)"
 // @Param request body TrackConversionRequest true "Conversion data"
-// @Success 200 {object} map[string]interface{} "Conversion recorded with click_id and conversion_value_cents"
-// @Failure 400 {object} map[string]interface{} "Invalid click ID or request body"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} TrackConversionResponse "Conversion recorded"
+// @Failure 400 {object} SimpleErrorResponse "Invalid click ID or request body"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/tracking/clicks/{click_id}/conversion [post]
 func (h *ImpressionHandler) TrackConversion(c *gin.Context) {
 	clickID, err := uuid.Parse(c.Param("click_id"))
@@ -379,9 +430,9 @@ func (h *ImpressionHandler) TrackConversion(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param ad_id path string true "Advertisement ID (UUID)"
-// @Success 200 {object} map[string]interface{} "List of clicks with count"
-// @Failure 400 {object} map[string]interface{} "Invalid advertisement ID format"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} ClickListResponse "List of clicks"
+// @Failure 400 {object} SimpleErrorResponse "Invalid advertisement ID format"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/advertiser/ads/{ad_id}/clicks [get]
 func (h *ImpressionHandler) GetClicksByAdvertisement(c *gin.Context) {
 	adID, err := uuid.Parse(c.Param("ad_id"))
@@ -412,9 +463,9 @@ func (h *ImpressionHandler) GetClicksByAdvertisement(c *gin.Context) {
 // @Security BearerAuth
 // @Param ad_id path string true "Advertisement ID (UUID)"
 // @Param since query string false "Start timestamp (RFC3339). Defaults to 24 hours ago." example("2024-01-15T00:00:00Z")
-// @Success 200 {object} map[string]interface{} "Click statistics"
-// @Failure 400 {object} map[string]interface{} "Invalid advertisement ID or since date format"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {object} services.ClickStats "Click statistics"
+// @Failure 400 {object} SimpleErrorResponse "Invalid advertisement ID or since date format"
+// @Failure 500 {object} SimpleErrorResponse "Internal server error"
 // @Router /api/v1/advertiser/ads/{ad_id}/clicks/stats [get]
 func (h *ImpressionHandler) GetClickStats(c *gin.Context) {
 	adID, err := uuid.Parse(c.Param("ad_id"))
