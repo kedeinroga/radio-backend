@@ -98,12 +98,17 @@ jobs:
           echo "Fetching DATABASE_URL from app-secrets bundle..."
           DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "
           import sys, json
+          from urllib.parse import quote
           url = json.load(sys.stdin)['DATABASE_URL']
-          # Switch Supabase pooler from transaction mode (port 6543) to session mode (port 5432).
-          # Transaction mode drops prepared statements between transactions, breaking the
-          # advisory lock golang-migrate uses. Session mode keeps connection state intact.
-          # Direct connection (db.REF.supabase.co) is IPv6-only and unreachable from GitHub Actions.
+          # 1. Switch Supabase pooler from transaction mode (6543) to session mode (5432).
+          #    Transaction mode drops prepared statements between transactions, breaking the
+          #    advisory lock golang-migrate uses. Session mode keeps connection state intact.
+          #    Direct connection (db.REF.supabase.co) is IPv6-only, unreachable from GH Actions.
           url = url.replace(':6543/', ':5432/')
+          # 2. Disable statement_timeout for this connection only. Supabase enforces an 8s
+          #    default that cancels pg_advisory_lock() while it waits to acquire the lock.
+          opt = 'options=' + quote('-c statement_timeout=0')
+          url += ('&' if '?' in url else '?') + opt
           print(url)
           ")
 
@@ -204,12 +209,17 @@ jobs:
           echo "Fetching DATABASE_URL from app-secrets bundle..."
           DATABASE_URL=$(gcloud secrets versions access latest --secret="app-secrets" --project=${{ env.PROJECT_ID }} | python3 -c "
           import sys, json
+          from urllib.parse import quote
           url = json.load(sys.stdin)['DATABASE_URL']
-          # Switch Supabase pooler from transaction mode (port 6543) to session mode (port 5432).
-          # Transaction mode drops prepared statements between transactions, breaking the
-          # advisory lock golang-migrate uses. Session mode keeps connection state intact.
-          # Direct connection (db.REF.supabase.co) is IPv6-only and unreachable from GitHub Actions.
+          # 1. Switch Supabase pooler from transaction mode (6543) to session mode (5432).
+          #    Transaction mode drops prepared statements between transactions, breaking the
+          #    advisory lock golang-migrate uses. Session mode keeps connection state intact.
+          #    Direct connection (db.REF.supabase.co) is IPv6-only, unreachable from GH Actions.
           url = url.replace(':6543/', ':5432/')
+          # 2. Disable statement_timeout for this connection only. Supabase enforces an 8s
+          #    default that cancels pg_advisory_lock() while it waits to acquire the lock.
+          opt = 'options=' + quote('-c statement_timeout=0')
+          url += ('&' if '?' in url else '?') + opt
           print(url)
           ")
 
