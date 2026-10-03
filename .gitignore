@@ -65,3 +65,6 @@ tmp/
 
 # docs ai
 docs/ai/
+
+# Compiled server binary (root)
+/server
